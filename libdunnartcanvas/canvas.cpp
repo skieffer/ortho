@@ -48,8 +48,12 @@
 #include "libdunnartcanvas/ui/createdistribution.h"
 #include "libdunnartcanvas/ui/createtemplate.h"
 
+#include "libdunnartcanvas/BCLayout.h"
+
 #include "libavoid/libavoid.h"
 #include "libtopology/orthogonal_topology.h"
+#include "libdunnartcanvas/graphdata.h"
+//#include "libcola/compound_constraints.h"
 
 
 namespace dunnart {
@@ -183,7 +187,8 @@ Canvas::Canvas()
       m_routing_event_posted(false),
       m_canvas_font(NULL),
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
-      m_animation_group(NULL)
+      m_animation_group(NULL),
+      m_bclayout(NULL)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -253,6 +258,8 @@ Canvas::Canvas()
 
     connect(this, SIGNAL(selectionChanged()), this,
             SLOT(selectionChangeTriggers()));
+
+    m_bclayout = new BCLayout(this);
 
 #ifdef FPSTIMER
     feasibleStartTime = 0;
@@ -3167,6 +3174,114 @@ QRectF diagramBoundingRect(const QList<CanvasItem *>& list)
     return rect;
 }
 
+void Canvas::improveOrthogonalTopology()
+{
+    router()->processActions();
+
+    using namespace Avoid;
+    // Create a router and set its parameters.
+    Router *router2 = new Router(OrthogonalRouting);
+    router2->setRoutingParameter((RoutingParameter)0, 50);
+    router2->setRoutingParameter((RoutingParameter)1, 0);
+    router2->setRoutingParameter((RoutingParameter)2, 0);
+    router2->setRoutingParameter((RoutingParameter)3, 4000);
+    router2->setRoutingParameter((RoutingParameter)4, 0);
+    router2->setRoutingParameter((RoutingParameter)5, 100);
+    router2->setRoutingParameter((RoutingParameter)6, 0);
+    router2->setRoutingParameter((RoutingParameter)7, 4);
+    router2->setRoutingOption((RoutingOption)0, true);
+    router2->setRoutingOption((RoutingOption)1, true);
+    router2->setRoutingOption((RoutingOption)2, false);
+    router2->setRoutingOption((RoutingOption)3, false);
+
+    // Keep track of router references to canvas shapes and connectors.
+    cola::VariableIDMap idMap;
+    QMap<ShapeObj*,ShapeRef*> d2rShapes;
+    QMap<Connector*,ConnRef*> d2rConns;
+
+    // Create router references.
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = isShapeForLayout(item))
+        {
+            Polygon poly = shape->polygon();
+            int id = shape->internalId();
+            idMap.addMappingForVariable(id,id);
+            ShapeRef *sr = new ShapeRef(router2, poly, id);
+            d2rShapes.insert(shape,sr);
+            //qDebug() << shape->internalId();
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            conn->applyNewRoute(conn->avoidRef->displayRoute(), true);
+
+            int id = conn->internalId();
+            idMap.addMappingForVariable(id,id);
+            ConnRef *cref = new ConnRef(router2, id);
+            d2rConns.insert(conn,cref);
+            //qDebug() << conn->internalId();
+            QPair<CPoint, CPoint> connpts = conn->get_connpts();
+            ConnEnd srcPt(Point(connpts.first.x, connpts.first.y),ConnDirAll);
+            ConnEnd dstPt(Point(connpts.second.x, connpts.second.y),ConnDirAll);
+            cref->setEndpoints(srcPt, dstPt);
+            cref->set_route(conn->avoidRef->displayRoute());
+        }
+    }
+
+    // Build a GraphData object to get all the rectangles and constraints on
+    // the canvas, plus the cluster hierarchy.
+    GraphData *graph = new GraphData(this, true, m_graphlayout->mode, false, 10000);
+
+    // Create the topology addon.
+    topology::AvoidTopologyAddon topologyAddon(
+                graph->rs, graph->ccs, &(graph->clusterHierarchy), idMap, DBL_MAX);
+
+    //router2->outputInstanceToSVG("test-jog2-before");
+
+    // Do the routing
+    router2->processActions();
+    foreach (Connector *conn, d2rConns.keys())
+    {
+        ConnRef *cr = d2rConns.value(conn);
+        cr->set_route(conn->avoidRef->displayRoute().simplify());
+    }
+    router2->setTopologyAddon(&topologyAddon);
+    router2->improveOrthogonalTopology();
+
+    //router2->processTransaction();
+
+    //router2->outputInstanceToSVG("test-jog2-after");
+
+    // Apply the changes to the canvas.
+    foreach (ShapeObj *shape, d2rShapes.keys())
+    {
+        ShapeRef *sr = d2rShapes.value(shape);
+        Point pt = sr->position();
+        shape->setCentrePos(QPointF(pt.x,pt.y));
+    }
+    foreach (Connector *conn, d2rConns.keys())
+    {
+        ConnRef *cr = d2rConns.value(conn);
+        conn->applyNewRoute(cr->displayRoute(),true);
+    }
+
+    // Get the GraphLayout object to recognize the changes.
+    stop_graph_layout();
+
+    // Clean up.
+    delete graph;
+    delete router2;
+}
+
+void Canvas::applyKM3()
+{
+    m_bclayout->applyKM3();
+}
+
+void Canvas::layoutBCTrees()
+{
+    m_bclayout->layoutBCTrees();
+}
 
 }
 // vim: filetype=cpp ts=4 sw=4 et tw=0 wm=0 cindent

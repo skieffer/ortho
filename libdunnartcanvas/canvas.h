@@ -66,6 +66,8 @@ class GraphLayout;
 class SelectionResizeHandle;
 class UndoMacro;
 
+class BCLayout;
+
 typedef QList<CanvasItem *> CObjList;
 
 class Actions {
@@ -256,6 +258,10 @@ class Canvas : public QGraphicsScene
         void distributeSelection(int type);
         void separateSelection(int type);
 
+        void improveOrthogonalTopology(void);
+        void applyKM3(void);
+        void layoutBCTrees(void);
+
         void customEvent(QEvent *event);
         void setOptIdealEdgeLengthModifierFromSlider(int int_modifier);
         void setOptIdealEdgeLengthModifier(double modifier);
@@ -431,6 +437,8 @@ class Canvas : public QGraphicsScene
         QFont *m_canvas_font;
         unsigned int m_canvas_font_size;
         QParallelAnimationGroup *m_animation_group;
+
+        BCLayout *m_bclayout;
 
 #ifdef FPSTIMER
         clock_t startTime;

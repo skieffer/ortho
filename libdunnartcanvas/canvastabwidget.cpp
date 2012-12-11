@@ -144,6 +144,13 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
     m_action_cola_debug_output = new QAction(tr("Output COLA debug files"), this);
     m_action_cola_debug_output->setCheckable(true);
 
+    m_action_improve_orthogonal_topology = new QAction(
+                "Improve Orthogonal Topology",this);
+
+    m_action_apply_km3 = new QAction("Apply KMMM Layout",this);
+
+    m_action_layout_BCTrees = new QAction("Layout BC-trees",this);
+
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);
 
@@ -302,6 +309,17 @@ void CanvasTabWidget::currentChanged(int index)
     m_action_cola_debug_output->disconnect();
     connect(m_action_cola_debug_output, SIGNAL(triggered(bool)),
             m_canvas, SLOT(setDebugCOLAOutput(bool)));
+
+    m_action_improve_orthogonal_topology->disconnect();
+    connect(m_action_improve_orthogonal_topology, SIGNAL(triggered()),
+            m_canvas, SLOT(improveOrthogonalTopology()));
+
+    m_action_apply_km3->disconnect();
+    connect(m_action_apply_km3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));
+
+    m_action_layout_BCTrees->disconnect();
+    connect(m_action_layout_BCTrees, SIGNAL(triggered()),
+            m_canvas, SLOT(layoutBCTrees()));
 
     m_action_lock->disconnect();
     connect(m_action_lock, SIGNAL(triggered()),
@@ -530,6 +548,10 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_automatic_layout);
     layout_menu->addSeparator();
     layout_menu->addAction(m_action_cola_debug_output);
+    layout_menu->addSeparator();
+    layout_menu->addAction(m_action_improve_orthogonal_topology);
+    layout_menu->addAction(m_action_apply_km3);
+    layout_menu->addAction(m_action_layout_BCTrees);
 }
 
 

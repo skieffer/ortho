@@ -106,6 +106,9 @@ private:
     QAction *m_action_overlay_router_display_routes;
     QAction *m_action_edit_separator;
     QAction *m_action_edit_separator2;
+    QAction *m_action_improve_orthogonal_topology;
+    QAction *m_action_apply_km3;
+    QAction *m_action_layout_BCTrees;
 };
 
 }

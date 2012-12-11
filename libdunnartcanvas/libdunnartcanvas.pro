@@ -42,6 +42,7 @@ FORMS = \
     ui/canvasoverview.ui
 
 SOURCES += \ 
+        BCLayout.cpp \
 	FMMLayout.cpp \
 	align3.cpp \
 	oldcanvas.cpp \
@@ -95,6 +96,7 @@ SOURCES += \
     ui/canvasoverview.cpp
 
 HEADERS += \
+        BCLayout.h \
 	FMMLayout.h \
 	align3.h \
 	oldcanvas.h \
