@@ -17,10 +17,10 @@ githash.h
 Makefile*
 
 Dunnart.pro.user
+dunnart.pro.user
 
 tags
 log
 diff
 
 #ignore the executable
-
