@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include <QList>
 #include <QMap>
 #include <QPair>
 #include <QPointF>
@@ -37,6 +38,7 @@
 #include "libdunnartcanvas/pluginshapefactory.h"
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
+#include "libogdf/ogdf/basic/NodeArray.h"
 #include "libogdf/ogdf/basic/Graph_d.h"
 #include "libogdf/ogdf/basic/GraphAttributes.h"
 #include "libogdf/ogdf/basic/SList.h"
@@ -47,6 +49,46 @@
 using namespace ogdf;
 
 namespace dunnart {
+
+BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes)
+{
+    // Construct own copy of graph, maintaining maps to original graph.
+    m_graph = new Graph;
+    foreach (node n, nodes)
+    {
+        node m = m_graph->newNode();
+        m_nodemap.insert(m,n);
+        if (cutNodes.contains(n))
+        {
+            m_cutNodes.append(m);
+        } else
+        {
+            m_normalNodes.append(m);
+        }
+    }
+    foreach (edge e, edges)
+    {
+        node m1 = nodemap.key(e->source());
+        node m2 = nodemap.key(e->target());
+        edge f = m_graph->newEdge(m1,m2);
+        m_edgemap.insert(f,e);
+    }
+}
+
+void BiComp::removeSelf(Graph &G)
+{
+    // Remove all edges.
+    foreach (edge e, m_edgemap.values())
+    {
+        G.delEdge(e);
+    }
+    // Remove all nodes which are /not/ cut nodes.
+    foreach (node m, m_normalNodes)
+    {
+        node n = m_nodemap.value(m);
+        G.delNode(n);
+    }
+}
 
 BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
@@ -110,14 +152,78 @@ void BCLayout::applyKM3()
     injectPositions(nodeShapes, GA);
 }
 
+QList<BiComp*> BCLayout::getNontrivialBCs(Graph G)
+{
+    QList<BiComp> bicomps;
+    BCTree bctree(G);
+    Graph B = bctree.bcTree();
+    node vB;
+    forall_nodes(vB, B)
+    {
+        // Skip cutnodes.
+        if (bctree.typeOfBNode(vB)!=BCTree::BComp) continue;
+
+        // Skip the component if it is too small.
+        int n = bctree.numberOfNodes(vB);
+        if (n < 3) continue;
+
+        // Otherwise get the edges of the original graph belonging to this component,
+        // as well as the set of vertices, and subset of cut vertices.
+        SList<edge> hEdges = bctree.hEdges(vB);
+        QList<edge> gEdges;
+        QSet<node> gNodes;
+        QSet<node> gCutNodes;
+        for (SListIterator<edge> i = hEdges.begin(); i!=hEdges.end(); i++)
+        {
+            edge orig = bctree.original(*i);
+            gEdges.append(orig);
+            node src = orig->source();
+            gNodes.insert(src);
+            if (bctree.typeOfGNode(src)==BCTree::CutVertex) gCutNodes.insert(src);
+            node dst = orig->target();
+            gNodes.insert(dst);
+            if (bctree.typeOfGNode(dst)==BCTree::CutVertex) gCutNodes.insert(dst);
+        }
+        BiComp bc = new BiComp(gEdges, gNodes.toList(), gCutNodes.toList());
+        bicomps.append(bc);
+    }
+    return bicomps;
+}
+
+QMap<int,node> BCLayout::getConnComps(Graph G)
+{
+    NodeArray<int> ccomps;
+    connectedComponents(G, ccomps);
+    QMap<int,node> map;
+    node v;
+    forall_nodes(v,G)
+    {
+        int n = ccomps[v];
+        map.insertMulti(n,v);
+    }
+    return map;
+}
+
 void BCLayout::orthoLayout()
 {
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G = ogdfGraph(nodeShapes, edgeConns);
-    EdgeArray<int> bcs;
-    biconnectedComponents(G, bcs);
-    //...
+
+    //EdgeArray<int> bcs;
+    //biconnectedComponents(G, bcs);
+
+    // Get nontrivial biconnected components (size >= 3).
+    QList<BiComp*> bicomps = getNontrivialBCs(G);
+
+    // Remove them from the original graph, and get the remaining
+    // connected components.
+    foreach (BiComp *bc, bicomps)
+    {
+        bc->removeSelf(G);
+    }
+    QMap<int,node> ccomps = getConnComps(G);
+
 }
 
 #if 0

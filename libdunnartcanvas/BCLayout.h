@@ -23,6 +23,7 @@
  * Author(s): Steven Kieffer  <http://skieffer.info/>
 */
 
+#include <QList>
 #include <QMap>
 #include "libogdf/ogdf/basic/Graph_d.h"
 
@@ -41,6 +42,24 @@ class Connector;
 typedef QMap<node, ShapeObj *> shapemap;
 typedef QMap<edge, Connector *> connmap;
 
+class RootedTree
+{
+    //...
+};
+
+class BiComp
+{
+public:
+    BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes);
+    void removeSelf(Graph& G);
+private:
+    Graph *m_graph;
+    QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
+    QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
+    QList<node> m_normalNodes; // subdomain of those which are not
+    QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
+};
+
 class BCLayout
 {
 public:
@@ -50,6 +69,8 @@ public:
     void injectPositions(shapemap nodeShapes, GraphAttributes GA);
     void applyKM3(void);
     void layoutBCTrees(void);
+    QList<BiComp*> getNontrivialBCs(Graph G);
+    QMap<int,node> getConnComps(Graph G);
     void orthoLayout(void);
 
 private:
