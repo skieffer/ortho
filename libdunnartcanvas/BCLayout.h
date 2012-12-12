@@ -29,6 +29,8 @@
 
 #include "libogdf/ogdf/basic/Graph_d.h"
 
+//#define GRAPHREF
+
 using namespace ogdf;
 
 namespace ogdf {
@@ -95,11 +97,17 @@ public:
     bool containsOriginalEdge(edge e);
     void setRelPt(QPointF p);
 private:
+#ifdef GRAPHREF
+    Graph m_graph;
+#else
     Graph *m_graph;
+#endif
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
     QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
     QList<node> m_normalNodes; // subdomain of those which are not
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
+
+    Graph& copyGraph(QMap<node,node>& nodemap);
 
     // For Dunnart layout:
     shapemap m_origShapeMap;
@@ -118,8 +126,9 @@ public:
     BCLayout(Canvas *canvas);
     Graph ogdfGraph(shapemap& nodeShapes, connmap& edgeConns);
     static void extractSizes(shapemap nodeShapes, GraphAttributes& GA);
-    static void injectPositions(shapemap nodeShapes, GraphAttributes GA);
-    static void injectSizes(shapemap nodeShapes, GraphAttributes GA);
+    static void injectPositions(shapemap nodeShapes, GraphAttributes& GA);
+    static void injectSizes(shapemap nodeShapes, GraphAttributes& GA);
+    static void injectPositionsAndSizes(QMap<node,node>& nodemap, shapemap nodeShapes, GraphAttributes& GA);
     void applyKM3(void);
     void layoutBCTrees(void);
     QList<BiComp*> getNontrivialBCs(Graph G);

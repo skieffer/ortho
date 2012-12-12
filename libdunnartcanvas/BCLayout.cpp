@@ -147,6 +147,31 @@ void RootedTree::constructDunnartGraph(shapemap origShapes)
 // ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
+#ifdef GRAPHREF
+BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes)
+{
+    // Construct own copy of graph, maintaining maps to original graph.
+    foreach (node n, nodes)
+    {
+        node m = m_graph.newNode();
+        m_nodemap.insert(m,n);
+        if (cutNodes.contains(n))
+        {
+            m_cutNodes.append(m);
+        } else
+        {
+            m_normalNodes.append(m);
+        }
+    }
+    foreach (edge e, edges)
+    {
+        node m1 = m_nodemap.key(e->source());
+        node m2 = m_nodemap.key(e->target());
+        edge f = m_graph.newEdge(m1,m2);
+        m_edgemap.insert(f,e);
+    }
+}
+#else
 BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes) :
     m_graph(NULL)
 {
@@ -172,6 +197,7 @@ BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes) :
         m_edgemap.insert(f,e);
     }
 }
+#endif
 
 void BiComp::setRelPt(QPointF p)
 {
@@ -237,13 +263,45 @@ void BiComp::constructDunnartGraph(shapemap origShapes)
     }
 
     // Compute initial layout by FMMM.
+    /*
+#ifdef GRAPHREF
+    GraphAttributes GA(m_graph);
+#else
     GraphAttributes GA(*m_graph);
+#endif
+    */
+    QMap<node,node> nodemapNewToOld;
+    Graph G = copyGraph(nodemapNewToOld);
+    GraphAttributes GA(G);
     // Use sizes from original graph.
     BCLayout::extractSizes(m_origShapeMap, GA);
     FMMMLayout fm3;
     fm3.call(GA);
-    BCLayout::injectPositions(m_ownShapeMap, GA);
-    BCLayout::injectSizes(m_ownShapeMap, GA);
+    //BCLayout::injectPositions(m_ownShapeMap, GA);
+    //BCLayout::injectSizes(m_ownShapeMap, GA);
+    BCLayout::injectPositionsAndSizes(nodemapNewToOld, m_ownShapeMap, GA);
+}
+
+Graph& BiComp::copyGraph(QMap<node, node>& nodemap)
+{
+    Graph G;
+    //QMap<node,node> nodemap;
+    node v = NULL;
+    forall_nodes(v,*m_graph)
+    {
+        node u = G.newNode();
+        nodemap.insert(u,v);
+    }
+    edge e = NULL;
+    forall_edges(e,*m_graph)
+    {
+        node s = e->source();
+        node t = e->target();
+        node m = nodemap.key(s);
+        node n = nodemap.key(t);
+        G.newEdge(m,n);
+    }
+    return G;
 }
 
 void BiComp::improveOrthogonalTopology()
@@ -391,7 +449,7 @@ void BCLayout::extractSizes(shapemap nodeShapes, GraphAttributes &GA)
     }
 }
 
-void BCLayout::injectPositions(shapemap nodeShapes, GraphAttributes GA)
+void BCLayout::injectPositions(shapemap nodeShapes, GraphAttributes& GA)
 {
     foreach (node v, nodeShapes.keys())
     {
@@ -402,13 +460,29 @@ void BCLayout::injectPositions(shapemap nodeShapes, GraphAttributes GA)
     }
 }
 
-void BCLayout::injectSizes(shapemap nodeShapes, GraphAttributes GA)
+void BCLayout::injectSizes(shapemap nodeShapes, GraphAttributes& GA)
 {
     foreach (node v, nodeShapes.keys())
     {
         double w = GA.width(v);
         double h = GA.height(v);
         ShapeObj *shape = nodeShapes.value(v);
+        shape->setSize(QSizeF(w,h));
+    }
+}
+
+void BCLayout::injectPositionsAndSizes(
+        QMap<node, node>& nodemap, shapemap nodeShapes, GraphAttributes &GA)
+{
+    foreach (node v, nodemap.keys())
+    {
+        double cx = GA.x(v) + GA.width(v)/2.0;
+        double cy = GA.y(v) + GA.height(v)/2.0;
+        double w = GA.width(v);
+        double h = GA.height(v);
+        node u = nodemap.value(v);
+        ShapeObj *shape = nodeShapes.value(u);
+        shape->setCentrePos(QPointF(cx,cy));
         shape->setSize(QSizeF(w,h));
     }
 }
