@@ -55,8 +55,7 @@ namespace dunnart {
 // ----------------------------------------------------------------------------
 // RootedTree -----------------------------------------------------------------
 
-RootedTree::RootedTree(QList<node> nodes, Graph G) :
-    m_graph(NULL),
+RootedTree::RootedTree(QList<node>& nodes) :
     m_root(NULL)
 {
     // Construct own copy of graph, maintaining maps to original graph.
@@ -272,24 +271,25 @@ void BiComp::constructDunnartGraph(shapemap origShapes)
     */
     QMap<node,node> nodemapNewToOld;
     Graph G = copyGraph(nodemapNewToOld);
-    GraphAttributes GA(G);
+    GraphAttributes *GA = new GraphAttributes(G);
     // Use sizes from original graph.
-    BCLayout::extractSizes(m_origShapeMap, GA);
+    BCLayout::extractSizes(m_origShapeMap, *GA);
     FMMMLayout fm3;
-    fm3.call(GA);
+    fm3.call(*GA);
     //BCLayout::injectPositions(m_ownShapeMap, GA);
     //BCLayout::injectSizes(m_ownShapeMap, GA);
-    BCLayout::injectPositionsAndSizes(nodemapNewToOld, m_ownShapeMap, GA);
+    BCLayout::injectPositionsAndSizes(
+                nodemapNewToOld, m_ownShapeMap, *GA);
 }
 
 Graph& BiComp::copyGraph(QMap<node, node>& nodemap)
 {
-    Graph G;
+    Graph *G = new Graph();
     //QMap<node,node> nodemap;
     node v = NULL;
     forall_nodes(v,*m_graph)
     {
-        node u = G.newNode();
+        node u = G->newNode();
         nodemap.insert(u,v);
     }
     edge e = NULL;
@@ -299,9 +299,9 @@ Graph& BiComp::copyGraph(QMap<node, node>& nodemap)
         node t = e->target();
         node m = nodemap.key(s);
         node n = nodemap.key(t);
-        G.newEdge(m,n);
+        G->newEdge(m,n);
     }
-    return G;
+    return *G;
 }
 
 void BiComp::improveOrthogonalTopology()
@@ -620,27 +620,12 @@ void BCLayout::orthoLayout()
     // Get nontrivial biconnected components (size >= 3).
     QList<BiComp*> bicomps = getNontrivialBCs(G);
 
-    // Make a copy of the graph.
-    //Graph G2(G);
-
-    // Remove them from the original graph, and get the remaining
-    // connected components.
-    /*
-    foreach (BiComp *bc, bicomps)
-    {
-        bc->removeSelf(G);
-    }
-    assert(G.consistencyCheck());
-    */
-
     QMap<node,node> nodeMapG2;
     Graph G2 = removeBiComps(G, bicomps, nodeMapG2);
     assert(G2.consistencyCheck());
 
-
     //QMap<int,node> ccomps = getConnComps(G);
     QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2);
-
 
     // Form trees on remaining components, throwing away isolated
     // nodes (which must have been cutnodes shared only by nontrivial BCs).
@@ -649,7 +634,7 @@ void BCLayout::orthoLayout()
     {
         QList<node> nodes = ccomps.values(i);
         if (nodes.size() < 2) continue;
-        RootedTree *rtree = new RootedTree(nodes,G);
+        RootedTree *rtree = new RootedTree(nodes);
         rtrees.append(rtree);
     }
 

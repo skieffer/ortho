@@ -63,14 +63,15 @@ public:
 class RootedTree : public Chunk
 {
 public:
-    RootedTree(QList<node> nodes, Graph G);
+    RootedTree(QList<node>& nodes);
     bool containsOriginalNode(node n);
     void setRelPt(QPointF p);
     void recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
                          node origBaseNode, QPointF cardinal);
     void constructDunnartGraph(shapemap origShapes);
+    Graph& graph(void) { return m_graph; }
 private:
-    Graph *m_graph;
+    Graph m_graph;
     node m_root;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
