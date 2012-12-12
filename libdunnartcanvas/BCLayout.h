@@ -69,9 +69,9 @@ public:
     void recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
                          node origBaseNode, QPointF cardinal);
     void constructDunnartGraph(shapemap origShapes);
-    Graph& graph(void) { return m_graph; }
+    Graph& graph(void) { return *m_graph; }
 private:
-    Graph m_graph;
+    Graph *m_graph;
     node m_root;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
@@ -125,11 +125,11 @@ class BCLayout
 {
 public:
     BCLayout(Canvas *canvas);
-    Graph ogdfGraph(shapemap& nodeShapes, connmap& edgeConns);
-    static void extractSizes(shapemap nodeShapes, GraphAttributes& GA);
-    static void injectPositions(shapemap nodeShapes, GraphAttributes& GA);
-    static void injectSizes(shapemap nodeShapes, GraphAttributes& GA);
-    static void injectPositionsAndSizes(QMap<node,node>& nodemap, shapemap nodeShapes, GraphAttributes& GA);
+    Graph *ogdfGraph(shapemap& nodeShapes, connmap& edgeConns);
+    static void extractSizes(shapemap& nodeShapes, GraphAttributes& GA);
+    static void injectPositions(shapemap& nodeShapes, GraphAttributes& GA);
+    static void injectSizes(shapemap& nodeShapes, GraphAttributes& GA);
+    static void injectPositionsAndSizes(QMap<node,node>& nodemap, shapemap& nodeShapes, GraphAttributes& GA);
     void applyKM3(void);
     void layoutBCTrees(void);
     QList<BiComp*> getNontrivialBCs(Graph G);

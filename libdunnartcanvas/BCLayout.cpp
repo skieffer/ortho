@@ -56,10 +56,11 @@ namespace dunnart {
 // RootedTree -----------------------------------------------------------------
 
 RootedTree::RootedTree(QList<node>& nodes) :
+    m_graph(NULL),
     m_root(NULL)
 {
     // Construct own copy of graph, maintaining maps to original graph.
-    m_graph = new Graph;
+    m_graph = new Graph();
     QSet<edge> edges;
     foreach (node n, nodes)
     {
@@ -414,14 +415,14 @@ BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
 {}
 
-Graph BCLayout::ogdfGraph(shapemap &nodeShapes, connmap &edgeConns)
+Graph *BCLayout::ogdfGraph(shapemap &nodeShapes, connmap &edgeConns)
 {
-    Graph G;
+    Graph *G = new Graph;
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (ShapeObj *shape = isShapeForLayout(item))
         {
-            node n = G.newNode();
+            node n = G->newNode();
             nodeShapes.insert(n,shape);
         }
     }
@@ -432,14 +433,14 @@ Graph BCLayout::ogdfGraph(shapemap &nodeShapes, connmap &edgeConns)
             QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
             node u = nodeShapes.key(endpts.first);
             node v = nodeShapes.key(endpts.second);
-            edge e = G.newEdge(u,v);
+            edge e = G->newEdge(u,v);
             edgeConns.insert(e,conn);
         }
     }
     return G;
 }
 
-void BCLayout::extractSizes(shapemap nodeShapes, GraphAttributes &GA)
+void BCLayout::extractSizes(shapemap& nodeShapes, GraphAttributes &GA)
 {
     foreach (node v, nodeShapes.keys())
     {
@@ -449,7 +450,7 @@ void BCLayout::extractSizes(shapemap nodeShapes, GraphAttributes &GA)
     }
 }
 
-void BCLayout::injectPositions(shapemap nodeShapes, GraphAttributes& GA)
+void BCLayout::injectPositions(shapemap& nodeShapes, GraphAttributes& GA)
 {
     foreach (node v, nodeShapes.keys())
     {
@@ -460,7 +461,7 @@ void BCLayout::injectPositions(shapemap nodeShapes, GraphAttributes& GA)
     }
 }
 
-void BCLayout::injectSizes(shapemap nodeShapes, GraphAttributes& GA)
+void BCLayout::injectSizes(shapemap& nodeShapes, GraphAttributes& GA)
 {
     foreach (node v, nodeShapes.keys())
     {
@@ -472,16 +473,16 @@ void BCLayout::injectSizes(shapemap nodeShapes, GraphAttributes& GA)
 }
 
 void BCLayout::injectPositionsAndSizes(
-        QMap<node, node>& nodemap, shapemap nodeShapes, GraphAttributes &GA)
+        QMap<node, node>& nodemap, shapemap& nodeShapes, GraphAttributes &GA)
 {
-    foreach (node v, nodemap.keys())
+    foreach (node u, nodemap.keys())
     {
+        node v = nodemap.value(u);
         double cx = GA.x(v) + GA.width(v)/2.0;
         double cy = GA.y(v) + GA.height(v)/2.0;
         double w = GA.width(v);
         double h = GA.height(v);
-        node u = nodemap.value(v);
-        ShapeObj *shape = nodeShapes.value(u);
+        ShapeObj *shape = nodeShapes.value(v);
         shape->setCentrePos(QPointF(cx,cy));
         shape->setSize(QSizeF(w,h));
     }
@@ -491,8 +492,8 @@ void BCLayout::applyKM3()
 {
     shapemap nodeShapes;
     connmap edgeConns;
-    Graph G = ogdfGraph(nodeShapes, edgeConns);
-    GraphAttributes GA(G);
+    Graph *G = ogdfGraph(nodeShapes, edgeConns);
+    GraphAttributes GA(*G);
     extractSizes(nodeShapes, GA);
     FMMMLayout fm3;
     fm3.call(GA);
@@ -615,7 +616,7 @@ void BCLayout::orthoLayout()
 {
     shapemap nodeShapes;
     connmap edgeConns;
-    Graph G = ogdfGraph(nodeShapes, edgeConns);
+    Graph G = *ogdfGraph(nodeShapes, edgeConns);
 
     // Get nontrivial biconnected components (size >= 3).
     QList<BiComp*> bicomps = getNontrivialBCs(G);
