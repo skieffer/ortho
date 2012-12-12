@@ -109,6 +109,7 @@ private:
     QAction *m_action_improve_orthogonal_topology;
     QAction *m_action_apply_km3;
     QAction *m_action_layout_BCTrees;
+    QAction *m_action_BCOrthoLayout;
 };
 
 }

@@ -3283,6 +3283,11 @@ void Canvas::layoutBCTrees()
     m_bclayout->layoutBCTrees();
 }
 
+void Canvas::BCOrthoLayout()
+{
+    m_bclayout->orthoLayout();
+}
+
 }
 // vim: filetype=cpp ts=4 sw=4 et tw=0 wm=0 cindent
 

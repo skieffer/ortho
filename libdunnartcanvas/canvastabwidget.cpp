@@ -151,6 +151,8 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
 
     m_action_layout_BCTrees = new QAction("Layout BC-trees",this);
 
+    m_action_BCOrthoLayout = new QAction("BC Ortho Layout",this);
+
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);
 
@@ -320,6 +322,9 @@ void CanvasTabWidget::currentChanged(int index)
     m_action_layout_BCTrees->disconnect();
     connect(m_action_layout_BCTrees, SIGNAL(triggered()),
             m_canvas, SLOT(layoutBCTrees()));
+
+    m_action_BCOrthoLayout->disconnect();
+    connect(m_action_BCOrthoLayout, SIGNAL(triggered()), m_canvas, SLOT(BCOrthoLayout()));
 
     m_action_lock->disconnect();
     connect(m_action_lock, SIGNAL(triggered()),
@@ -552,6 +557,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_improve_orthogonal_topology);
     layout_menu->addAction(m_action_apply_km3);
     layout_menu->addAction(m_action_layout_BCTrees);
+    layout_menu->addAction(m_action_BCOrthoLayout);
 }
 
 
