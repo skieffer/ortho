@@ -92,6 +92,7 @@ public:
                          node origBaseNode, QPointF cardinal);
     static QPointF nearestCardinal(QPointF v);
     bool containsOriginalNode(node n);
+    bool containsOriginalEdge(edge e);
     void setRelPt(QPointF p);
 private:
     Graph *m_graph;
@@ -123,6 +124,8 @@ public:
     void layoutBCTrees(void);
     QList<BiComp*> getNontrivialBCs(Graph G);
     QMap<int,node> getConnComps(Graph G);
+    QMap<int,node> getConnComps2(Graph& G2, QMap<node,node> nodeMap);
+    Graph removeBiComps(Graph G, bclist bcs, QMap<node,node>& nodeMap);
     void orthoLayout(void);
 
 private:

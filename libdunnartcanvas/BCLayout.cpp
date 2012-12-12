@@ -86,7 +86,6 @@ RootedTree::RootedTree(QList<node> nodes, Graph G) :
         edge f = m_graph->newEdge(m1,m2);
         m_edgemap.insert(f,e);
     }
-    qDebug() << nodes;
 }
 
 void RootedTree::setRelPt(QPointF p)
@@ -294,6 +293,11 @@ bool BiComp::containsOriginalNode(node n)
     return m_nodemap.values().contains(n);
 }
 
+bool BiComp::containsOriginalEdge(edge e)
+{
+    return m_edgemap.values().contains(e);
+}
+
 /**
  * Find all chunks that contain (an image of) the cut node from the original graph,
  * and which are different from the present chunk.
@@ -464,13 +468,73 @@ QMap<int,node> BCLayout::getConnComps(Graph G)
     NodeArray<int> ccomps(G);
     connectedComponents(G, ccomps);
     QMap<int,node> map;
-    node v;
+    node v = NULL;
     forall_nodes(v,G)
     {
         int n = ccomps[v];
         map.insertMulti(n,v);
     }
     return map;
+}
+
+QMap<int,node> BCLayout::getConnComps2(Graph& G2, QMap<node, node> nodeMap)
+{
+    // G2 the second graph we construct; nodeMap the map that maps nodes
+    // of G2 back to G (our first graph).
+
+    NodeArray<int> ccomps(G2);
+    connectedComponents(G2, ccomps);
+    QMap<int,node> map;
+    node v2 = NULL;
+    forall_nodes(v2,G2)
+    {
+        int n = ccomps[v2];
+        node v = nodeMap.value(v2);
+        map.insertMulti(n,v);
+    }
+    return map;
+}
+
+Graph BCLayout::removeBiComps(Graph G, bclist bcs, QMap<node, node>& nodeMap)
+{
+    // We construct and return a new graph which is equivalent of G
+    // with all edges in the BiComps in bcs deleted.
+    // The node map will be filled in with a mapping from nodes of the new graph
+    // back to the corresponding nodes in the old graph.
+
+    Graph Gp;
+
+    // Copy nodes.
+    node v = NULL;
+    forall_nodes(v,G)
+    {
+        node u = Gp.newNode();
+        nodeMap.insert(u,v);
+    }
+    // Copy edges, except those in the BiComps.
+    edge e = NULL;
+    forall_edges(e,G)
+    {
+        bool keep = true;
+        foreach (BiComp *bc, bcs)
+        {
+            if (bc->containsOriginalEdge(e))
+            {
+                keep = false;
+                break;
+            }
+        }
+        if (keep)
+        {
+            node s = e->source();
+            node t = e->target();
+            node m = nodeMap.key(s);
+            node n = nodeMap.key(t);
+            Gp.newEdge(m,n);
+        }
+    }
+
+    return Gp;
 }
 
 void BCLayout::orthoLayout()
@@ -487,16 +551,27 @@ void BCLayout::orthoLayout()
 
     // Remove them from the original graph, and get the remaining
     // connected components.
+    /*
     foreach (BiComp *bc, bicomps)
     {
         bc->removeSelf(G);
     }
     assert(G.consistencyCheck());
-    QMap<int,node> ccomps = getConnComps(G);
+    */
+
+    QMap<node,node> nodeMapG2;
+    Graph G2 = removeBiComps(G, bicomps, nodeMapG2);
+    assert(G2.consistencyCheck());
+
+
+    //QMap<int,node> ccomps = getConnComps(G);
+    QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2);
+
+
     // Form trees on remaining components, throwing away isolated
     // nodes (which must have been cutnodes shared only by nontrivial BCs).
     QList<RootedTree*> rtrees;
-    foreach (int i, ccomps.keys())
+    foreach (int i, ccomps.keys().toSet())
     {
         QList<node> nodes = ccomps.values(i);
         if (nodes.size() < 2) continue;
