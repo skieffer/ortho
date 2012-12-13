@@ -53,9 +53,23 @@ using namespace ogdf;
 namespace dunnart {
 
 // ----------------------------------------------------------------------------
+// Chunk ----------------------------------------------------------------------
+
+QList<Chunk*> Chunk::findNeighbours(node origCutNode, QList<Chunk *> allChunks)
+{
+    QList<Chunk*> nbrs;
+    foreach (Chunk *ch, allChunks)
+    {
+        if (ch==this) continue;
+        if (ch->containsOriginalNode(origCutNode)) nbrs.append(ch);
+    }
+    return nbrs;
+}
+
+// ----------------------------------------------------------------------------
 // RootedTree -----------------------------------------------------------------
 
-RootedTree::RootedTree(QList<node>& nodes) :
+RootedTree::RootedTree(QList<node>& nodes, QSet<node>& cutnodes) :
     m_graph(NULL),
     m_root(NULL),
     m_basept(QPointF(0,0)),
@@ -69,6 +83,8 @@ RootedTree::RootedTree(QList<node>& nodes) :
         // Create own node rep.
         node m = m_graph->newNode();
         m_nodemap.insert(m,n);
+        if (cutnodes.contains(n)) { m_cutNodes.append(m); }
+        else { m_normalNodes.append(m); }
         // Note those edges that are internal to this node list.
         edge e = NULL;
         forall_adj_edges(e,n)
@@ -88,6 +104,16 @@ RootedTree::RootedTree(QList<node>& nodes) :
         edge f = m_graph->newEdge(m1,m2);
         m_edgemap.insert(f,e);
     }
+}
+
+QList<node> RootedTree::getCutNodes()
+{
+    QList<node> cns;
+    foreach (node cn, m_cutNodes)
+    {
+        cns.append(m_nodemap.value(cn));
+    }
+    return cns;
 }
 
 void RootedTree::setRelPt(QPointF p)
@@ -163,6 +189,11 @@ void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
     }
 }
 
+void RootedTree::setChildren(QList<Chunk *> children)
+{
+    m_children = children;
+}
+
 // ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
@@ -206,6 +237,21 @@ BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Gr
     */
     // Result: as expected, some are in the map, others are not.
     //
+}
+
+QList<node> BiComp::getCutNodes()
+{
+    QList<node> cns;
+    foreach (node cn, m_cutNodes)
+    {
+        cns.append(m_nodemap.value(cn));
+    }
+    return cns;
+}
+
+void BiComp::setChildren(QList<Chunk *> children)
+{
+    m_children = children;
 }
 
 void BiComp::setRelPt(QPointF p)
@@ -425,6 +471,28 @@ BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
 {}
 
+void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root)
+{
+    QList<Chunk*> queue;
+    QSet<Chunk*> seen;
+    queue.push_back(root);
+    while (!queue.empty())
+    {
+        Chunk *ch = queue.takeFirst();
+        QList<node> cutnodes = ch->getCutNodes();
+        QList<Chunk*> nbrs;
+        foreach (node cn, cutnodes)
+        {
+            nbrs.append( ch->findNeighbours(cn, chunks) );
+        }
+        QSet<Chunk*> nbrSet = nbrs.toSet();
+        nbrSet.subtract(seen);
+        ch->setChildren(nbrSet.toList());
+        seen.unite(nbrSet);
+        queue.append(nbrSet.toList());
+    }
+}
+
 void BCLayout::ogdfGraph(Graph& G, shapemap &nodeShapes, connmap &edgeConns)
 {
     foreach (CanvasItem *item, m_canvas->items())
@@ -492,7 +560,7 @@ void BCLayout::injectSizes(shapemap& nodeShapes, GraphAttributes& GA)
     }
 }
 
-QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G)
+QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
 {
     QList<BiComp*> bicomps;
     BCTree bctree(G);
@@ -542,6 +610,11 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G)
         QList<node> gCutNodeList = gCutNodes.toList();
         BiComp *bc = new BiComp(gEdges, gNodeList, gCutNodeList, G);
         bicomps.append(bc);
+    }
+    node vG;
+    forall_nodes(vG, G)
+    {
+        if (bctree.typeOfGNode(vG)==BCTree::CutVertex) cutnodes.insert(vG);
     }
     return bicomps;
 }
@@ -646,8 +719,9 @@ void BCLayout::orthoLayout()
     // Result: Yes, every node in G is a key in nodeShapes.
     //
 
-    // Get nontrivial biconnected components (size >= 3).
-    QList<BiComp*> bicomps = getNontrivialBCs(G);
+    // Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
+    QSet<node> cutnodes;
+    QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes);
 
     // Get a new graph isomorphic to the result of removing the bicomps from G.
     QMap<node,node> nodeMapG2ToG;
@@ -664,7 +738,7 @@ void BCLayout::orthoLayout()
     {
         QList<node> nodes = ccomps.values(i);
         if (nodes.size() < 2) continue;
-        RootedTree *rtree = new RootedTree(nodes);
+        RootedTree *rtree = new RootedTree(nodes, cutnodes);
         rtrees.append(rtree);
     }
 

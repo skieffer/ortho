@@ -57,23 +57,33 @@ public:
             shapemap& origShapes, bclist& bcs, treelist& trees,
             node origBaseNode, QPointF cardinal) = 0;
     virtual void recursiveDraw(Canvas *canvas, QPointF p) = 0;
+    virtual bool containsOriginalNode(node n) = 0;
+    virtual QList<node> getCutNodes(void) = 0;
+    virtual void setChildren(QList<Chunk*> children) = 0;
+    QList<Chunk*> findNeighbours(node origCutNode, QList<Chunk*> allChunks);
 };
 
 class RootedTree : public Chunk
 {
 public:
-    RootedTree(QList<node>& nodes);
+    RootedTree(QList<node>& nodes, QSet<node>& cutnodes);
     bool containsOriginalNode(node n);
     void setRelPt(QPointF p);
     void recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                          node origBaseNode, QPointF cardinal);
     void recursiveDraw(Canvas *canvas, QPointF p);
     void constructDunnartGraph(shapemap& origShapes);
+    QList<node> getCutNodes(void);
+    void setChildren(QList<Chunk*> children);
 private:
     Graph *m_graph;
     node m_root;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
+    QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
+    QList<node> m_normalNodes; // subdomain of those which are not
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
+
+    QList<Chunk*> m_children;
 
     shapemap m_origShapeMap;
     shapemap m_ownShapeMap;
@@ -97,6 +107,8 @@ public:
     static QPointF nearestCardinal(QPointF v);
     bool containsOriginalNode(node n);
     bool containsOriginalEdge(edge e);
+    QList<node> getCutNodes(void);
+    void setChildren(QList<Chunk*> children);
 private:
     Graph *m_graph;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
@@ -130,9 +142,11 @@ public:
     static void injectPositions(shapemap& nodeShapes, GraphAttributes& GA);
     static void injectSizes(shapemap& nodeShapes, GraphAttributes& GA);
 
+    static void buildBFSTree(QList<Chunk*> chunks, Chunk *root);
+
     void applyKM3(void);
 
-    QList<BiComp*> getNontrivialBCs(Graph& G);
+    QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
     QMap<int,node> getConnComps(Graph& G);
     QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
