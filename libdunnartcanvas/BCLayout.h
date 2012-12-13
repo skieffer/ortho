@@ -72,7 +72,7 @@ public:
     void setRelPt(QPointF p);
     void recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal);
     void recursiveDraw(Canvas *canvas, QPointF p);
-    void constructDunnartGraph(shapemap& origShapes);
+    void constructDunnartGraph(shapemap& origShapes, QPointF cardinal);
     QList<node> getCutNodes(void);
     static QPointF nearestCardinal(QPointF v);
     void setChildren(QList<Chunk*> children);
@@ -88,7 +88,7 @@ private:
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
 
     QList<Chunk*> m_children;
-    node m_parentCutNode;
+    node m_parentCutNode; // belongs to orig. graph
 
     shapemap m_origShapeMap;
     shapemap m_ownShapeMap;
@@ -144,6 +144,9 @@ public:
 
     static void extractSizes(shapemap& nodeShapes, GraphAttributes& GA);
     static void extractSizes(
+            QMap<node,node>& newToOldNodes, shapemap& oldNodesToShapes,
+            GraphAttributes& newNodesGA);
+    static void extractPosAndSize(
             QMap<node,node>& newToOldNodes, shapemap& oldNodesToShapes,
             GraphAttributes& newNodesGA);
     static void injectPositions(shapemap& nodeShapes, GraphAttributes& GA);

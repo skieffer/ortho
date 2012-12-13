@@ -41,12 +41,14 @@
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
 #include "libogdf/ogdf/basic/NodeArray.h"
+#include "libogdf/ogdf/basic/geometry.h"
 #include "libogdf/ogdf/basic/Graph_d.h"
 #include "libogdf/ogdf/basic/GraphAttributes.h"
 #include "libogdf/ogdf/basic/SList.h"
 #include "libogdf/ogdf/basic/simple_graph_alg.h"
 #include "libogdf/ogdf/decomposition/BCTree.h"
 #include "libogdf/ogdf/energybased/FMMMLayout.h"
+#include "libogdf/ogdf/tree/TreeLayout.h"
 
 using namespace ogdf;
 
@@ -72,6 +74,7 @@ QList<Chunk*> Chunk::findNeighbours(node origCutNode, QList<Chunk *> allChunks)
 RootedTree::RootedTree(QList<node>& nodes, QSet<node>& cutnodes) :
     m_graph(NULL),
     m_root(NULL),
+    m_parentCutNode(NULL),
     m_basept(QPointF(0,0)),
     m_relpt(QPointF(0,0))
 {
@@ -133,9 +136,9 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
     // Otherwise, it is a node from the original graph, and we are meant to
     // layout this subgraph starting from its local copy of that node, and
     // moving in the direction given by cardinal.
-    constructDunnartGraph(origShapes);
+    constructDunnartGraph(origShapes, cardinal);
     QPointF bary = baryCentre();
-    int fixedSep = 50; // magic number
+    int fixedSep = 300; // magic number
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -148,10 +151,11 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal);
+        fixedSep += 300;
     }
 }
 
-void RootedTree::constructDunnartGraph(shapemap& origShapes)
+void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal)
 {
     // Store passed value.
     m_origShapeMap = origShapes;
@@ -161,6 +165,7 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes)
     foreach (node m, m_nodemap.keys())
     {
         ShapeObj *shape = factory->createShape("org.dunnart.shapes.ellipse");
+        shape->setPosAndSize(QPointF(0,0), QSizeF(20,20));
         shape->setFillColour(QColor(192,0,0));
         m_ownShapeMap.insert(m,shape);
     }
@@ -176,23 +181,74 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes)
         m_ownConnMap.insert(f,conn);
     }
 
-    // Compute initial layout by FMMM.
+    // Set up the tree layout.
+    TreeLayout treelayout;
+    int x = cardinal.x(); int y = cardinal.y();
+    int n = x*x - x + 2*y*y + y; // maps (x,y) to log[i](x+iy)
+    Orientation orient;
+    switch(n)
+    {
+    case 0:
+        orient = leftToRight; break;
+    case 1:
+        orient = bottomToTop; break;
+    case 2:
+        orient = rightToLeft; break;
+    case 3:
+        orient = topToBottom; break;
+    }
+    treelayout.orientation(orient);
+    treelayout.rootSelection(TreeLayout::rootByCoord);
+    treelayout.orthogonalLayout(true);
+    // Now we must give our local copy of the parentCutNode an extreme coordinate,
+    // so that it will be chosen as root.
+    node localParent = m_nodemap.key(m_parentCutNode);
+    ShapeObj *rootShape = m_ownShapeMap.value(localParent);
+    // When all initial positions are (0,0), this is easy.
+    rootShape->setCentrePos(-100*cardinal);
+
+    /* If initial positions are not all (0,0), we will need to compute max and mins.
+    switch(n)
+    {
+    case 0:
+        // left to right, so root needs smallest x coord
+        //double minX = DBL_MAX;
+        //foreach ()
+        ;
+    case 1:
+        orient = bottomToTop; break;
+    case 2:
+        orient = rightToLeft; break;
+    case 3:
+        orient = topToBottom; break;
+    }
+    */
+
+    // Call the layout.
     GraphAttributes newNodesGA(*m_graph);
-    // Use sizes from original graph.
-    BCLayout::extractSizes(m_nodemap, m_origShapeMap, newNodesGA);
-    FMMMLayout fm3;
-    fm3.call(newNodesGA);
+    // Use positions and sizes from original graph.
+    BCLayout::extractPosAndSize(m_nodemap, m_origShapeMap, newNodesGA);
+    treelayout.call(newNodesGA);
     BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-    BCLayout::injectSizes(m_ownShapeMap, newNodesGA);
+
 }
 
 void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
 {
+    // Compute base pt.
     m_basept = p + m_relpt;
+    // Compute shift so that parent cut node (if exists) is centred at basept.
+    QPointF shift = m_basept;
+    if (m_parentCutNode)
+    {
+        QPointF cn = m_ownShapeMap.value(m_nodemap.key(m_parentCutNode))->centrePos();
+        shift -= cn;
+    }
     foreach (ShapeObj *sh, m_ownShapeMap.values())
     {
         QPointF c = sh->centrePos();
-        c += m_basept;
+        //c += m_basept;
+        c += shift;
         sh->setCentrePos(c);
         canvas->addItem(sh);
     }
@@ -200,6 +256,11 @@ void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
     foreach (Connector *conn, m_ownConnMap.values())
     {
         canvas->addItem(conn);
+    }
+
+    foreach (Chunk *ch, m_children)
+    {
+        ch->recursiveDraw(canvas, m_basept);
     }
 }
 
@@ -251,7 +312,8 @@ QPointF RootedTree::nearestCardinal(QPointF v)
 BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
     m_graph(NULL),
     m_basept(QPointF(0,0)),
-    m_relpt(QPointF(0,0))
+    m_relpt(QPointF(0,0)),
+    m_parentCutNode(NULL)
 {
     // Construct own copy of graph, maintaining maps to original graph.
     m_graph = new Graph;
@@ -480,7 +542,7 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF ca
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes);
     QPointF bary = baryCentre();
-    int fixedSep = 50; // magic number
+    int fixedSep = 300; // magic number
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -493,16 +555,26 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF ca
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal);
+        fixedSep += 300;
     }
 }
 
 void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
 {
+    // Compute base pt.
     m_basept = p + m_relpt;
+    // Compute shift so that parent cut node (if exists) is centred at basept.
+    QPointF shift = m_basept;
+    if (m_parentCutNode)
+    {
+        QPointF cn = m_ownShapeMap.value(m_nodemap.key(m_parentCutNode))->centrePos();
+        shift -= cn;
+    }
     foreach (ShapeObj *sh, m_ownShapeMap.values())
     {
         QPointF c = sh->centrePos();
-        c += m_basept;
+        //c += m_basept;
+        c += shift;
         sh->setCentrePos(c);
         canvas->addItem(sh);
     }
@@ -593,6 +665,20 @@ void BCLayout::extractSizes(
         ShapeObj *shape = oldNodesToShapes.value(v);
         newNodesGA.width()[u] = shape->size().width();
         newNodesGA.height()[u] = shape->size().height();
+    }
+}
+
+void BCLayout::extractPosAndSize(
+        QMap<node, node> &newToOldNodes, shapemap &oldNodesToShapes, GraphAttributes &newNodesGA)
+{
+    foreach (node u, newToOldNodes.keys())
+    {
+        node v = newToOldNodes.value(u);
+        ShapeObj *shape = oldNodesToShapes.value(v);
+        newNodesGA.width()[u] = shape->size().width();
+        newNodesGA.height()[u] = shape->size().height();
+        newNodesGA.x(u) = shape->centrePos().x();
+        newNodesGA.y(u) = shape->centrePos().y();
     }
 }
 
