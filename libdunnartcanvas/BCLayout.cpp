@@ -60,7 +60,7 @@ RootedTree::RootedTree(QList<node>& nodes) :
     m_root(NULL)
 {
     // Construct own copy of graph, maintaining maps to original graph.
-    m_graph = new Graph();
+    m_graph = new Graph;
     QSet<edge> edges;
     foreach (node n, nodes)
     {
@@ -98,7 +98,7 @@ bool RootedTree::containsOriginalNode(node n)
     return m_nodemap.values().contains(n);
 }
 
-void RootedTree::recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
+void RootedTree::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                                  node origBaseNode, QPointF cardinal)
 {
     constructDunnartGraph(origShapes);
@@ -109,7 +109,7 @@ void RootedTree::recursiveLayout(shapemap origShapes, bclist bcs, treelist trees
     // moving in the direction given by cardinal.
 }
 
-void RootedTree::constructDunnartGraph(shapemap origShapes)
+void RootedTree::constructDunnartGraph(shapemap& origShapes)
 {
     // Store passed value.
     m_origShapeMap = origShapes;
@@ -135,44 +135,19 @@ void RootedTree::constructDunnartGraph(shapemap origShapes)
     }
 
     // Compute initial layout by FMMM.
-    GraphAttributes GA(*m_graph);
+    GraphAttributes newNodesGA(*m_graph);
     // Use sizes from original graph.
-    BCLayout::extractSizes(m_origShapeMap, GA);
+    BCLayout::extractSizes(m_nodemap, m_origShapeMap, newNodesGA);
     FMMMLayout fm3;
-    fm3.call(GA);
-    BCLayout::injectPositions(m_ownShapeMap, GA);
-    BCLayout::injectSizes(m_ownShapeMap, GA);
+    fm3.call(newNodesGA);
+    BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+    BCLayout::injectSizes(m_ownShapeMap, newNodesGA);
 }
 
 // ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
-#ifdef GRAPHREF
-BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes)
-{
-    // Construct own copy of graph, maintaining maps to original graph.
-    foreach (node n, nodes)
-    {
-        node m = m_graph.newNode();
-        m_nodemap.insert(m,n);
-        if (cutNodes.contains(n))
-        {
-            m_cutNodes.append(m);
-        } else
-        {
-            m_normalNodes.append(m);
-        }
-    }
-    foreach (edge e, edges)
-    {
-        node m1 = m_nodemap.key(e->source());
-        node m2 = m_nodemap.key(e->target());
-        edge f = m_graph.newEdge(m1,m2);
-        m_edgemap.insert(f,e);
-    }
-}
-#else
-BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes) :
+BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
     m_graph(NULL)
 {
     // Construct own copy of graph, maintaining maps to original graph.
@@ -196,8 +171,21 @@ BiComp::BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes) :
         edge f = m_graph->newEdge(m1,m2);
         m_edgemap.insert(f,e);
     }
+    //diag:
+    /*
+    node vG;
+    forall_nodes(vG,G)
+    {
+        bool okay = false;
+        if (m_nodemap.values().contains(vG)) {
+            okay = true;
+        }
+        qDebug() << okay;
+    }
+    */
+    // Result: as expected, some are in the map, others are not.
+    //
 }
-#endif
 
 void BiComp::setRelPt(QPointF p)
 {
@@ -206,28 +194,13 @@ void BiComp::setRelPt(QPointF p)
 
 void BiComp::removeSelf(Graph &G)
 {
-    static int i;
     // Remove all edges.
     foreach (edge e, m_edgemap.values())
     {
-        i++;
         G.delEdge(e);
-        assert(G.consistencyCheck());
         //G.hideEdge(e);
+        assert(G.consistencyCheck());
     }
-    // Remove all nodes which are /not/ cut nodes....
-    // This was causing an error in ogdf, for no clear reason.
-    // But we actually don't need to do it. After removing the
-    // edges, the nodes in m_normalNodes should all be isolated
-    // nodes in G. So they will be disregarded when we compute
-    // the nontrivial trees among the remaining connected components.
-    /*
-    foreach (node m, m_normalNodes)
-    {
-        node n = m_nodemap.value(m);
-        G.delNode(n);
-    }
-    */
 }
 
 size_t BiComp::size()
@@ -237,11 +210,8 @@ size_t BiComp::size()
 
 
 // pass shapemap for the shapes in the original graph
-void BiComp::constructDunnartGraph(shapemap origShapes)
+void BiComp::constructDunnartGraph(shapemap& origShapes)
 {
-    // Store passed value.
-    m_origShapeMap = origShapes;
-
     // Create Dunnart shape and connector objects for own graph.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     foreach (node m, m_nodemap.keys())
@@ -263,30 +233,23 @@ void BiComp::constructDunnartGraph(shapemap origShapes)
     }
 
     // Compute initial layout by FMMM.
-    /*
-#ifdef GRAPHREF
-    GraphAttributes GA(m_graph);
-#else
-    GraphAttributes GA(*m_graph);
-#endif
-    */
-    QMap<node,node> nodemapNewToOld;
-    Graph G = copyGraph(nodemapNewToOld);
-    GraphAttributes *GA = new GraphAttributes(G);
+    //QMap<node,node> nodemapNewToOld;
+    //Graph G = copyGraph(nodemapNewToOld);
+    //GraphAttributes *GA = new GraphAttributes(G);
+
+    GraphAttributes newNodesGA(*m_graph);
+
     // Use sizes from original graph.
-    BCLayout::extractSizes(m_origShapeMap, *GA);
+    BCLayout::extractSizes(m_nodemap, origShapes, newNodesGA);
     FMMMLayout fm3;
-    fm3.call(*GA);
-    //BCLayout::injectPositions(m_ownShapeMap, GA);
-    //BCLayout::injectSizes(m_ownShapeMap, GA);
-    BCLayout::injectPositionsAndSizes(
-                nodemapNewToOld, m_ownShapeMap, *GA);
+    fm3.call(newNodesGA);
+    BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+    BCLayout::injectSizes(m_ownShapeMap, newNodesGA);
 }
 
 Graph& BiComp::copyGraph(QMap<node, node>& nodemap)
 {
     Graph *G = new Graph();
-    //QMap<node,node> nodemap;
     node v = NULL;
     forall_nodes(v,*m_graph)
     {
@@ -340,10 +303,14 @@ QPointF BiComp::baryCentre()
 
 QPointF BiComp::nearestCardinal(QPointF v)
 {
+    QPointF N(0,-1);
+    QPointF S(0, 1);
+    QPointF E( 1,0);
+    QPointF W(-1,0);
     double x = v.x(); double y = v.y();
     QPointF u = (abs(y) > abs(x) ?
-                     ( y<0?QPointF(0,-1):QPointF(0,1) ) :
-                     ( x<0?QPointF(-1,0):QPointF(1,0) ) );
+                     ( y < 0 ? N : S ) :
+                     ( x < 0 ? W : E ) );
     return u;
 }
 
@@ -358,10 +325,10 @@ bool BiComp::containsOriginalEdge(edge e)
 }
 
 /**
- * Find all chunks that contain (an image of) the cut node from the original graph,
+ * Find all chunks that contain (an image of) a cut node from the original graph,
  * and which are different from the present chunk.
  */
-QList<Chunk*> BiComp::findCutNodeNeighbours(node origCutNode, bclist bcs, treelist trees)
+QList<Chunk*> BiComp::findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees)
 {
     QList<Chunk*> nbrs;
     foreach (BiComp *bc, bcs)
@@ -376,7 +343,7 @@ QList<Chunk*> BiComp::findCutNodeNeighbours(node origCutNode, bclist bcs, treeli
     return nbrs;
 }
 
-void BiComp::recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
+void BiComp::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                              node origBaseNode, QPointF cardinal)
 {
     // TODO: Use origBaseNode and cardinal.
@@ -397,13 +364,13 @@ void BiComp::recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
         QList<Chunk*> nbrs = findCutNodeNeighbours(origCutNode, bcs, trees);
         // Add as children
         m_children.append(nbrs);
-        // Layout each one, and set its relative point.
+        // Lay out each one, and set its relative point.
         int fixedSep = 50; // magic number
         foreach (Chunk *ch, nbrs)
         {
             QPointF p = cnCentre + fixedSep*cardinal;
             ch->setRelPt(p);
-            ch->recursiveLayout(origShapes, bcs, trees, cn, cardinal);
+            ch->recursiveLayout(origShapes, bcs, trees, origCutNode, cardinal);
         }
     }
 }
@@ -415,14 +382,13 @@ BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
 {}
 
-Graph *BCLayout::ogdfGraph(shapemap &nodeShapes, connmap &edgeConns)
+void BCLayout::ogdfGraph(Graph& G, shapemap &nodeShapes, connmap &edgeConns)
 {
-    Graph *G = new Graph;
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (ShapeObj *shape = isShapeForLayout(item))
         {
-            node n = G->newNode();
+            node n = G.newNode();
             nodeShapes.insert(n,shape);
         }
     }
@@ -433,20 +399,31 @@ Graph *BCLayout::ogdfGraph(shapemap &nodeShapes, connmap &edgeConns)
             QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
             node u = nodeShapes.key(endpts.first);
             node v = nodeShapes.key(endpts.second);
-            edge e = G->newEdge(u,v);
+            edge e = G.newEdge(u,v);
             edgeConns.insert(e,conn);
         }
     }
-    return G;
 }
 
-void BCLayout::extractSizes(shapemap& nodeShapes, GraphAttributes &GA)
+void BCLayout::extractSizes(shapemap& nodeShapes, GraphAttributes& GA)
 {
     foreach (node v, nodeShapes.keys())
     {
         ShapeObj *shape = nodeShapes.value(v);
-        GA.width(v) = shape->size().width();
-        GA.height(v) = shape->size().height();
+        GA.width()[v] = shape->size().width();
+        GA.height()[v] = shape->size().height();
+    }
+}
+
+void BCLayout::extractSizes(
+        QMap<node, node> &newToOldNodes, shapemap &oldNodesToShapes, GraphAttributes &newNodesGA)
+{
+    foreach (node u, newToOldNodes.keys())
+    {
+        node v = newToOldNodes.value(u);
+        ShapeObj *shape = oldNodesToShapes.value(v);
+        newNodesGA.width()[u] = shape->size().width();
+        newNodesGA.height()[u] = shape->size().height();
     }
 }
 
@@ -472,35 +449,7 @@ void BCLayout::injectSizes(shapemap& nodeShapes, GraphAttributes& GA)
     }
 }
 
-void BCLayout::injectPositionsAndSizes(
-        QMap<node, node>& nodemap, shapemap& nodeShapes, GraphAttributes &GA)
-{
-    foreach (node u, nodemap.keys())
-    {
-        node v = nodemap.value(u);
-        double cx = GA.x(v) + GA.width(v)/2.0;
-        double cy = GA.y(v) + GA.height(v)/2.0;
-        double w = GA.width(v);
-        double h = GA.height(v);
-        ShapeObj *shape = nodeShapes.value(v);
-        shape->setCentrePos(QPointF(cx,cy));
-        shape->setSize(QSizeF(w,h));
-    }
-}
-
-void BCLayout::applyKM3()
-{
-    shapemap nodeShapes;
-    connmap edgeConns;
-    Graph *G = ogdfGraph(nodeShapes, edgeConns);
-    GraphAttributes GA(*G);
-    extractSizes(nodeShapes, GA);
-    FMMMLayout fm3;
-    fm3.call(GA);
-    injectPositions(nodeShapes, GA);
-}
-
-QList<BiComp*> BCLayout::getNontrivialBCs(Graph G)
+QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G)
 {
     QList<BiComp*> bicomps;
     BCTree bctree(G);
@@ -528,17 +477,33 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph G)
             node src = orig->source();
             gNodes.insert(src);
             if (bctree.typeOfGNode(src)==BCTree::CutVertex) gCutNodes.insert(src);
-            node dst = orig->target();
-            gNodes.insert(dst);
-            if (bctree.typeOfGNode(dst)==BCTree::CutVertex) gCutNodes.insert(dst);
+            node tgt = orig->target();
+            gNodes.insert(tgt);
+            if (bctree.typeOfGNode(tgt)==BCTree::CutVertex) gCutNodes.insert(tgt);
+            //diag:
+            /*
+            bool srcokay = false;
+            bool tgtokay = false;
+            node vG;
+            forall_nodes(vG,G)
+            {
+                if (vG==src) {srcokay = true;}
+                if (vG==tgt) {tgtokay = true;}
+            }
+            qDebug() << srcokay << tgtokay;
+            */
+            // Result: Yes, the src and tgt nodes do always belong to G.
+            //
         }
-        BiComp *bc = new BiComp(gEdges, gNodes.toList(), gCutNodes.toList());
+        QList<node> gNodeList = gNodes.toList();
+        QList<node> gCutNodeList = gCutNodes.toList();
+        BiComp *bc = new BiComp(gEdges, gNodeList, gCutNodeList, G);
         bicomps.append(bc);
     }
     return bicomps;
 }
 
-QMap<int,node> BCLayout::getConnComps(Graph G)
+QMap<int,node> BCLayout::getConnComps(Graph& G)
 {
     NodeArray<int> ccomps(G);
     connectedComponents(G, ccomps);
@@ -552,41 +517,44 @@ QMap<int,node> BCLayout::getConnComps(Graph G)
     return map;
 }
 
-QMap<int,node> BCLayout::getConnComps2(Graph& G2, QMap<node, node> nodeMap)
+QMap<int,node> BCLayout::getConnComps2(Graph *G2, QMap<node, node>& nodeMapG2ToG)
 {
-    // G2 the second graph we construct; nodeMap the map that maps nodes
-    // of G2 back to G (our first graph).
+    // G2: the second graph we construct
+    // nodeMapG2ToG: map from nodes of G2 back to nodes of G, the graph
+    // whose connected components we actually will return.
 
-    NodeArray<int> ccomps(G2);
-    connectedComponents(G2, ccomps);
+    NodeArray<int> ccomps(*G2);
+    connectedComponents(*G2, ccomps);
     QMap<int,node> map;
     node v2 = NULL;
-    forall_nodes(v2,G2)
+    forall_nodes(v2,*G2)
     {
         int n = ccomps[v2];
-        node v = nodeMap.value(v2);
+        node v = nodeMapG2ToG.value(v2);
         map.insertMulti(n,v);
     }
     return map;
 }
 
-Graph BCLayout::removeBiComps(Graph G, bclist bcs, QMap<node, node>& nodeMap)
+Graph *BCLayout::removeBiComps(Graph& G, bclist& bcs, QMap<node, node>& nodeMapNewToOld)
 {
-    // We construct and return a new graph which is equivalent of G
-    // with all edges in the BiComps in bcs deleted.
+    // We construct and return a new graph which is equivalent to what you get
+    // by starting with G and then deleting all edges in the BiComps listed in
+    // the list bcs.
+    //
     // The node map will be filled in with a mapping from nodes of the new graph
     // back to the corresponding nodes in the old graph.
 
-    Graph Gp;
+    Graph *Gp = new Graph;
 
     // Copy nodes.
     node v = NULL;
     forall_nodes(v,G)
     {
-        node u = Gp.newNode();
-        nodeMap.insert(u,v);
+        node u = Gp->newNode();
+        nodeMapNewToOld.insert(u,v);
     }
-    // Copy edges, except those in the BiComps.
+    // Copy edges, except those in the BiComps listed in bcs.
     edge e = NULL;
     forall_edges(e,G)
     {
@@ -603,9 +571,9 @@ Graph BCLayout::removeBiComps(Graph G, bclist bcs, QMap<node, node>& nodeMap)
         {
             node s = e->source();
             node t = e->target();
-            node m = nodeMap.key(s);
-            node n = nodeMap.key(t);
-            Gp.newEdge(m,n);
+            node m = nodeMapNewToOld.key(s);
+            node n = nodeMapNewToOld.key(t);
+            Gp->newEdge(m,n);
         }
     }
 
@@ -616,19 +584,37 @@ void BCLayout::orthoLayout()
 {
     shapemap nodeShapes;
     connmap edgeConns;
-    Graph G = *ogdfGraph(nodeShapes, edgeConns);
+    Graph *Gp = new Graph;
+    Graph G = *Gp;
+    ogdfGraph(G, nodeShapes, edgeConns);
+    //diag:
+    /*
+    node v;
+    forall_nodes(v,G)
+    {
+        bool okay = false;
+        if (nodeShapes.keys().contains(v))
+        {
+            okay = true;
+        }
+        qDebug() << okay;
+    }
+    */
+    // Result: Yes, every node in G is a key in nodeShapes.
+    //
 
     // Get nontrivial biconnected components (size >= 3).
     QList<BiComp*> bicomps = getNontrivialBCs(G);
 
-    QMap<node,node> nodeMapG2;
-    Graph G2 = removeBiComps(G, bicomps, nodeMapG2);
-    assert(G2.consistencyCheck());
+    // Get a new graph isomorphic to the result of removing the bicomps from G.
+    QMap<node,node> nodeMapG2ToG;
+    Graph *G2 = removeBiComps(G, bicomps, nodeMapG2ToG);
+    assert(G2->consistencyCheck());
 
-    //QMap<int,node> ccomps = getConnComps(G);
-    QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2);
+    // Get connected components of original graph G corresponding to those of G2.
+    QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
 
-    // Form trees on remaining components, throwing away isolated
+    // Form trees on those components, throwing away isolated
     // nodes (which must have been cutnodes shared only by nontrivial BCs).
     QList<RootedTree*> rtrees;
     foreach (int i, ccomps.keys().toSet())
@@ -656,55 +642,18 @@ void BCLayout::orthoLayout()
     largest->recursiveLayout(nodeShapes, bicomps, rtrees, NULL, QPointF(0,0));
 }
 
-#if 0
 void BCLayout::applyKM3()
 {
-    // Construct GraphAttributes, and maps from ogdf nodes and edges
-    // to Dunnart shapes and connectors.
-    ogdf::Graph G;
-    QMap<ogdf::node,ShapeObj*> nodeShapes;
-    QMap<ogdf::edge,Connector*> edgeConns;
-    foreach (CanvasItem *item, m_canvas->items())
-    {
-        if (ShapeObj *shape = isShapeForLayout(item))
-        {
-            ogdf::node n = G.newNode();
-            nodeShapes.insert(n,shape);
-        }
-    }
-    foreach (CanvasItem *item, m_canvas->items())
-    {
-        if (Connector *conn = dynamic_cast<Connector*>(item))
-        {
-            QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
-            ogdf::node u = nodeShapes.key(endpts.first);
-            ogdf::node v = nodeShapes.key(endpts.second);
-            ogdf::edge e = G.newEdge(u,v);
-            edgeConns.insert(e,conn);
-        }
-    }
-    ogdf::GraphAttributes GA(G);
-    foreach (ogdf::node v, nodeShapes.keys())
-    {
-        ShapeObj *shape = nodeShapes.value(v);
-        GA.width(v) = shape->size().width();
-        GA.height(v) = shape->size().height();
-    }
-
-    // Run the FMMM algorithm.
-    ogdf::FMMMLayout fm3;
+    shapemap nodeShapes;
+    connmap edgeConns;
+    Graph *G = new Graph;
+    ogdfGraph(*G, nodeShapes, edgeConns);
+    GraphAttributes GA(*G);
+    extractSizes(nodeShapes, GA);
+    FMMMLayout fm3;
     fm3.call(GA);
-
-    // Apply the results to the canvas.
-    foreach (ogdf::node v, nodeShapes.keys())
-    {
-        double cx = GA.x(v) + GA.width(v)/2.0;
-        double cy = GA.y(v) + GA.height(v)/2.0;
-        ShapeObj *shape = nodeShapes.value(v);
-        shape->setCentrePos(QPointF(cx,cy));
-    }
+    injectPositions(nodeShapes, GA);
 }
-#endif
 
 void BCLayout::layoutBCTrees()
 {

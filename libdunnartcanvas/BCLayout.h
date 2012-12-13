@@ -29,8 +29,6 @@
 
 #include "libogdf/ogdf/basic/Graph_d.h"
 
-//#define GRAPHREF
-
 using namespace ogdf;
 
 namespace ogdf {
@@ -56,7 +54,7 @@ class Chunk {
 public:
     virtual void setRelPt(QPointF p) = 0;
     virtual void recursiveLayout(
-            shapemap origShapes, bclist bcs, treelist trees,
+            shapemap& origShapes, bclist& bcs, treelist& trees,
             node origBaseNode, QPointF cardinal) = 0;
 };
 
@@ -66,10 +64,9 @@ public:
     RootedTree(QList<node>& nodes);
     bool containsOriginalNode(node n);
     void setRelPt(QPointF p);
-    void recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
+    void recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                          node origBaseNode, QPointF cardinal);
-    void constructDunnartGraph(shapemap origShapes);
-    Graph& graph(void) { return *m_graph; }
+    void constructDunnartGraph(shapemap& origShapes);
 private:
     Graph *m_graph;
     node m_root;
@@ -86,23 +83,19 @@ private:
 class BiComp : public Chunk
 {
 public:
-    BiComp(QList<edge> edges, QList<node> nodes, QList<node> cutNodes);
+    BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G);
+    void setRelPt(QPointF p);
     void removeSelf(Graph& G);
     size_t size(void);
-    void constructDunnartGraph(shapemap origShapes);
+    void constructDunnartGraph(shapemap& origShapes);
     void improveOrthogonalTopology(void);
-    void recursiveLayout(shapemap origShapes, bclist bcs, treelist trees,
+    void recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                          node origBaseNode, QPointF cardinal);
     static QPointF nearestCardinal(QPointF v);
     bool containsOriginalNode(node n);
     bool containsOriginalEdge(edge e);
-    void setRelPt(QPointF p);
 private:
-#ifdef GRAPHREF
-    Graph m_graph;
-#else
     Graph *m_graph;
-#endif
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
     QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
     QList<node> m_normalNodes; // subdomain of those which are not
@@ -118,25 +111,31 @@ private:
     QPointF m_relpt;
     QList<Chunk*> m_children;
     QPointF baryCentre(void);
-    QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist bcs, treelist trees);
+    QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees);
 };
 
 class BCLayout
 {
 public:
     BCLayout(Canvas *canvas);
-    Graph *ogdfGraph(shapemap& nodeShapes, connmap& edgeConns);
+    void ogdfGraph(Graph& G, shapemap& nodeShapes, connmap& edgeConns);
+
     static void extractSizes(shapemap& nodeShapes, GraphAttributes& GA);
+    static void extractSizes(
+            QMap<node,node>& newToOldNodes, shapemap& oldNodesToShapes,
+            GraphAttributes& newNodesGA);
     static void injectPositions(shapemap& nodeShapes, GraphAttributes& GA);
     static void injectSizes(shapemap& nodeShapes, GraphAttributes& GA);
-    static void injectPositionsAndSizes(QMap<node,node>& nodemap, shapemap& nodeShapes, GraphAttributes& GA);
+
     void applyKM3(void);
-    void layoutBCTrees(void);
-    QList<BiComp*> getNontrivialBCs(Graph G);
-    QMap<int,node> getConnComps(Graph G);
-    QMap<int,node> getConnComps2(Graph& G2, QMap<node,node> nodeMap);
-    Graph removeBiComps(Graph G, bclist bcs, QMap<node,node>& nodeMap);
+
+    QList<BiComp*> getNontrivialBCs(Graph& G);
+    QMap<int,node> getConnComps(Graph& G);
+    QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);
+    Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
     void orthoLayout(void);
+
+    void layoutBCTrees(void);
 
 private:
     Canvas *m_canvas;
