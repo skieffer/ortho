@@ -56,6 +56,7 @@ public:
     virtual void recursiveLayout(
             shapemap& origShapes, bclist& bcs, treelist& trees,
             node origBaseNode, QPointF cardinal) = 0;
+    virtual void recursiveDraw(Canvas *canvas, QPointF p) = 0;
 };
 
 class RootedTree : public Chunk
@@ -66,6 +67,7 @@ public:
     void setRelPt(QPointF p);
     void recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                          node origBaseNode, QPointF cardinal);
+    void recursiveDraw(Canvas *canvas, QPointF p);
     void constructDunnartGraph(shapemap& origShapes);
 private:
     Graph *m_graph;
@@ -91,6 +93,7 @@ public:
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
                          node origBaseNode, QPointF cardinal);
+    void recursiveDraw(Canvas *canvas, QPointF p);
     static QPointF nearestCardinal(QPointF v);
     bool containsOriginalNode(node n);
     bool containsOriginalEdge(edge e);

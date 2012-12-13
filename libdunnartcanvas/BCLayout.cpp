@@ -57,7 +57,9 @@ namespace dunnart {
 
 RootedTree::RootedTree(QList<node>& nodes) :
     m_graph(NULL),
-    m_root(NULL)
+    m_root(NULL),
+    m_basept(QPointF(0,0)),
+    m_relpt(QPointF(0,0))
 {
     // Construct own copy of graph, maintaining maps to original graph.
     m_graph = new Graph;
@@ -144,11 +146,30 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes)
     BCLayout::injectSizes(m_ownShapeMap, newNodesGA);
 }
 
+void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
+{
+    m_basept = p + m_relpt;
+    foreach (ShapeObj *sh, m_ownShapeMap.values())
+    {
+        QPointF c = sh->centrePos();
+        c += m_basept;
+        sh->setCentrePos(c);
+        canvas->addItem(sh);
+    }
+
+    foreach (Connector *conn, m_ownConnMap.values())
+    {
+        canvas->addItem(conn);
+    }
+}
+
 // ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
 BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
-    m_graph(NULL)
+    m_graph(NULL),
+    m_basept(QPointF(0,0)),
+    m_relpt(QPointF(0,0))
 {
     // Construct own copy of graph, maintaining maps to original graph.
     m_graph = new Graph;
@@ -372,6 +393,28 @@ void BiComp::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
             ch->setRelPt(p);
             ch->recursiveLayout(origShapes, bcs, trees, origCutNode, cardinal);
         }
+    }
+}
+
+void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
+{
+    m_basept = p + m_relpt;
+    foreach (ShapeObj *sh, m_ownShapeMap.values())
+    {
+        QPointF c = sh->centrePos();
+        c += m_basept;
+        sh->setCentrePos(c);
+        canvas->addItem(sh);
+    }
+
+    foreach (Connector *conn, m_ownConnMap.values())
+    {
+        canvas->addItem(conn);
+    }
+
+    foreach (Chunk *ch, m_children)
+    {
+        ch->recursiveDraw(canvas, m_basept);
     }
 }
 
@@ -640,6 +683,7 @@ void BCLayout::orthoLayout()
     }
     assert(largest);
     largest->recursiveLayout(nodeShapes, bicomps, rtrees, NULL, QPointF(0,0));
+    largest->recursiveDraw(m_canvas, QPointF(0,0));
 }
 
 void BCLayout::applyKM3()
