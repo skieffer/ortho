@@ -126,15 +126,29 @@ bool RootedTree::containsOriginalNode(node n)
     return m_nodemap.values().contains(n);
 }
 
-void RootedTree::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
-                                 node origBaseNode, QPointF cardinal)
+void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal)
 {
-    constructDunnartGraph(origShapes);
     // TODO: Use origBaseNode and cardinal.
     // If origBaseNode is NULL, then it is to be ignored.
     // Otherwise, it is a node from the original graph, and we are meant to
     // layout this subgraph starting from its local copy of that node, and
     // moving in the direction given by cardinal.
+    constructDunnartGraph(origShapes);
+    QPointF bary = baryCentre();
+    int fixedSep = 50; // magic number
+    foreach (Chunk *ch, m_children)
+    {
+        node origCutNode = ch->getParentCutNode();
+        node localCutNode = m_nodemap.key(origCutNode);
+        // Compute cardinal direction from barycentre to cut node.
+        ShapeObj *cnShape = m_ownShapeMap.value(localCutNode);
+        QPointF cnCentre = cnShape->centrePos();
+        QPointF cardinal = nearestCardinal(cnCentre - bary);
+        // Set relative point of child, and recurse.
+        QPointF p = cnCentre + fixedSep*cardinal;
+        ch->setRelPt(p);
+        ch->recursiveLayout(origShapes, origCutNode, cardinal);
+    }
 }
 
 void RootedTree::constructDunnartGraph(shapemap& origShapes)
@@ -192,6 +206,43 @@ void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
 void RootedTree::setChildren(QList<Chunk *> children)
 {
     m_children = children;
+}
+
+void RootedTree::setParentCutNode(node cn)
+{
+    m_parentCutNode = cn;
+}
+
+node RootedTree::getParentCutNode()
+{
+    return m_parentCutNode;
+}
+
+QPointF RootedTree::baryCentre()
+{
+    // MUST call constructDunnartGraph first!
+    QPointF b(0,0);
+    int n = 0;
+    foreach (ShapeObj *sh, m_ownShapeMap.values())
+    {
+        b += sh->centrePos();
+        n++;
+    }
+    //return QPointF(b.x()/float(n), b.y()/float(n));
+    return b*(1/float(n));
+}
+
+QPointF RootedTree::nearestCardinal(QPointF v)
+{
+    QPointF N(0,-1);
+    QPointF S(0, 1);
+    QPointF E( 1,0);
+    QPointF W(-1,0);
+    double x = v.x(); double y = v.y();
+    QPointF u = (abs(y) > abs(x) ?
+                     ( y < 0 ? N : S ) :
+                     ( x < 0 ? W : E ) );
+    return u;
 }
 
 // ----------------------------------------------------------------------------
@@ -410,8 +461,17 @@ QList<Chunk*> BiComp::findCutNodeNeighbours(node origCutNode, bclist& bcs, treel
     return nbrs;
 }
 
-void BiComp::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
-                             node origBaseNode, QPointF cardinal)
+void BiComp::setParentCutNode(node cn)
+{
+    m_parentCutNode = cn;
+}
+
+node BiComp::getParentCutNode()
+{
+    return m_parentCutNode;
+}
+
+void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal)
 {
     // TODO: Use origBaseNode and cardinal.
     // If origBaseNode is NULL, then it is to be ignored.
@@ -420,25 +480,19 @@ void BiComp::recursiveLayout(shapemap& origShapes, bclist& bcs, treelist& trees,
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes);
     QPointF bary = baryCentre();
-    foreach (node cn, m_cutNodes)
+    int fixedSep = 50; // magic number
+    foreach (Chunk *ch, m_children)
     {
+        node origCutNode = ch->getParentCutNode();
+        node localCutNode = m_nodemap.key(origCutNode);
         // Compute cardinal direction from barycentre to cut node.
-        ShapeObj *cnShape = m_ownShapeMap.value(cn);
+        ShapeObj *cnShape = m_ownShapeMap.value(localCutNode);
         QPointF cnCentre = cnShape->centrePos();
         QPointF cardinal = nearestCardinal(cnCentre - bary);
-        // Find neighbours connected through original cut node.
-        node origCutNode = m_nodemap.value(cn);
-        QList<Chunk*> nbrs = findCutNodeNeighbours(origCutNode, bcs, trees);
-        // Add as children
-        m_children.append(nbrs);
-        // Lay out each one, and set its relative point.
-        int fixedSep = 50; // magic number
-        foreach (Chunk *ch, nbrs)
-        {
-            QPointF p = cnCentre + fixedSep*cardinal;
-            ch->setRelPt(p);
-            ch->recursiveLayout(origShapes, bcs, trees, origCutNode, cardinal);
-        }
+        // Set relative point of child, and recurse.
+        QPointF p = cnCentre + fixedSep*cardinal;
+        ch->setRelPt(p);
+        ch->recursiveLayout(origShapes, origCutNode, cardinal);
     }
 }
 
@@ -476,20 +530,24 @@ void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root)
     QList<Chunk*> queue;
     QSet<Chunk*> seen;
     queue.push_back(root);
+    seen.insert(root);
     while (!queue.empty())
     {
         Chunk *ch = queue.takeFirst();
         QList<node> cutnodes = ch->getCutNodes();
-        QList<Chunk*> nbrs;
+        QList<Chunk*> children;
         foreach (node cn, cutnodes)
         {
-            nbrs.append( ch->findNeighbours(cn, chunks) );
+            QList<Chunk*> nbrs = ch->findNeighbours(cn, chunks);
+            QSet<Chunk*> nbrSet = nbrs.toSet();
+            nbrSet.subtract(seen);
+            QList<Chunk*> nbrList = nbrSet.toList();
+            foreach (Chunk *ch, nbrList) ch->setParentCutNode(cn);
+            children.append(nbrList);
+            seen.unite(nbrSet);
+            queue.append(nbrList);
         }
-        QSet<Chunk*> nbrSet = nbrs.toSet();
-        nbrSet.subtract(seen);
-        ch->setChildren(nbrSet.toList());
-        seen.unite(nbrSet);
-        queue.append(nbrSet.toList());
+        ch->setChildren(children);
     }
 }
 
@@ -742,8 +800,7 @@ void BCLayout::orthoLayout()
         rtrees.append(rtree);
     }
 
-    // Now layout each component, and connect them together.
-    // Begin with a largest biconnected component.
+    // Choose a largest biconnected component to be root.
     size_t n = 0;
     BiComp *largest = NULL;
     foreach (BiComp *bc, bicomps)
@@ -756,8 +813,18 @@ void BCLayout::orthoLayout()
         }
     }
     assert(largest);
-    largest->recursiveLayout(nodeShapes, bicomps, rtrees, NULL, QPointF(0,0));
+
+    // Build tree of components.
+    QList<Chunk*> allChunks;
+    foreach (BiComp *bc, bicomps) allChunks.append(dynamic_cast<Chunk*>(bc));
+    foreach (RootedTree *rt, rtrees) allChunks.append(dynamic_cast<Chunk*>(rt));
+    BCLayout::buildBFSTree(allChunks, largest);
+
+    // Layout and draw
+    largest->recursiveLayout(nodeShapes, NULL, QPointF(0,0));
+    m_canvas->stop_graph_layout();
     largest->recursiveDraw(m_canvas, QPointF(0,0));
+    m_canvas->interrupt_graph_layout();
 }
 
 void BCLayout::applyKM3()
