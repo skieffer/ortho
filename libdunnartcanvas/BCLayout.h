@@ -26,6 +26,7 @@
 #include <QList>
 #include <QMap>
 #include <QPointF>
+#include <QRectF>
 
 #include "libogdf/ogdf/basic/Graph_d.h"
 
@@ -53,8 +54,9 @@ typedef QList<BiComp*> bclist;
 class Chunk {
 public:
     virtual void setRelPt(QPointF p) = 0;
-    virtual void recursiveLayout(
-            shapemap& origShapes, node origBaseNode, QPointF cardinal) = 0;
+    virtual void recursiveLayout(shapemap& origShapes,
+                                 node origBaseNode, QPointF cardinal,
+                                 QList<node> cutnodes) = 0;
     virtual void recursiveDraw(Canvas *canvas, QPointF p) = 0;
     virtual bool containsOriginalNode(node n) = 0;
     virtual QList<node> getCutNodes(void) = 0;
@@ -62,6 +64,7 @@ public:
     virtual void setParentCutNode(node cn) = 0;
     virtual node getParentCutNode(void) = 0;
     QList<Chunk*> findNeighbours(node origCutNode, QList<Chunk*> allChunks);
+    virtual QRectF bbox(void) = 0;
 };
 
 class RootedTree : public Chunk
@@ -70,15 +73,18 @@ public:
     RootedTree(QList<node>& nodes, QSet<node>& cutnodes);
     bool containsOriginalNode(node n);
     void setRelPt(QPointF p);
-    void recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal);
+    void recursiveLayout(shapemap& origShapes,
+                         node origBaseNode, QPointF cardinal,
+                         QList<node> cutnodes);
     void recursiveDraw(Canvas *canvas, QPointF p);
-    void constructDunnartGraph(shapemap& origShapes, QPointF cardinal);
+    void constructDunnartGraph(shapemap& origShapes, QPointF cardinal, QList<node> cutnodes);
     QList<node> getCutNodes(void);
     static QPointF nearestCardinal(QPointF v);
     void setChildren(QList<Chunk*> children);
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
+    QRectF bbox(void);
 private:
     Graph *m_graph;
     node m_root;
@@ -104,9 +110,10 @@ public:
     void setRelPt(QPointF p);
     void removeSelf(Graph& G);
     size_t size(void);
-    void constructDunnartGraph(shapemap& origShapes);
+    void constructDunnartGraph(shapemap& origShapes, QList<node> cutnodes);
     void improveOrthogonalTopology(void);
-    void recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal);
+    void recursiveLayout(shapemap& origShapes, node origBaseNode,
+                         QPointF cardinal, QList<node> cutnodes);
     void recursiveDraw(Canvas *canvas, QPointF p);
     static QPointF nearestCardinal(QPointF v);
     bool containsOriginalNode(node n);
@@ -116,6 +123,9 @@ public:
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
+    QRectF bbox(void);
+    bool coincidence(void);
+    void jog(double scale);
 private:
     Graph *m_graph;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
@@ -149,10 +159,12 @@ public:
     static void extractPosAndSize(
             QMap<node,node>& newToOldNodes, shapemap& oldNodesToShapes,
             GraphAttributes& newNodesGA);
+    static void extractPosAndSize(shapemap& newNodesToShapes, GraphAttributes& newNodesGA);
     static void injectPositions(shapemap& nodeShapes, GraphAttributes& GA);
     static void injectSizes(shapemap& nodeShapes, GraphAttributes& GA);
 
-    static void buildBFSTree(QList<Chunk*> chunks, Chunk *root);
+    static void buildBFSTree(QList<Chunk*> chunks, Chunk *root,
+                             QList<node>& usedCutNodes);
 
     void applyKM3(void);
 
