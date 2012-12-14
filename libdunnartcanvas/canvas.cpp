@@ -238,6 +238,7 @@ Canvas::Canvas()
     // Avoid::PolyLineRouting
     m_router = new Avoid::Router(Avoid::OrthogonalRouting |
             Avoid::PolyLineRouting);
+    m_router->SimpleRouting = true;
     m_router->setRoutingParameter(Avoid::shapeBufferDistance, 4.0);
     m_router->setRoutingOption(
             Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
@@ -1292,7 +1293,7 @@ void Canvas::setOptAutomaticGraphLayout(const bool value)
     }
     else
     {
-        m_router->SimpleRouting = false;
+        m_router->SimpleRouting = true;
     }
     emit optChangedAutomaticLayout(m_opt_automatic_graph_layout);
     

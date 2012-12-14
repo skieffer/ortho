@@ -55,6 +55,7 @@
 #include "libogdf/ogdf/decomposition/BCTree.h"
 #include "libogdf/ogdf/energybased/FMMMLayout.h"
 #include "libogdf/ogdf/energybased/SpringEmbedderFR.h"
+#include "libogdf/ogdf/energybased/StressMajorizationSimple.h"
 #include "libogdf/ogdf/tree/TreeLayout.h"
 
 using namespace ogdf;
@@ -162,7 +163,8 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
     }
 }
 
-void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal, QList<node> cutnodes)
+void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
+                                       QList<node> cutnodes)
 {
     // Store passed value.
     m_origShapeMap = origShapes;
@@ -241,7 +243,7 @@ void RootedTree::colaTreeLayout(QPointF cardinal)
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,idealLength,true);
     fdlayout->setConstraints(ccs);
-    fdlayout->run();
+    fdlayout->run(true,true);
     // extract the node positions
     forall_nodes(v,*m_graph)
     {
@@ -265,11 +267,11 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
     case 0:
         orient = leftToRight; break;
     case 1:
-        orient = bottomToTop; break;
+        orient = topToBottom; break;
     case 2:
         orient = rightToLeft; break;
     case 3:
-        orient = topToBottom; break;
+        orient = bottomToTop; break;
     }
     treelayout.orientation(orient);
     treelayout.rootSelection(TreeLayout::rootByCoord);
@@ -498,7 +500,8 @@ size_t BiComp::size()
 
 
 // pass shapemap for the shapes in the original graph
-void BiComp::constructDunnartGraph(shapemap& origShapes, QList<node> cutnodes)
+void BiComp::constructDunnartGraph(shapemap& origShapes,
+                                   QPointF cardinal, QList<node> cutnodes)
 {
     // Create Dunnart shape and connector objects for own graph.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
@@ -533,28 +536,104 @@ void BiComp::constructDunnartGraph(shapemap& origShapes, QList<node> cutnodes)
 
     // Compute initial layout
     GraphAttributes newNodesGA(*m_graph);
-    BCLayout::extractSizes(m_nodemap, origShapes, newNodesGA);
+    //BCLayout::extractSizes(m_nodemap, origShapes, newNodesGA);
 
-    // FM3
-    //FMMMLayout fm3;
-    //fm3.call(newNodesGA);
-
-    // Fruchterman-Reingold spring embedder
-    while (coincidence()) { jog(20.0); }
-    BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
-    //debug:
-    foreach (ShapeObj *sh, m_ownShapeMap.values())
+    // Get distinct initial positions
+    while (coincidence()) { jog(100.0); }
+    // Displace cut node in opposite of cardinal direction /if/ this is not
+    // the root component of the layout.
+    //
+    // Really, we should be using cola for this initial layout, and we should
+    // use separation constraints to say that the cut node be on the side
+    // where we want it.
+    //
+    if (m_parentCutNode)
     {
+        node root = m_nodemap.key(m_parentCutNode);
+        ShapeObj *sh = m_ownShapeMap.value(root);
         QPointF c = sh->centrePos();
-        qDebug() << c;
+        c -= 100.0*cardinal;
+        sh->setCentrePos(c);
     }
-    //
-    //SpringEmbedderFR sefr;
-    //sefr.call(newNodesGA);
-    //
+    // Load positions and sizes into GraphAttributes object
+    BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
 
-    BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-    //BCLayout::injectSizes(m_ownShapeMap, newNodesGA);
+    FMMMLayout fm3;
+    SpringEmbedderFR sefr;
+    StressMajorization stmj;
+    int layoutAlg = 2;
+    switch(layoutAlg)
+    {
+    case 0:
+        // FM3
+        fm3.call(newNodesGA);
+        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+        break;
+    case 1:
+        // Fruchterman-Reingold spring embedder
+        sefr.call(newNodesGA);
+        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+        break;
+    case 2:
+        // Kamada-Kawai
+        stmj.call(newNodesGA);
+        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+        break;
+    case 3:
+        // Cola FD layout
+        colaLayout();
+        break;
+    case 4:
+        break;
+    }
+}
+
+void BiComp::colaLayout()
+{
+    QMap<node,int> nodeIndices;
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+    //cola::CompoundConstraints ccs;
+    // make rectangles
+    node v = NULL;
+    int i = 0;
+    forall_nodes(v,*m_graph)
+    {
+        ShapeObj *sh = m_ownShapeMap.value(v);
+        QRectF rect = sh->boundingRect();
+        double x = rect.left(); double X = rect.right();
+        double y = rect.top();  double Y = rect.bottom();
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        nodeIndices.insert(v,i);
+        i++;
+    }
+    // make edges
+    edge e = NULL;
+    forall_edges(e,*m_graph)
+    {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        // edge
+        es.push_back( cola::Edge(srcIndex, tgtIndex) );
+    }
+    // create and run layout
+    double idealLength = 100;
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+    //fdlayout->setConstraints(ccs);
+    fdlayout->run(true,true);
+    // extract the node positions
+    forall_nodes(v,*m_graph)
+    {
+        ShapeObj *sh = m_ownShapeMap.value(v);
+        int i = nodeIndices.value(v);
+        vpsc::Rectangle *r = rs.at(i);
+        double x = r->getCentreX();
+        double y = r->getCentreY();
+        sh->setCentrePos(QPointF(x,y));
+    }
 }
 
 // FIXME: Do this right, in n log n time, instead of n^2, if we're really doing this.
@@ -706,14 +785,15 @@ QRectF BiComp::bbox()
     return box;
 }
 
-void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal, QList<node> cutnodes)
+void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode,
+                             QPointF cardinal, QList<node> cutnodes)
 {
     // TODO: Use origBaseNode and cardinal.
     // If origBaseNode is NULL, then it is to be ignored.
     // Otherwise, it is a node from the original graph, and we are meant to
     // layout this subgraph starting from its local copy of that node, and
     // moving in the direction given by cardinal.
-    constructDunnartGraph(origShapes, cutnodes);
+    constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
     int fixedSep = 300; // magic number
     foreach (Chunk *ch, m_children)

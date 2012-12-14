@@ -77,7 +77,8 @@ public:
                          node origBaseNode, QPointF cardinal,
                          QList<node> cutnodes);
     void recursiveDraw(Canvas *canvas, QPointF p);
-    void constructDunnartGraph(shapemap& origShapes, QPointF cardinal, QList<node> cutnodes);
+    void constructDunnartGraph(shapemap& origShapes,
+                               QPointF cardinal, QList<node> cutnodes);
     void colaTreeLayout(QPointF cardinal);
     void ogdfTreeLayout(QPointF cardinal);
     QList<node> getCutNodes(void);
@@ -112,7 +113,9 @@ public:
     void setRelPt(QPointF p);
     void removeSelf(Graph& G);
     size_t size(void);
-    void constructDunnartGraph(shapemap& origShapes, QList<node> cutnodes);
+    void constructDunnartGraph(shapemap& origShapes,
+                               QPointF cardinal, QList<node> cutnodes);
+    void colaLayout(void);
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
                          QPointF cardinal, QList<node> cutnodes);
