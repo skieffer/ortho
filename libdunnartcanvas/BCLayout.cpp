@@ -25,6 +25,7 @@
 
 #include <cmath>
 #include <assert.h>
+#include <vector>
 
 #include <QtGui>
 #include <QList>
@@ -33,6 +34,10 @@
 #include <QPointF>
 #include <QSizeF>
 #include <QTime>
+
+#include "libvpsc/rectangle.h"
+#include "libcola/cola.h"
+#include "libcola/compound_constraints.h"
 
 #include "libdunnartcanvas/BCLayout.h"
 #include "libdunnartcanvas/canvas.h"
@@ -190,8 +195,67 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal, Q
         conn->setRoutingType(Connector::orthogonal);
         m_ownConnMap.insert(f,conn);
     }
+    ogdfTreeLayout(cardinal);
+    //colaTreeLayout(cardinal);
+}
 
-    // Set up the tree layout.
+void RootedTree::colaTreeLayout(QPointF cardinal)
+{
+    QMap<node,int> nodeIndices;
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+    cola::CompoundConstraints ccs;
+    // make rectangles
+    node v = NULL;
+    int i = 0;
+    forall_nodes(v,*m_graph)
+    {
+        ShapeObj *sh = m_ownShapeMap.value(v);
+        QRectF rect = sh->boundingRect();
+        double x = rect.left(); double X = rect.right();
+        double y = rect.top();  double Y = rect.bottom();
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        nodeIndices.insert(v,i);
+        i++;
+    }
+    // make edges and sep co's
+    edge e = NULL;
+    forall_edges(e,*m_graph)
+    {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        // edge
+        es.push_back( cola::Edge(srcIndex, tgtIndex) );
+        // sep co
+        vpsc::Dim d = (cardinal.x()==0?vpsc::YDIM:vpsc::XDIM);
+        int l, r;
+        if (cardinal.x() + cardinal.y() > 0) { l = srcIndex; r = tgtIndex; }
+        else { l = tgtIndex; r = srcIndex; }
+        double gap = 0;
+        ccs.push_back( new cola::SeparationConstraint(d,l,r,gap,false) );
+    }
+    // create and run layout
+    double idealLength = 100;
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,idealLength,true);
+    fdlayout->setConstraints(ccs);
+    fdlayout->run();
+    // extract the node positions
+    forall_nodes(v,*m_graph)
+    {
+        ShapeObj *sh = m_ownShapeMap.value(v);
+        int i = nodeIndices.value(v);
+        vpsc::Rectangle *r = rs.at(i);
+        double x = r->getCentreX();
+        double y = r->getCentreY();
+        sh->setCentrePos(QPointF(x,y));
+    }
+}
+
+void RootedTree::ogdfTreeLayout(QPointF cardinal)
+{
     TreeLayout treelayout;
     int x = cardinal.x(); int y = cardinal.y();
     int n = x*x - x + 2*y*y + y; // maps (x,y) to log[i](x+iy)
@@ -209,7 +273,7 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal, Q
     }
     treelayout.orientation(orient);
     treelayout.rootSelection(TreeLayout::rootByCoord);
-    //treelayout.orthogonalLayout(true);
+    treelayout.orthogonalLayout(true);
 
     // Now we must give our local copy of the parentCutNode an extreme coordinate,
     // so that it will be chosen as root.
@@ -241,7 +305,6 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal, Q
     BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
     treelayout.call(newNodesGA);
     BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-
 }
 
 void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
@@ -283,6 +346,26 @@ void RootedTree::setChildren(QList<Chunk *> children)
 void RootedTree::setParentCutNode(node cn)
 {
     m_parentCutNode = cn;
+    // Now set edge directions so that all flow is forward from this root node.
+    node root = m_nodemap.key(cn);
+    QList<edge> seen;
+    QList<node> queue;
+    queue.append(root);
+    while (!queue.empty())
+    {
+        node n = queue.takeFirst();
+        edge e;
+        forall_adj_edges(e,n)
+        {
+            if (seen.contains(e)) continue;
+            // Reverse edge if n not source.
+            if (e->target()==n) m_graph->reverseEdge(e);
+            // Now mark edge as seen, and add target to queue
+            seen.append(e);
+            queue.append(e->target());
+        }
+    }
+    assert(m_graph->consistencyCheck());
 }
 
 node RootedTree::getParentCutNode()
@@ -457,7 +540,7 @@ void BiComp::constructDunnartGraph(shapemap& origShapes, QList<node> cutnodes)
     //fm3.call(newNodesGA);
 
     // Fruchterman-Reingold spring embedder
-    while (coincidence()) { jog(1.0); }
+    while (coincidence()) { jog(20.0); }
     BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
     //debug:
     foreach (ShapeObj *sh, m_ownShapeMap.values())

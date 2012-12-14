@@ -78,6 +78,8 @@ public:
                          QList<node> cutnodes);
     void recursiveDraw(Canvas *canvas, QPointF p);
     void constructDunnartGraph(shapemap& origShapes, QPointF cardinal, QList<node> cutnodes);
+    void colaTreeLayout(QPointF cardinal);
+    void ogdfTreeLayout(QPointF cardinal);
     QList<node> getCutNodes(void);
     static QPointF nearestCardinal(QPointF v);
     void setChildren(QList<Chunk*> children);
