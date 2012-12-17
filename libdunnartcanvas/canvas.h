@@ -458,6 +458,7 @@ class Canvas : public QGraphicsScene
         friend class MainWindow;
         friend struct ShapePosInfo;
         friend class ObjectsRepositionedAnimation;
+        friend class CanvasTabWidget;
 
         friend class ::BuiltinLayoutFileIOPlugin;
         friend class ::BuiltinSVGFileIOPlugin;

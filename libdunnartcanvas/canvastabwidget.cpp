@@ -250,13 +250,16 @@ void CanvasTabWidget::currentChanged(int index)
     emit currentCanvasViewChanged(canvasview);
     emit currentCanvasChanged(canvasview->canvas());
 
+    QString clipboard;
     if (m_canvas)
     {
         disconnect(m_canvas, 0, this, 0);
         disconnect(m_canvas, 0, m_action_automatic_layout, 0);
         disconnect(this, 0, m_canvas, 0);
+        clipboard = m_canvas->m_clipboard;
     }
     m_canvas = canvasview->canvas();
+    m_canvas->m_clipboard = clipboard;
 
     m_undo_group->setActiveStack(m_canvas->undoStack());
     m_window->setWindowModified(!m_undo_group->isClean());
