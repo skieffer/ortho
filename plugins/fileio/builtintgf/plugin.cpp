@@ -129,7 +129,9 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 return false;
             }
 
-            // TODO...
+            // TODO: Write the method!
+            errorMessage = tr("Sorry, writing TGF files has been implemented, but not reading!");
+            return false;
             /*
             QString parsingError;
             int errorLine;
