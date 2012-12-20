@@ -579,10 +579,10 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     PlanarizationLayout planar;
     //planar.setEmbedder(new EmbedderMaxFace);
     //planar.setEmbedder(new EmbedderMinDepth);
+    //planar.setEmbedder(new EmbedderMinDepthPiTa);
     //planar.setEmbedder(new EmbedderMinDepthMaxFace);
     //planar.setEmbedder(new EmbedderMaxFaceLayers);
-    //planar.setEmbedder(new EmbedderMinDepthMaxFaceLayers);
-    planar.setEmbedder(new EmbedderMinDepthPiTa);
+    planar.setEmbedder(new EmbedderMinDepthMaxFaceLayers);
 
     PlanarizationGridLayout planarGrid;
     PlanarDrawLayout planarDraw;
