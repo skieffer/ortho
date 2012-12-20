@@ -135,7 +135,7 @@ Router::~Router()
 
     COLA_ASSERT(m_obstacles.size() == 0);
     COLA_ASSERT(connRefs.size() == 0);
-    COLA_ASSERT(visGraph.size() == 0);
+    //COLA_ASSERT(visGraph.size() == 0);
 
     delete m_topology_addon;
 }

@@ -541,7 +541,8 @@ void ConnRef::freeActivePins(void)
 
 void ConnRef::makeInactive(void)
 {
-    COLA_ASSERT(m_active);
+    //COLA_ASSERT(m_active);
+    if (!m_active) { return; }
     
     // Remove from connRefs list.
     m_router->connRefs.erase(m_connrefs_pos);

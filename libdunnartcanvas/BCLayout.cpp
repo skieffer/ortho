@@ -56,6 +56,18 @@
 #include "libogdf/ogdf/energybased/FMMMLayout.h"
 #include "libogdf/ogdf/energybased/SpringEmbedderFR.h"
 #include "libogdf/ogdf/energybased/StressMajorizationSimple.h"
+#include "libogdf/ogdf/planarlayout/PlanarDrawLayout.h"
+#include "libogdf/ogdf/planarlayout/PlanarStraightLayout.h"
+
+#include "libogdf/ogdf/planarity/EmbedderMaxFace.h"
+#include "libogdf/ogdf/planarity/EmbedderMinDepth.h"
+#include "libogdf/ogdf/planarity/EmbedderMinDepthMaxFace.h"
+#include "libogdf/ogdf/planarity/EmbedderMaxFaceLayers.h"
+#include "libogdf/ogdf/planarity/EmbedderMinDepthMaxFaceLayers.h"
+#include "libogdf/ogdf/planarity/EmbedderMinDepthPiTa.h"
+
+#include "libogdf/ogdf/planarity/PlanarizationLayout.h"
+#include "libogdf/ogdf/planarity/PlanarizationGridLayout.h"
 #include "libogdf/ogdf/tree/TreeLayout.h"
 
 using namespace ogdf;
@@ -419,6 +431,8 @@ QRectF RootedTree::bbox()
 // ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
+int BiComp::method = -1;
+
 BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
     m_graph(NULL),
     m_basept(QPointF(0,0)),
@@ -561,30 +575,57 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     FMMMLayout fm3;
     SpringEmbedderFR sefr;
     StressMajorization stmj;
-    int layoutAlg = 2;
-    switch(layoutAlg)
+
+    PlanarizationLayout planar;
+    //planar.setEmbedder(new EmbedderMaxFace);
+    //planar.setEmbedder(new EmbedderMinDepth);
+    //planar.setEmbedder(new EmbedderMinDepthMaxFace);
+    //planar.setEmbedder(new EmbedderMaxFaceLayers);
+    //planar.setEmbedder(new EmbedderMinDepthMaxFaceLayers);
+    planar.setEmbedder(new EmbedderMinDepthPiTa);
+
+    PlanarizationGridLayout planarGrid;
+    PlanarDrawLayout planarDraw;
+    PlanarStraightLayout planarStraight;
+
+    //int layoutAlg = 4;
+    //switch(layoutAlg)
+    switch(BiComp::method)
     {
     case 0:
-        // FM3
-        fm3.call(newNodesGA);
-        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-        break;
-    case 1:
-        // Fruchterman-Reingold spring embedder
-        sefr.call(newNodesGA);
-        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-        break;
-    case 2:
-        // Kamada-Kawai
-        stmj.call(newNodesGA);
-        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
-        break;
-    case 3:
         // Cola FD layout
         colaLayout();
         break;
-    case 4:
+    case 1:
+        // FM3
+        fm3.call(newNodesGA);
         break;
+    case 2:
+        // Fruchterman-Reingold spring embedder
+        sefr.call(newNodesGA);
+        break;
+    case 3:
+        // Kamada-Kawai
+        stmj.call(newNodesGA);
+        break;
+    case 4:
+        // OGDF planarization layout
+        planar.call(newNodesGA);
+        break;
+    case 5:
+        // OGDF planarization grid layout
+        planarGrid.call(newNodesGA);
+        break;
+    case 6:
+        // other OGDF planar layout methods
+        //planarDraw.call(newNodesGA);
+        //planarStraight.call(newNodesGA);
+        break;
+    default:
+        break;
+    }
+    if (BiComp::method != 0) {
+        BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
     }
 }
 
@@ -1108,8 +1149,9 @@ Graph *BCLayout::removeBiComps(Graph& G, bclist& bcs, QMap<node, node>& nodeMapN
     return Gp;
 }
 
-void BCLayout::orthoLayout()
+void BCLayout::orthoLayout(int method)
 {
+    BiComp::method = method;
     shapemap nodeShapes;
     connmap edgeConns;
     Graph *Gp = new Graph;
@@ -1182,7 +1224,7 @@ void BCLayout::orthoLayout()
     m_canvas->interrupt_graph_layout();
 }
 
-void BCLayout::applyKM3()
+void BCLayout::applyFM3()
 {
     shapemap nodeShapes;
     connmap edgeConns;

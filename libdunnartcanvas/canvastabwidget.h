@@ -107,9 +107,14 @@ private:
     QAction *m_action_edit_separator;
     QAction *m_action_edit_separator2;
     QAction *m_action_improve_orthogonal_topology;
-    QAction *m_action_apply_km3;
+    QAction *m_action_apply_fm3;
     QAction *m_action_layout_BCTrees;
-    QAction *m_action_BCOrthoLayout;
+    QAction *m_action_BCWithFM3;
+    QAction *m_action_BCWithSpringEmbedder;
+    QAction *m_action_BCWithKamadaKawai;
+    QAction *m_action_BCWithPlanarization;
+    QAction *m_action_BCWithPlanarizationGrid;
+    QAction *m_action_BCOther;
 };
 
 }

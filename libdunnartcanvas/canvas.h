@@ -261,7 +261,12 @@ class Canvas : public QGraphicsScene
         void improveOrthogonalTopology(void);
         void applyKM3(void);
         void layoutBCTrees(void);
-        void BCOrthoLayout(void);
+        void BCWithFM3(void);
+        void BCWithSpringEmbedder(void);
+        void BCWithKamadaKawai(void);
+        void BCWithPlanarization(void);
+        void BCWithPlanarizationGrid(void);
+        void BCOther(void);
 
         void customEvent(QEvent *event);
         void setOptIdealEdgeLengthModifierFromSlider(int int_modifier);

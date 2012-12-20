@@ -3276,7 +3276,7 @@ void Canvas::improveOrthogonalTopology()
 
 void Canvas::applyKM3()
 {
-    m_bclayout->applyKM3();
+    m_bclayout->applyFM3();
 }
 
 void Canvas::layoutBCTrees()
@@ -3284,9 +3284,34 @@ void Canvas::layoutBCTrees()
     m_bclayout->layoutBCTrees();
 }
 
-void Canvas::BCOrthoLayout()
+void Canvas::BCWithFM3()
 {
-    m_bclayout->orthoLayout();
+    m_bclayout->orthoLayout(1);
+}
+
+void Canvas::BCWithSpringEmbedder()
+{
+    m_bclayout->orthoLayout(2);
+}
+
+void Canvas::BCWithKamadaKawai()
+{
+    m_bclayout->orthoLayout(3);
+}
+
+void Canvas::BCWithPlanarization()
+{
+    m_bclayout->orthoLayout(4);
+}
+
+void Canvas::BCWithPlanarizationGrid()
+{
+    m_bclayout->orthoLayout(5);
+}
+
+void Canvas::BCOther()
+{
+    m_bclayout->orthoLayout(6);
 }
 
 }

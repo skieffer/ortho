@@ -147,11 +147,16 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
     m_action_improve_orthogonal_topology = new QAction(
                 "Improve Orthogonal Topology",this);
 
-    m_action_apply_km3 = new QAction("Apply KMMM Layout",this);
+    m_action_apply_fm3 = new QAction("Apply FMMM Layout",this);
 
     m_action_layout_BCTrees = new QAction("Layout BC-trees",this);
 
-    m_action_BCOrthoLayout = new QAction("BC Ortho Layout",this);
+    m_action_BCWithFM3 = new QAction("with FM3",this);
+    m_action_BCWithSpringEmbedder = new QAction("with Spring Embedder",this);
+    m_action_BCWithKamadaKawai = new QAction("with Kamada-Kawai",this);
+    m_action_BCWithPlanarization = new QAction("with Planarization",this);
+    m_action_BCWithPlanarizationGrid = new QAction("with PlanarizationGrid",this);
+    m_action_BCOther = new QAction("other",this);
 
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);
@@ -319,15 +324,25 @@ void CanvasTabWidget::currentChanged(int index)
     connect(m_action_improve_orthogonal_topology, SIGNAL(triggered()),
             m_canvas, SLOT(improveOrthogonalTopology()));
 
-    m_action_apply_km3->disconnect();
-    connect(m_action_apply_km3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));
+    m_action_apply_fm3->disconnect();
+    connect(m_action_apply_fm3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));
 
     m_action_layout_BCTrees->disconnect();
     connect(m_action_layout_BCTrees, SIGNAL(triggered()),
             m_canvas, SLOT(layoutBCTrees()));
 
-    m_action_BCOrthoLayout->disconnect();
-    connect(m_action_BCOrthoLayout, SIGNAL(triggered()), m_canvas, SLOT(BCOrthoLayout()));
+    m_action_BCWithFM3->disconnect();
+    connect(m_action_BCWithFM3, SIGNAL(triggered()), m_canvas, SLOT(BCWithFM3()));
+    m_action_BCWithSpringEmbedder->disconnect();
+    connect(m_action_BCWithSpringEmbedder, SIGNAL(triggered()), m_canvas, SLOT(BCWithSpringEmbedder()));
+    m_action_BCWithKamadaKawai->disconnect();
+    connect(m_action_BCWithKamadaKawai, SIGNAL(triggered()), m_canvas, SLOT(BCWithKamadaKawai()));
+    m_action_BCWithPlanarization->disconnect();
+    connect(m_action_BCWithPlanarization, SIGNAL(triggered()), m_canvas, SLOT(BCWithPlanarization()));
+    m_action_BCWithPlanarizationGrid->disconnect();
+    connect(m_action_BCWithPlanarizationGrid, SIGNAL(triggered()), m_canvas, SLOT(BCWithPlanarizationGrid()));
+    m_action_BCOther->disconnect();
+    connect(m_action_BCOther, SIGNAL(triggered()), m_canvas, SLOT(BCOther()));
 
     m_action_lock->disconnect();
     connect(m_action_lock, SIGNAL(triggered()),
@@ -558,9 +573,15 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_cola_debug_output);
     layout_menu->addSeparator();
     layout_menu->addAction(m_action_improve_orthogonal_topology);
-    layout_menu->addAction(m_action_apply_km3);
+    layout_menu->addAction(m_action_apply_fm3);
     layout_menu->addAction(m_action_layout_BCTrees);
-    layout_menu->addAction(m_action_BCOrthoLayout);
+    QMenu *BCOrthoLayoutMenu = layout_menu->addMenu(tr("BC Ortho Layout"));
+    BCOrthoLayoutMenu->addAction(m_action_BCWithFM3);
+    BCOrthoLayoutMenu->addAction(m_action_BCWithSpringEmbedder);
+    BCOrthoLayoutMenu->addAction(m_action_BCWithKamadaKawai);
+    BCOrthoLayoutMenu->addAction(m_action_BCWithPlanarization);
+    BCOrthoLayoutMenu->addAction(m_action_BCWithPlanarizationGrid);
+    BCOrthoLayoutMenu->addAction(m_action_BCOther);
 }
 
 
