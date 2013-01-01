@@ -173,6 +173,9 @@ class Connector : public CanvasItem
         void updateFromLibavoid(void);
         virtual void write_libavoid_path(QDomElement& node,
                 QDomDocument& doc);
+
+        QString writePath(void);
+
         QRectF boundingRect(void) const;
         QPainterPath shape() const;
         void paint(QPainter *painter,

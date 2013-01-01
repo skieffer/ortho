@@ -1685,6 +1685,19 @@ void Connector::write_libavoid_path(QDomElement& node, QDomDocument& doc)
     }
 }
 
+QString Connector::writePath()
+{
+    QString pathStr;
+    QString str;
+    const Avoid::PolyLine& displayRoute = avoidRef->displayRoute();
+    for (size_t i = 0; i < displayRoute.size(); ++i)
+    {
+        pathStr += str.sprintf("%g,%g ", displayRoute.ps[i].x,
+                displayRoute.ps[i].y);
+    }
+    return pathStr;
+}
+
 
 }
 // vim: filetype=cpp ts=4 sw=4 et tw=0 wm=0 cindent
