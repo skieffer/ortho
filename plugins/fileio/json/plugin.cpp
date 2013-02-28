@@ -87,23 +87,27 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
             QList<CanvasItem *> canvas_items = canvas->items();
             QList<Connector*> conns;
 
+            QString nodesInfo = "";
             foreach (CanvasItem *item, canvas_items)
             {
                 ShapeObj *sh = dynamic_cast<ShapeObj*>(item);
                 if (sh)
                 {   
-                    QString info = QString("        %1:{\"cx\":%2,\"cy\":%3,\"w\":%4,\"h\":%5},\n");
+                    QString info = QString("        \"%1\":{\"cx\":%2,\"cy\":%3,\"w\":%4,\"h\":%5},\n");
                     info = info.arg(sh->internalId());
                     QPointF c = sh->centrePos();
                     info = info.arg(c.x()).arg(c.y());
                     QSizeF s = sh->size();
                     info = info.arg(s.width()).arg(s.height());
 
-                    jsonFile.write(info.toUtf8());
+                    nodesInfo += info;
+                    //jsonFile.write(info.toUtf8());
                 }
                 Connector *conn = dynamic_cast<Connector*>(item);
                 if (conn) conns.append(conn);
             }
+            nodesInfo = nodesInfo.left( nodesInfo.length() - 2 ) + "\n";
+            jsonFile.write(nodesInfo.toUtf8());
 
             QString closeNodesSection = "    },\n";
             jsonFile.write(closeNodesSection.toUtf8());
@@ -111,22 +115,26 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
             QString openEdgesSection = "    \"edges\":{\n";
             jsonFile.write(openEdgesSection.toUtf8());
 
+            QString edgesInfo = "";
             foreach (Connector *conn, conns)
             {
                 QPair<ShapeObj *, ShapeObj *> endpts = conn->getAttachedShapes();
                 int srcId = endpts.first->internalId();
                 int tgtId = endpts.second->internalId();
 
-                QString info = QString("        %1:{\"src\":%2,\"tgt\":%3,\"style\":\"%4\",\"pts\":\"%5\"},\n");
+                QString info = QString("        \"%1\":{\"src\":%2,\"tgt\":%3,\"style\":\"%4\",\"pts\":\"%5\"},\n");
                 info = info.arg(conn->internalId());
                 info = info.arg(srcId).arg(tgtId);
                 info = info.arg("ortho");
                 info = info.arg(conn->writePath());
 
-                jsonFile.write(info.toUtf8());
+                edgesInfo += info;
+                //jsonFile.write(info.toUtf8());
             }
+            edgesInfo = edgesInfo.left( edgesInfo.length() - 2 ) + "\n";
+            jsonFile.write(edgesInfo.toUtf8());
 
-            QString closeEdgesSection = "    },\n";
+            QString closeEdgesSection = "    }\n";
             jsonFile.write(closeEdgesSection.toUtf8());
 
             QString closeFile = "}\n";
