@@ -87,12 +87,16 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
             QList<CanvasItem *> canvas_items = canvas->items();
             QList<Connector*> conns;
 
+            QMap<int, ShapeObj*> nodes;
+
             QString nodesInfo = "";
             foreach (CanvasItem *item, canvas_items)
             {
                 ShapeObj *sh = dynamic_cast<ShapeObj*>(item);
                 if (sh)
                 {   
+                    nodes.insert(sh->internalId(), sh);
+
                     QString info = QString("        \"%1\":{\"cx\":%2,\"cy\":%3,\"w\":%4,\"h\":%5},\n");
                     info = info.arg(sh->internalId());
                     QPointF c = sh->centrePos();
@@ -122,11 +126,28 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
                 int srcId = endpts.first->internalId();
                 int tgtId = endpts.second->internalId();
 
+                // Write path from centre point of src to centre point of tgt.
+                QString centreToCentrePath = conn->writePath();
+                // Now change first and last points to src port pt and tgt port pt.
+                QStringList pts = centreToCentrePath.split(" ", QString::SkipEmptyParts);
+                QString newPath = "";
+
+                ShapeObj *src = nodes.value(srcId);
+                newPath += writePortPoint(src, pts.at(1));
+
+                for (int i = 1; i < pts.length() - 1; i++)
+                {
+                    newPath += " "+pts.at(i);
+                }
+
+                ShapeObj *tgt = nodes.value(tgtId);
+                newPath += " "+writePortPoint( tgt, pts.at( pts.length()-2 ) );
+
                 QString info = QString("        \"%1\":{\"src\":%2,\"tgt\":%3,\"style\":\"%4\",\"pts\":\"%5\"},\n");
                 info = info.arg(conn->internalId());
                 info = info.arg(srcId).arg(tgtId);
                 info = info.arg("ortho");
-                info = info.arg(conn->writePath());
+                info = info.arg(newPath);
 
                 edgesInfo += info;
                 //jsonFile.write(info.toUtf8());
@@ -142,6 +163,33 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
 
             jsonFile.close();
             return true;
+        }
+
+        QString writePortPoint(ShapeObj *node, QString nextPt) {
+            QStringList coords = nextPt.split(",");
+            float x1 = coords.at(0).toFloat();
+            float y1 = coords.at(1).toFloat();
+
+            float x0 = node->centrePos().x();
+            float y0 = node->centrePos().y();
+            float w = node->size().width();
+            float h = node->size().height();
+            float px, py;
+            if (x1 > x0) {
+                // Port is on right
+                px = x0 + w/2.0; py = y0;
+            } else if (x1 < x0) {
+                // Port is on left
+                px = x0 - w/2.0; py = y0;
+            } else if (y1 < y0) {
+                // Port is on top
+                px = x0; py = y0 - h/2.0;
+            } else {
+                // Port is on bottom
+                px = x0; py = y0 + h/2.0;
+            }
+            QString portPoint = QString("%1,%2").arg(px).arg(py);
+            return portPoint;
         }
 
         bool loadDiagramFromFile(Canvas *canvas, const QFileInfo& fileInfo,
