@@ -170,24 +170,52 @@ class JSONFileIOPlugin : public QObject, public FileIOPluginInterface
             float x1 = coords.at(0).toFloat();
             float y1 = coords.at(1).toFloat();
 
-            float x0 = node->centrePos().x();
-            float y0 = node->centrePos().y();
+            float cx = node->centrePos().x();
+            float cy = node->centrePos().y();
             float w = node->size().width();
             float h = node->size().height();
+            float x = cx - w/2.0; float y = cy - h/2.0;
+            float X = x + w; float Y = y + h;
             float px, py;
-            if (x1 > x0) {
-                // Port is on right
-                px = x0 + w/2.0; py = y0;
-            } else if (x1 < x0) {
-                // Port is on left
-                px = x0 - w/2.0; py = y0;
-            } else if (y1 < y0) {
-                // Port is on top
-                px = x0; py = y0 - h/2.0;
+
+            // Compute distance of point (x1,y1) from each of the
+            // box intervals, [x,X] and [y,Y].
+            float xDist, yDist;
+            if (x1 < x) {
+                xDist = x-x1;
+            } else if (X < x1) {
+                xDist = x1-X;
             } else {
-                // Port is on bottom
-                px = x0; py = y0 + h/2.0;
+                xDist = 0;
             }
+            if (y1 < y) {
+                yDist = y-y1;
+            } else if (Y < y1) {
+                yDist = y1-Y;
+            } else {
+                yDist = 0;
+            }
+
+            if ( yDist <= xDist ) {
+                // horizontal neighbours
+                if (x1 >= cx) {
+                    // Port is on right
+                    px = X; py = y1;
+                } else {
+                    // Port is on left
+                    px = x; py = y1;
+                }
+            } else {
+                // vertical neighbours
+                if (y1 >= cy) {
+                    // Port is below
+                    px = x1; py = Y;
+                } else {
+                    // Port is above
+                    px = x1; py = y;
+                }
+            }
+
             QString portPoint = QString("%1,%2").arg(px).arg(py);
             return portPoint;
         }
