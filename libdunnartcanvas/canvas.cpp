@@ -3323,6 +3323,7 @@ void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeOb
         if (i == N - 1) {
             classes.append(curr);
         }
+        lastKey = k;
     }
     // Now partition each list into connected components.
     foreach (QList<ShapeObj*> list, classes)
