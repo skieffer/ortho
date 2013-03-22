@@ -3274,6 +3274,109 @@ void Canvas::improveOrthogonalTopology()
     delete router2;
 }
 
+/* Build the set C of ShapeObjs which (a) are connected to sh (according to nbrs), and
+   (b) are in the passed set R.
+  */
+void Canvas::getRestrConnComp(QMap<ShapeObj *, ShapeObj *> nbrs, ShapeObj *sh,
+                              QSet<ShapeObj *> &R, QSet<ShapeObj *> &C)
+{
+    // Add sh to component.
+    C.insert(sh);
+    // Compute set of eligible neighbours.
+    QSet<ShapeObj*> N = nbrs.values(sh).toSet().intersect(R);
+    // Recurse on those neighbours which are not already in the set C.
+    foreach (ShapeObj *n, N) {
+        if (!C.contains(n)) {
+            getRestrConnComp(nbrs,n,R,C);
+        }
+    }
+}
+
+void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeObj *> nbrs, Dimension dim)
+{
+    // Sort by x-coord for vertical alignment, y-coord for horizontal.
+    QMap<qreal,ShapeObj*> coordmap;
+    foreach(ShapeObj *sh, shapes)
+    {
+        qreal coord = (dim == VERT ? sh->centrePos().x() : sh->centrePos().y());
+        coordmap.insertMulti(coord,sh);
+    }
+    // Partition into equivalence classes by coord
+    qreal eps = 1; // tolerance
+    QList< QList<ShapeObj*> > classes;
+    QList<qreal> keys = coordmap.uniqueKeys();
+    int N = keys.length();
+    QList<ShapeObj*> curr;
+    qreal k = keys.at(0);
+    curr.append(coordmap.values(k));
+    qreal lastKey = k;
+    for (int i = 1; i < N; i++)
+    {
+        qreal k = keys.at(i);
+        if (k - lastKey >= eps) {
+            // The current key is not within tolerance of the previous one.
+            // So record the current class, and then start a new one.
+            classes.append(curr);
+            curr.clear();
+        }
+        curr.append(coordmap.values(k));
+        if (i == N - 1) {
+            classes.append(curr);
+        }
+    }
+    // Now partition each list into connected components.
+    foreach (QList<ShapeObj*> list, classes)
+    {
+        QList< QSet<ShapeObj*> > ccs;
+        QSet<ShapeObj*> S = list.toSet();
+        QSet<ShapeObj*> R = list.toSet();
+        while (!S.isEmpty()) {
+            ShapeObj *sh = S.toList().first();
+            QSet<ShapeObj*> C;
+            getRestrConnComp(nbrs, sh, R, C);
+            ccs.append(C);
+            S = S.subtract(C);
+        }
+        // Create an alignment constraint for CCs of 2 or more elements.
+        foreach (QSet<ShapeObj*> cc, ccs)
+        {
+            if (cc.size() < 2) { continue; }
+            CanvasItemList items;
+            foreach (ShapeObj *sh, cc) {
+                items.append(sh);
+            }
+            atypes alignType = (dim == VERT ? ALIGN_CENTER : ALIGN_MIDDLE);
+            createAlignment(alignType, items);
+        }
+    }
+}
+
+void Canvas::inferAlignments()
+{
+    // Build list of shapes, and map from each shape to list of all of its neighbours.
+    QList<ShapeObj*> shapes;
+    QMap<ShapeObj*,ShapeObj*> nbrs;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        {
+            shapes.append(shape);
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
+            nbrs.insertMulti(endpts.first,endpts.second);
+            nbrs.insertMulti(endpts.second,endpts.first);
+        }
+    }
+
+    // Vertical alignments
+    inferAlignOneDim(shapes, nbrs, VERT);
+    // Horizontal alignments
+    inferAlignOneDim(shapes, nbrs, HORIZ);
+
+}
+
 void Canvas::applyKM3()
 {
     m_bclayout->applyFM3();

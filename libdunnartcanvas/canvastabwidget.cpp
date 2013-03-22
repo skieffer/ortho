@@ -147,6 +147,8 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
     m_action_improve_orthogonal_topology = new QAction(
                 "Improve Orthogonal Topology",this);
 
+    m_action_infer_alignments = new QAction("Infer Alignments",this);
+
     m_action_apply_fm3 = new QAction("Apply FMMM Layout",this);
 
     m_action_layout_BCTrees = new QAction("Layout BC-trees",this);
@@ -323,6 +325,9 @@ void CanvasTabWidget::currentChanged(int index)
     m_action_improve_orthogonal_topology->disconnect();
     connect(m_action_improve_orthogonal_topology, SIGNAL(triggered()),
             m_canvas, SLOT(improveOrthogonalTopology()));
+
+    m_action_infer_alignments->disconnect();
+    connect(m_action_infer_alignments, SIGNAL(triggered()), m_canvas, SLOT(inferAlignments()));
 
     m_action_apply_fm3->disconnect();
     connect(m_action_apply_fm3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));
@@ -573,6 +578,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_cola_debug_output);
     layout_menu->addSeparator();
     layout_menu->addAction(m_action_improve_orthogonal_topology);
+    layout_menu->addAction(m_action_infer_alignments);
     layout_menu->addAction(m_action_apply_fm3);
     layout_menu->addAction(m_action_layout_BCTrees);
     QMenu *BCOrthoLayoutMenu = layout_menu->addMenu(tr("BC Ortho Layout"));

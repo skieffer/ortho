@@ -107,6 +107,7 @@ private:
     QAction *m_action_edit_separator;
     QAction *m_action_edit_separator2;
     QAction *m_action_improve_orthogonal_topology;
+    QAction *m_action_infer_alignments;
     QAction *m_action_apply_fm3;
     QAction *m_action_layout_BCTrees;
     QAction *m_action_BCWithFM3;

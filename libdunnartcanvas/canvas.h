@@ -67,6 +67,7 @@ class SelectionResizeHandle;
 class UndoMacro;
 
 class BCLayout;
+class ShapeObj;
 
 typedef QList<CanvasItem *> CObjList;
 
@@ -152,6 +153,12 @@ class Canvas : public QGraphicsScene
             OrganicLayout = 0,
             FlowLayout    = 1,
             LayeredLayout = 2
+        };
+
+        enum Dimension
+        {
+            VERT,
+            HORIZ
         };
 
         bool loadGmlDiagram(const QFileInfo& fileInfo);
@@ -259,6 +266,7 @@ class Canvas : public QGraphicsScene
         void separateSelection(int type);
 
         void improveOrthogonalTopology(void);
+        void inferAlignments(void);
         void applyKM3(void);
         void layoutBCTrees(void);
         void BCWithFM3(void);
@@ -357,6 +365,12 @@ class Canvas : public QGraphicsScene
         void glueObjectsToIndicators(void);
         bool hasVisibleOverlays(void) const;
         void updateConnectorsForLayout(void);
+
+        void inferAlignOneDim(QList<ShapeObj*> shapes,
+                              QMap<ShapeObj*,ShapeObj*> nbrs,
+                              Dimension dim);
+        void getRestrConnComp(QMap<ShapeObj*,ShapeObj*> nbrs, ShapeObj *sh,
+                              QSet<ShapeObj*> &R, QSet<ShapeObj*> &C);
 
         double m_visual_page_buffer;
         QString m_filename;

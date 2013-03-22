@@ -702,7 +702,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             vpsc::Constraint *constraint = new vpsc::Constraint(
                     beforeLayoutV->layoutObstacle->variable, 
                     les->variable, sepDist, NonEquality);
-            cs.push_back(constraint);
+            //cs.push_back(constraint);
 
         }
 
@@ -718,12 +718,12 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             vpsc::Constraint *constraint = new vpsc::Constraint(
                     les->variable, afterLayoutV->layoutObstacle->variable, 
                     sepDist, NonEquality);
-            cs.push_back(constraint);
+            //cs.push_back(constraint);
 
         }
 
         // Constrain edge segment to separate from left neighbouring segment.
-        if (beforeV && beforeV->ss)
+        if (false && beforeV && beforeV->ss)
         {
             LayoutEdgeSegment *beforeLes = 
                 dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
@@ -764,7 +764,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         }
         
         // Constrain edge segment to separate from right neighbouring segment.
-        if (afterV && afterV->ss)
+        if (false && afterV && afterV->ss)
         {
             LayoutEdgeSegment *afterLes = 
                 dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
@@ -831,7 +831,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         beforeLayoutV->layoutObstacle->variable, 
                         ln->layoutObstacle->variable, sepDist, NonEquality);
-                cs.push_back(constraint);
+                //cs.push_back(constraint);
 
             }
             else if (beforeLes)
@@ -845,7 +845,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         beforeLes->variable, ln->layoutObstacle->variable,
                         sepDist, NonEquality);
-                cs.push_back(constraint);
+                //cs.push_back(constraint);
             }
         }
         else if (ln->side == SIDE_RIGHT)
@@ -868,7 +868,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                         ln->layoutObstacle->variable, 
                         afterLayoutV->layoutObstacle->variable, 
                         sepDist, NonEquality);
-                cs.push_back(constraint);
+                //cs.push_back(constraint);
 
             }
             else if (afterLes)
@@ -882,7 +882,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         ln->layoutObstacle->variable, afterLes->variable, 
                         sepDist, NonEquality);
-                cs.push_back(constraint);
+                //cs.push_back(constraint);
             }
         }
     }
