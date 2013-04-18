@@ -654,11 +654,14 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         return;
     }
 
+#define EDGESHAPEOFF
+//#define EDGEEDGEOFF
+
     if ((e->type == SegClose) || (e->type == SegOpen))
     {
         // This is an edge segment from a connector.
 
-        // Constraint edge segments that end in shapes to be fixed to those
+        // Constrain edge segments that end in shapes to be fixed to those
         // shapes in the shift dimension.
         LayoutEdgeSegment *les = dynamic_cast<LayoutEdgeSegment *> (v->ss);
         for (std::list<int>::iterator it = les->endsInShapeIndexes.begin();
@@ -702,7 +705,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             vpsc::Constraint *constraint = new vpsc::Constraint(
                     beforeLayoutV->layoutObstacle->variable, 
                     les->variable, sepDist, NonEquality);
-            //cs.push_back(constraint);
+#ifndef EDGESHAPEOFF
+            cs.push_back(constraint);
+#endif
 
         }
 
@@ -718,12 +723,15 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             vpsc::Constraint *constraint = new vpsc::Constraint(
                     les->variable, afterLayoutV->layoutObstacle->variable, 
                     sepDist, NonEquality);
-            //cs.push_back(constraint);
+#ifndef EDGESHAPEOFF
+            cs.push_back(constraint);
+#endif
 
         }
 
+#ifndef EDGEEDGEOFF
         // Constrain edge segment to separate from left neighbouring segment.
-        if (false && beforeV && beforeV->ss)
+        if (beforeV && beforeV->ss)
         {
             LayoutEdgeSegment *beforeLes = 
                 dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
@@ -764,7 +772,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         }
         
         // Constrain edge segment to separate from right neighbouring segment.
-        if (false && afterV && afterV->ss)
+        if (afterV && afterV->ss)
         {
             LayoutEdgeSegment *afterLes = 
                 dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
@@ -804,8 +812,10 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 }
             }
         }
+#endif
     }
-    
+
+#define SHAPESHAPEOFF
     if ((e->type == Close) || (e->type == Open))
     {
         // This is a left or right shape side, beginning or ending.
@@ -831,7 +841,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         beforeLayoutV->layoutObstacle->variable, 
                         ln->layoutObstacle->variable, sepDist, NonEquality);
-                //cs.push_back(constraint);
+#ifndef SHAPESHAPEOFF
+                cs.push_back(constraint);
+#endif
 
             }
             else if (beforeLes)
@@ -845,7 +857,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         beforeLes->variable, ln->layoutObstacle->variable,
                         sepDist, NonEquality);
-                //cs.push_back(constraint);
+#ifndef SHAPESHAPEOFF
+                cs.push_back(constraint);
+#endif
             }
         }
         else if (ln->side == SIDE_RIGHT)
@@ -868,7 +882,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                         ln->layoutObstacle->variable, 
                         afterLayoutV->layoutObstacle->variable, 
                         sepDist, NonEquality);
-                //cs.push_back(constraint);
+#ifndef SHAPESHAPEOFF
+                cs.push_back(constraint);
+#endif
 
             }
             else if (afterLes)
@@ -882,7 +898,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         ln->layoutObstacle->variable, afterLes->variable, 
                         sepDist, NonEquality);
-                //cs.push_back(constraint);
+#ifndef SHAPESHAPEOFF
+                cs.push_back(constraint);
+#endif
             }
         }
     }
