@@ -100,7 +100,12 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       clusterHierarchy(NULL),
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
-      m_generateNonOverlapConstraints(preventOverlaps)
+      m_generateNonOverlapConstraints(preventOverlaps),
+      m_addSnapStress(true),
+      m_snapStressAlpha(1.0),
+      m_snapStressBeta(1.0),
+      m_snapStressSigma(50.0),
+      m_snapStressRho(1)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -1020,6 +1025,9 @@ void ConstrainedFDLayout::computeForces(
         }
         H(u,u)=Huu;
     }
+    if(m_addSnapStress) {
+        computeSnapForces(dim,H,g);
+    }
     if(desiredPositions) {
         for(DesiredPositions::const_iterator p=desiredPositions->begin();
             p!=desiredPositions->end();++p) {
@@ -1032,6 +1040,11 @@ void ConstrainedFDLayout::computeForces(
         }
     }
 }
+
+void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    // TODO
+}
+
 /**
  * Returns the optimal step-size in the direction d, given gradient g and 
  * hessian H.
@@ -1088,6 +1101,9 @@ double ConstrainedFDLayout::computeStress() const {
             }
         }
     }
+    if(m_addSnapStress) {
+        stress += computeSnapStress();
+    }
     stress += topologyAddon->computeStress();
     if(desiredPositions) {
         for(DesiredPositions::const_iterator p = desiredPositions->begin();
@@ -1098,6 +1114,27 @@ double ConstrainedFDLayout::computeStress() const {
     }
     return stress;
 }
+
+double ConstrainedFDLayout::computeSnapStress() const {
+    // For now we disregard parameter rho.
+    double stress=0;
+    double sig2=m_snapStressSigma*m_snapStressSigma;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double rx2=rx*rx, ry2=ry*ry;
+            double f=rx2-sig2, g=ry2-sig2;
+            double d=1+m_snapStressAlpha*f*f, e=1+m_snapStressAlpha*g*g;
+            double s = 1/d + 1/e;
+            stress+=s;
+        }
+    }
+    return m_snapStressBeta*stress;
+}
+
 void ConstrainedFDLayout::moveBoundingBoxes() {
     for(unsigned i=0;i<n;i++) {
         boundingBoxes[i]->moveCentre(X[i],Y[i]);

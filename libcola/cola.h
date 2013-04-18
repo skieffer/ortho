@@ -617,6 +617,17 @@ private:
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
 
+    // Snap Stress data
+    bool m_addSnapStress;
+    double m_snapStressAlpha;
+    double m_snapStressBeta;
+    double m_snapStressSigma;
+    int m_snapStressRho;
+    double computeSnapStress() const;
+    void computeSnapForces(const vpsc::Dim dim, SparseMap &H,
+            std::valarray<double> &g);
+    // end Snap Stress data
+
     friend class topology::ColaTopologyAddon;
 };
 
