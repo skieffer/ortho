@@ -621,6 +621,7 @@ private:
     bool m_addSnapStress;
     double m_snapStressAlpha;
     double m_snapStressBeta;
+    double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
     double computeSnapStress() const;
