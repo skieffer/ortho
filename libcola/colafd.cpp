@@ -104,11 +104,13 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
       m_addSnapStress(false),
-      m_snapStressAlpha(1.0),
-      m_snapStressBeta(5.0),
-      m_snapStressSigma(25.0),
-      m_snapStressGamma(625.0),
-      m_snapStressRho(1)
+      // snap stress functions:
+      //  1: smooth M-stress
+      //  2: piecewise linear M-stress
+      //  3: dual quadratic
+      //  4: inverted quadratic (has long-range forces)
+      //  5: quartic
+      m_snapStressFunction(3)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -132,7 +134,50 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
     } else {
         valarray<double> eLengthsArray(eLengths,es.size());
         computePathLengths(es,&eLengthsArray);
-    }    
+    }
+
+    switch (m_snapStressFunction) {
+    case 1:
+        // Smooth M-stress
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 5.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 25.0;
+        m_snapStressRho = 1;
+        break;
+    case 2:
+        // Linear M-stress
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 5.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 25.0;
+        m_snapStressRho = 1;
+        break;
+    case 3:
+        // Dual-quadratic
+        m_snapStressAlpha = 0.01;
+        m_snapStressBeta = 1.0;
+        m_snapStressGamma = 1.0;
+        m_snapStressSigma = 50.0;
+        m_snapStressRho = 1;
+        break;
+    case 4:
+        // Inverted Quadratic
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 5.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 25.0;
+        m_snapStressRho = 1;
+        break;
+    case 5:
+        // Quartic
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 5.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 25.0;
+        m_snapStressRho = 1;
+        break;
+    }
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
@@ -1044,8 +1089,31 @@ void ConstrainedFDLayout::computeForces(
     }
 }
 
-// Smooth M-stress forces:
+// Force chooser:
 void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    dualQuadraticForces(dim,H,g);
+    return;
+    switch (m_snapStressFunction) {
+    case 1:
+        smoothMForces(dim,H,g);
+        break;
+    case 2:
+        linearMForces(dim,H,g);
+        break;
+    case 3:
+        dualQuadraticForces(dim,H,g);
+        break;
+    case 4:
+        invertedQuadraticForces(dim,H,g);
+        break;
+    case 5:
+        quarticForces(dim,H,g);
+        break;
+    }
+}
+
+// Smooth M-stress forces:
+void ConstrainedFDLayout::smoothMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
     double a = m_snapStressAlpha;
     double b = m_snapStressBeta;
     double sig = m_snapStressSigma;
@@ -1084,9 +1152,9 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
     }
 }
 
-/*
+
 // Linear M-stress forces:
-void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+void ConstrainedFDLayout::linearMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
     double a = m_snapStressAlpha;
     double b = m_snapStressBeta;
     double sig = m_snapStressSigma;
@@ -1113,11 +1181,10 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         g[u]+=b*gu;
     }
 }
-*/
 
-/*
 // Summed quadratic bumps snap stress forces
-void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+void ConstrainedFDLayout::dualQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    qDebug() << "dual quadratic force";
     double a = m_snapStressAlpha;
     double c = -a*m_snapStressBeta;
     double s = m_snapStressSigma;
@@ -1143,10 +1210,10 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         H(u,u)+=Huu;
     }
 }
-*/
 
-/* Snap stress with long-range forces
-void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+
+// Snap stress with long-range forces
+void ConstrainedFDLayout::invertedQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
     double a = m_snapStressAlpha;
     double k = m_snapStressGamma;
     double c = a*k*m_snapStressBeta;
@@ -1171,10 +1238,10 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         H(u,u)+=Huu;
     }
 }
-*/
 
-/* Quartic snap stress forces:
-void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+
+// Quartic snap stress forces:
+void ConstrainedFDLayout::quarticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
     double a = m_snapStressAlpha;
     double c = 2*a*m_snapStressBeta;
     double sig2 = m_snapStressSigma*m_snapStressSigma;
@@ -1199,7 +1266,7 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         H(u,u)+=Huu;
     }
 }
-*/
+
 
 /**
  * Returns the optimal step-size in the direction d, given gradient g and 
@@ -1274,8 +1341,24 @@ double ConstrainedFDLayout::computeStress() const {
     return stress;
 }
 
-// Smooth M-stress:
+// Snap stress chooser:
 double ConstrainedFDLayout::computeSnapStress() const {
+    switch (m_snapStressFunction) {
+    case 1:
+        return smoothMStress();
+    case 2:
+        return linearMStress();
+    case 3:
+        return dualQuadraticStress();
+    case 4:
+        return invertedQuadraticStress();
+    case 5:
+        return quarticStress();
+    }
+}
+
+// Smooth M-stress:
+double ConstrainedFDLayout::smoothMStress() const {
     // For now we disregard parameter rho.
     double stress=0;
     double a = m_snapStressAlpha;
@@ -1340,9 +1423,8 @@ double ConstrainedFDLayout::computeSnapStress() const {
     return m_snapStressBeta*stress;
 }
 
-/*
 // Linear M-stress:
-double ConstrainedFDLayout::computeSnapStress() const {
+double ConstrainedFDLayout::linearMStress() const {
     // For now we disregard parameter rho.
     double stress=0;
     double a = m_snapStressAlpha;
@@ -1378,11 +1460,10 @@ double ConstrainedFDLayout::computeSnapStress() const {
     }
     return m_snapStressBeta*stress;
 }
-*/
 
-/*
+
 // Summed quadratic bumps snap stress:
-double ConstrainedFDLayout::computeSnapStress() const {
+double ConstrainedFDLayout::dualQuadraticStress() const {
     // For now we disregard parameter rho.
     double stress=0;
     double a = m_snapStressAlpha;
@@ -1403,10 +1484,9 @@ double ConstrainedFDLayout::computeSnapStress() const {
     }
     return m_snapStressBeta*stress;
 }
-*/
 
-/* Snap stress with long range force:
-double ConstrainedFDLayout::computeSnapStress() const {
+// Snap stress with long range force:
+double ConstrainedFDLayout::invertedQuadraticStress() const {
     // For now we disregard parameter rho.
     double stress=0;
     double a = m_snapStressAlpha;
@@ -1425,10 +1505,9 @@ double ConstrainedFDLayout::computeSnapStress() const {
     }
     return a*m_snapStressBeta*stress;
 }
-*/
 
-/* Quartic snap stress:
-double ConstrainedFDLayout::computeSnapStress() const {
+// Quartic snap stress:
+double ConstrainedFDLayout::quarticStress() const {
     // For now we disregard parameter rho.
     double stress=0;
     double sig2=m_snapStressSigma*m_snapStressSigma;
@@ -1447,7 +1526,6 @@ double ConstrainedFDLayout::computeSnapStress() const {
     }
     return m_snapStressBeta*stress;
 }
-*/
 
 void ConstrainedFDLayout::moveBoundingBoxes() {
     for(unsigned i=0;i<n;i++) {

@@ -617,17 +617,27 @@ private:
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
 
-    // Snap Stress data
+    // Snap Stress
     bool m_addSnapStress;
+    int m_snapStressFunction;
     double m_snapStressAlpha;
     double m_snapStressBeta;
     double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
     double computeSnapStress() const;
-    void computeSnapForces(const vpsc::Dim dim, SparseMap &H,
-            std::valarray<double> &g);
-    // end Snap Stress data
+    double smoothMStress() const;
+    double linearMStress() const;
+    double dualQuadraticStress() const;
+    double invertedQuadraticStress() const;
+    double quarticStress() const;
+    void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void smoothMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void linearMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void dualQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void invertedQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void quarticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    // end Snap Stress
 
     friend class topology::ColaTopologyAddon;
 };
