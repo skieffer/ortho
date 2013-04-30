@@ -28,6 +28,8 @@
 #ifndef COLA_H
 #define COLA_H
 
+#include <QString>
+
 #include <utility>
 #include <iterator>
 #include <vector>
@@ -626,17 +628,24 @@ private:
     double m_snapStressSigma;
     int m_snapStressRho;
     double computeSnapStress() const;
+    double smoothVStress() const;
+    double linearVStress() const;
     double smoothMStress() const;
     double linearMStress() const;
     double dualQuadraticStress() const;
     double invertedQuadraticStress() const;
     double quarticStress() const;
     void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void smoothVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void linearVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void smoothMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void linearMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void dualQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void invertedQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void quarticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    QString writeVADVect(std::valarray<double> v) const;
+    QString writeSparseMatrix(SparseMatrix M, bool linear=false) const;
+    int m_debugLineNo;
     // end Snap Stress
 
     friend class topology::ColaTopologyAddon;

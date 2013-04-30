@@ -103,14 +103,17 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
-      m_addSnapStress(false),
+      m_addSnapStress(true),
       // snap stress functions:
       //  1: smooth M-stress
       //  2: piecewise linear M-stress
       //  3: dual quadratic
       //  4: inverted quadratic (has long-range forces)
       //  5: quartic
-      m_snapStressFunction(3)
+      //  6: smooth V-stress
+      //  7: linear V-stress
+      m_snapStressFunction(7),
+      m_debugLineNo(0)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -175,6 +178,22 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         m_snapStressBeta = 5.0;
         m_snapStressGamma = 625.0;
         m_snapStressSigma = 25.0;
+        m_snapStressRho = 1;
+        break;
+    case 6:
+        // Smooth V-stress
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 100.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 50.0;
+        m_snapStressRho = 1;
+        break;
+    case 7:
+        // Linear V-stress
+        m_snapStressAlpha = 1.0;
+        m_snapStressBeta = 100.0;
+        m_snapStressGamma = 625.0;
+        m_snapStressSigma = 50.0;
         m_snapStressRho = 1;
         break;
     }
@@ -944,6 +963,28 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
 }
+
+QString ConstrainedFDLayout::writeVADVect(valarray<double> v) const {
+    QString s = "";
+    for (int i = 0; i < v.size(); i++) {
+        s += QString::number(v[i],'g',3)+"  ";
+    }
+    return s;
+}
+
+QString ConstrainedFDLayout::writeSparseMatrix(SparseMatrix M, bool linear) const {
+    QString s = "";
+    QString sep = linear?" | ":"\n";
+    unsigned n = M.rowSize();
+    for(unsigned i=0;i<n;i++) {
+        for(unsigned j=0;j<n;j++) {
+            s += QString::number(M.getIJ(i,j),'g',3)+"  ";
+        }
+        s += sep;
+    }
+    return s;
+}
+
 /**
  * The following computes an unconstrained solution then uses Projection to
  * make this solution feasible with respect to constraints by moving things as
@@ -954,6 +995,9 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
+
+    if (dim==vpsc::HORIZONTAL) qDebug() << "x: " << writeVADVect(coords);
+
     DesiredPositionsInDim des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -978,18 +1022,35 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
         // Projection.
         SparseMap HMap(n);
+        //qDebug() << "Computing Forces ========================================================";
+
+        //qDebug() << m_debugLineNo << " ----------";
+        //m_debugLineNo++;
+
         computeForces(dim,HMap,g);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "g: " << writeVADVect(g);
         SparseMatrix H(HMap);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "H: " << writeSparseMatrix(H,true);
         valarray<double> oldCoords=coords;
-        applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
+        double ss = computeStepSize(H,g,g);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "ss: " << ss;
+        applyDescentVector(g,oldCoords,coords,oldStress,ss);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "c1: " << writeVADVect(coords);
+
         setVariableDesiredPositions(vs,cs,des,coords);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "c2: " << writeVADVect(coords);
         project(vs,cs,coords);
+        if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);
+
         valarray<double> d(n);
         d=oldCoords-coords;
+        if (dim==vpsc::HORIZONTAL) qDebug() << "d: " << writeVADVect(d);
         double stepsize=computeStepSize(H,g,d);
         stepsize=max(0.,min(stepsize,1.));
+        //qDebug() << "stepsize: " << stepsize;
         //printf(" dim=%d beta: ",dim);
         stress = applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
+
         moveBoundingBoxes();
     }
     updateCompoundConstraints(dim, ccs);
@@ -1048,6 +1109,8 @@ void ConstrainedFDLayout::computeForces(
         valarray<double> &g) {
     if(n==1) return;
     g=0;
+#define BASICSTRESS
+#ifdef  BASICSTRESS
     // for each node:
     for(unsigned u=0;u<n;u++) {
         // Stress model
@@ -1073,6 +1136,7 @@ void ConstrainedFDLayout::computeForces(
         }
         H(u,u)=Huu;
     }
+#endif
     if(m_addSnapStress) {
         computeSnapForces(dim,H,g);
     }
@@ -1091,8 +1155,6 @@ void ConstrainedFDLayout::computeForces(
 
 // Force chooser:
 void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
-    dualQuadraticForces(dim,H,g);
-    return;
     switch (m_snapStressFunction) {
     case 1:
         smoothMForces(dim,H,g);
@@ -1109,6 +1171,70 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
     case 5:
         quarticForces(dim,H,g);
         break;
+    case 6:
+        smoothVForces(dim,H,g);
+        break;
+    case 7:
+        linearVForces(dim,H,g);
+        break;
+    }
+}
+
+// Smooth V-stress forces:
+void ConstrainedFDLayout::smoothVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    double a = m_snapStressAlpha;
+    double b = m_snapStressBeta;
+    double sig = m_snapStressSigma;
+    double l3 = sig*sig*sig;
+    for(unsigned u=0;u<n;u++) {
+        double Huu=0, gu=0;
+        for(unsigned v=0;v<n;v++) {
+            if(u==v) continue;
+            unsigned short p = G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+            double r=0, q=1, t=0;
+            if (-sig <= d && d < 0) {
+                r=-sig; q=0;
+                t=-1;
+            } else if (0 <= d && d < sig) {
+                r=0; q=sig;
+                t=1;
+            }
+            double dmp=d-r, dmq=d-q;
+            double c=-3/l3;
+            gu+=t*b*c*dmp*dmq;
+            //double Huv=-t*b*c*(dmp+dmq);
+            double Huv=t*b*c*(dmp+dmq); // !! Try opposite sign, since getting weird results!
+            //qDebug() << "Adding " + QString::number(Huv,'g',3) + " to H at " + QString::number(u)+","+QString::number(v);
+            H(u,v)+=Huv;
+            Huu-=Huv;
+        }
+        g[u]+=gu;
+        H(u,u)+=Huu;
+    }
+}
+
+// Linear V-stress forces:
+void ConstrainedFDLayout::linearVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    double b = m_snapStressBeta;
+    double sig = m_snapStressSigma;
+    double q = b/sig;
+    for(unsigned u=0;u<n;u++) {
+        for(unsigned v=0;v<n;v++) {
+            if(u==v) continue;
+            unsigned short p = G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+            double r=0;
+            if (-sig <= d && d < 0) {
+                g[u] -= q;
+            } else if (0 <= d && d < sig) {
+                g[u] += q;
+            }
+        }
     }
 }
 
@@ -1125,7 +1251,7 @@ void ConstrainedFDLayout::smoothMForces(const vpsc::Dim dim, SparseMap &H, std::
             // no forces between disconnected parts of the graph
             if(p==0) continue;
             double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
-            double r, q, t;
+            double r=0, q=0, t=1;
             if (-sig-a <= d && d < -sig) {
                 r=-sig-a; q=-sig;
                 t=1;
@@ -1184,7 +1310,7 @@ void ConstrainedFDLayout::linearMForces(const vpsc::Dim dim, SparseMap &H, std::
 
 // Summed quadratic bumps snap stress forces
 void ConstrainedFDLayout::dualQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
-    qDebug() << "dual quadratic force";
+    //qDebug() << "dual quadratic force";
     double a = m_snapStressAlpha;
     double c = -a*m_snapStressBeta;
     double s = m_snapStressSigma;
@@ -1277,6 +1403,9 @@ double ConstrainedFDLayout::computeStepSize(
         valarray<double> const &g, 
         valarray<double> const &d) const
 {
+    //qDebug() << "g: " << writeVADVect(g);
+    //qDebug() << "H: " << writeSparseMatrix(H,true);
+    //qDebug() << "d: " << writeVADVect(d);
     COLA_ASSERT(g.size()==d.size());
     COLA_ASSERT(g.size()==H.rowSize());
     // stepsize = g'd / (d' H d)
@@ -1286,6 +1415,11 @@ double ConstrainedFDLayout::computeStepSize(
     double denominator = dotProd(d,Hd);
     //COLA_ASSERT(numerator>=0);
     //COLA_ASSERT(denominator>=0);
+    //qDebug() << "Step size numerator: " << numerator;
+    //qDebug() << "Step size denominator: " << denominator;
+    double epsilon = 0.0001;
+    //if(denominator<epsilon) denominator=0;
+    //if(denominator!=0) qDebug() << "step size: " << numerator/denominator;
     if(denominator==0) return 0;
     return numerator/denominator;
 }
@@ -1297,6 +1431,7 @@ double ConstrainedFDLayout::computeStepSize(
 double ConstrainedFDLayout::computeStress() const {
     FILE_LOG(logDEBUG)<<"ConstrainedFDLayout::computeStress()";
     double stress=0;
+#ifdef  BASICSTRESS
     for(unsigned u=0;(u + 1)<n;u++) {
         for(unsigned v=u+1;v<n;v++) {
             unsigned short p=G[u][v];
@@ -1314,11 +1449,14 @@ double ConstrainedFDLayout::computeStress() const {
             FILE_LOG(logDEBUG2)<<"s("<<u<<","<<v<<")="<<s;
         }
     }
-    qDebug() << "stress: " << stress;
+#endif
+    //qDebug() << "stress: " << stress;
     if(m_addSnapStress) {
-        stress += computeSnapStress();
+        double snapstress = computeSnapStress();
+        //qDebug() << "ss: " << snapstress;
+        stress += snapstress;
     }
-    qDebug() << "plus snap stress: " << stress;
+    //qDebug() << "plus snap stress: " << stress;
     if(preIteration) {
         if ((*preIteration)()) {
             for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -1354,7 +1492,114 @@ double ConstrainedFDLayout::computeSnapStress() const {
         return invertedQuadraticStress();
     case 5:
         return quarticStress();
+    case 6:
+        return smoothVStress();
+    case 7:
+        return linearVStress();
     }
+}
+
+// Smooth V-stress:
+// (letter "V" with infinite serif)
+// ----    ----
+//     \  /
+//      \/
+double ConstrainedFDLayout::smoothVStress() const {
+    // For now we disregard parameter rho.
+    double stress=0;
+    double a = m_snapStressAlpha;
+    double sig = m_snapStressSigma;
+    double w=0;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double dx=X[u]-X[v], dy=Y[u]-Y[v];
+
+            double sx = 0;
+            if (dx < -sig) {
+                sx = 1.0;
+            } else if (-sig <= dx && dx < 0) {
+                w = (dx+sig)/sig;
+                double w2 = w*w;
+                double w3 = w2*w;
+                sx = 2*w3 - 3*w2 + 1;
+            } else if (0 <= dx && dx < sig) {
+                w = dx/sig;
+                double w2 = w*w;
+                double w3 = w2*w;
+                sx = -2*w3 + 3*w2;
+            } else if (sig <= dx) {
+                sx = 1.0;
+            }
+
+            double sy = 0;
+            if (dy < -sig) {
+                sy = 1.0;
+            } else if (-sig <= dy && dy < 0) {
+                w = (dy+sig)/sig;
+                double w2 = w*w;
+                double w3 = w2*w;
+                sy = 2*w3 - 3*w2 + 1;
+            } else if (0 <= dy && dy < sig) {
+                w = dy/sig;
+                double w2 = w*w;
+                double w3 = w2*w;
+                sy = -2*w3 + 3*w2;
+            } else if (sig <= dy) {
+                sy = 1.0;
+            }
+
+            stress+=sx+sy;
+        }
+    }
+    return m_snapStressBeta*stress;
+}
+
+// Linear V-stress:
+// (letter "V" with infinite serif)
+// ----    ----
+//     \  /
+//      \/
+double ConstrainedFDLayout::linearVStress() const {
+    // For now we disregard parameter rho.
+    double stress=0;
+    double sig = m_snapStressSigma;
+    double w=0;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double dx=X[u]-X[v], dy=Y[u]-Y[v];
+
+            double sx = 0;
+            if (dx < -sig) {
+                sx = 1.0;
+            } else if (-sig <= dx && dx < 0) {
+                sx = -dx/sig;
+            } else if (0 <= dx && dx < sig) {
+                sx = dx/sig;
+            } else if (sig <= dx) {
+                sx = 1.0;
+            }
+
+            double sy = 0;
+            if (dy < -sig) {
+                sy = 1.0;
+            } else if (-sig <= dy && dy < 0) {
+                sy = -dy/sig;
+            } else if (0 <= dy && dy < sig) {
+                sy = dy/sig;
+            } else if (sig <= dy) {
+                sy = 1.0;
+            }
+
+            stress+=sx+sy;
+        }
+    }
+    return m_snapStressBeta*stress;
 }
 
 // Smooth M-stress:
@@ -1464,6 +1709,7 @@ double ConstrainedFDLayout::linearMStress() const {
 
 // Summed quadratic bumps snap stress:
 double ConstrainedFDLayout::dualQuadraticStress() const {
+    qDebug() << "dual quadratic stress";
     // For now we disregard parameter rho.
     double stress=0;
     double a = m_snapStressAlpha;
