@@ -210,6 +210,7 @@ Canvas::Canvas()
     // Options for controlling behaviour of Constraint-based layout:
     m_opt_automatic_graph_layout = false;
     m_opt_prevent_overlaps       = false;
+    m_opt_snap_to                = false;
     m_opt_preserve_topology      = false;
     m_opt_rubber_band_routing    = false;
     m_opt_fit_within_page        = false;
@@ -1244,6 +1245,11 @@ bool Canvas::optPreventOverlaps(void) const
     return m_opt_prevent_overlaps;
 }
 
+bool Canvas::optSnapTo(void) const
+{
+    return m_opt_snap_to;
+}
+
 bool Canvas::optPreserveTopology(void) const
 {
     return m_opt_preserve_topology;
@@ -1392,6 +1398,14 @@ void Canvas::setOptPreventOverlaps(const bool value)
 }
 
 
+void Canvas::setOptSnapTo(const bool value)
+{
+    m_opt_snap_to = value;
+    emit optChangedSnapTo(m_opt_snap_to);
+    fully_restart_graph_layout();
+}
+
+
 void Canvas::setOptRoutingPenaltySegment(const int value)
 {
     m_router->setRoutingParameter(Avoid::segmentPenalty, (double) value);
@@ -1438,6 +1452,22 @@ void Canvas::setOptIdealEdgeLengthModifier(double modifier)
     emit optChangedIdealEdgeLengthModifier(modifier);
     interrupt_graph_layout();
 }
+
+
+void Canvas::setOptSnapDistanceModifierFromSlider(int int_modifier)
+{
+    qDebug() << "Snap Distance int modifier: " << int_modifier;
+    double double_modifier = int_modifier / 1.0;
+    setOptSnapDistanceModifier(double_modifier);
+}
+
+void Canvas::setOptSnapDistanceModifier(double modifier)
+{
+    m_opt_snap_distance_modifier = modifier;
+    emit optChangedSnapDistanceModifier(modifier);
+    interrupt_graph_layout();
+}
+
 
 void Canvas::setOptLayeredAlignmentPosition(const LayeredAlignment pos)
 {
@@ -1557,6 +1587,12 @@ bool Canvas::overlayRouterOrthogonalVisGraph(void) const
 double Canvas::optIdealEdgeLengthModifier(void) const
 {
     return m_opt_ideal_edge_length_modifier;
+}
+
+
+double Canvas::optSnapDistanceModifier(void) const
+{
+    return m_opt_snap_distance_modifier;
 }
 
 

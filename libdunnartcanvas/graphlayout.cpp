@@ -1256,8 +1256,9 @@ void GraphLayout::run(const bool shouldReinitialise)
     m_graph->getEdgeLengths(elengths);
 
     cola::ConstrainedFDLayout alg(m_graph->rs, m_graph->edges, 1.0,
-            m_canvas->m_opt_prevent_overlaps, &elengths[0], postIter, 
-            &preIter);
+            m_canvas->m_opt_prevent_overlaps,
+            m_canvas->m_opt_snap_to,  m_canvas->m_opt_snap_distance_modifier,
+            &elengths[0], postIter, &preIter);
     alg.setConstraints(m_graph->ccs);
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
     if (runLevel == 1)

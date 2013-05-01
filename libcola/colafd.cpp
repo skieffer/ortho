@@ -89,7 +89,9 @@ void dumpSquareMatrix(unsigned n, T** L) {
 
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
-        const bool preventOverlaps, const double* eLengths, 
+        const bool preventOverlaps,
+        const bool snapTo, const double snapDistance,
+        const double* eLengths,
         TestConvergence& done, PreIteration* preIteration) 
     : n(rs.size()),
       X(valarray<double>(n)),
@@ -103,7 +105,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
-      m_addSnapStress(true),
+      m_addSnapStress(snapTo),
+      m_snap_distance(snapDistance),
       // snap stress functions:
       //  1: smooth M-stress
       //  2: piecewise linear M-stress
@@ -112,7 +115,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       //  5: quartic
       //  6: smooth V-stress
       //  7: linear V-stress
-      m_snapStressFunction(7),
+      //  8: quadraic U-stress
+      m_snapStressFunction(8),
       m_debugLineNo(0)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
@@ -196,6 +200,12 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         m_snapStressSigma = 50.0;
         m_snapStressRho = 1;
         break;
+    case 8:
+        // Quadratic U-stress
+        //m_snapStressBeta = 60.0;
+        m_snapStressSigma = 30.0;
+        //m_snapStressSigma = m_snap_distance;
+        m_snapStressBeta = 2*m_snapStressSigma;
     }
 }
 
@@ -996,7 +1006,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     valarray<double> g(n);
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
 
-    if (dim==vpsc::HORIZONTAL) qDebug() << "x: " << writeVADVect(coords);
+    //if (dim==vpsc::HORIZONTAL) qDebug() << "x: " << writeVADVect(coords);
 
     DesiredPositionsInDim des;
     if(preIteration) {
@@ -1028,23 +1038,23 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         //m_debugLineNo++;
 
         computeForces(dim,HMap,g);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "g: " << writeVADVect(g);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "g: " << writeVADVect(g);
         SparseMatrix H(HMap);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "H: " << writeSparseMatrix(H,true);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "H: " << writeSparseMatrix(H,true);
         valarray<double> oldCoords=coords;
         double ss = computeStepSize(H,g,g);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "ss: " << ss;
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "ss: " << ss;
         applyDescentVector(g,oldCoords,coords,oldStress,ss);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "c1: " << writeVADVect(coords);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "c1: " << writeVADVect(coords);
 
         setVariableDesiredPositions(vs,cs,des,coords);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "c2: " << writeVADVect(coords);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "c2: " << writeVADVect(coords);
         project(vs,cs,coords);
-        if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);
 
         valarray<double> d(n);
         d=oldCoords-coords;
-        if (dim==vpsc::HORIZONTAL) qDebug() << "d: " << writeVADVect(d);
+        //if (dim==vpsc::HORIZONTAL) qDebug() << "d: " << writeVADVect(d);
         double stepsize=computeStepSize(H,g,d);
         stepsize=max(0.,min(stepsize,1.));
         //qDebug() << "stepsize: " << stepsize;
@@ -1177,6 +1187,32 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
     case 7:
         linearVForces(dim,H,g);
         break;
+    case 8:
+        quadUForces(dim,H,g);
+        break;
+    }
+}
+
+// Quadratic U-stress forces:
+void ConstrainedFDLayout::quadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    double b = m_snapStressBeta;
+    double sig = m_snapStressSigma;
+    double k = b/(sig*sig);
+    for(unsigned u=0;u<n;u++) {
+        for(unsigned v=0;v<n;v++) {
+            if(u==v) continue;
+            unsigned short p = G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+            if (-sig <= d && d <= sig) {
+                g[u]+=k*d;
+                H(u,v)-=k;
+                H(u,u)+=k;
+            }
+            //qDebug() << "H(u,v) -= " << k;
+            //qDebug() << "g[u] += " << k*d;
+        }
     }
 }
 
@@ -1441,7 +1477,10 @@ double ConstrainedFDLayout::computeStress() const {
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
             //qDebug() << "d=" << d;
-            if(l>d && p>1) continue; // no attractive forces required
+            if(l>d && p>1) continue; // no repulsive forces required
+            // We add stress for node pair (u,v) only if l <= d, i.e.
+            // only if u and v are "too close". Thus, our stress function
+            // is such that "nodes repel".
             double d2=d*d;
             double rl=d-l;
             double s=rl*rl/d2;
@@ -1496,7 +1535,46 @@ double ConstrainedFDLayout::computeSnapStress() const {
         return smoothVStress();
     case 7:
         return linearVStress();
+    case 8:
+        return quadUStress();
     }
+}
+
+// Quadratic U-stress:
+double ConstrainedFDLayout::quadUStress() const {
+    double stress=0;
+    double sig = m_snapStressSigma;
+    double sig2 = sig*sig;
+    double c=0.0; // the constant stress -- experiment with 0 and 1 here!
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double dx=X[u]-X[v], dy=Y[u]-Y[v];
+
+            double sx = 0;
+            if (dx < -sig) {
+                sx = c;
+            } else if (-sig <= dx && dx <= sig) {
+                sx = dx*dx/sig2;
+            } else { // sig < dx
+                sx = c;
+            }
+
+            double sy = 0;
+            if (dy < -sig) {
+                sy = c;
+            } else if (-sig <= dy && dy <= sig) {
+                sy = dy*dy/sig2;
+            } else { // sig < dy
+                sy = c;
+            }
+
+            stress+=sx+sy;
+        }
+    }
+    return m_snapStressBeta*stress;
 }
 
 // Smooth V-stress:

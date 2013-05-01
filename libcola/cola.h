@@ -509,6 +509,8 @@ public:
         const std::vector<cola::Edge>& es,
         const double idealLength,
         const bool preventOverlaps,
+        const bool snapTo=false,
+        const double snapDistance=50.0,
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
@@ -622,12 +624,14 @@ private:
     // Snap Stress
     bool m_addSnapStress;
     int m_snapStressFunction;
+    double m_snap_distance;
     double m_snapStressAlpha;
     double m_snapStressBeta;
     double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
     double computeSnapStress() const;
+    double quadUStress() const;
     double smoothVStress() const;
     double linearVStress() const;
     double smoothMStress() const;
@@ -636,6 +640,7 @@ private:
     double invertedQuadraticStress() const;
     double quarticStress() const;
     void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void quadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void smoothVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void linearVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void smoothMForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
