@@ -510,7 +510,7 @@ public:
         const double idealLength,
         const bool preventOverlaps,
         const bool snapTo=false,
-        const double snapDistance=50.0,
+        const double snapDistance=10.0,
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
