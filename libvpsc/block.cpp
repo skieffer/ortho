@@ -32,6 +32,7 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
+#include <math.h>
 #include "libvpsc/block.h"
 #include "libvpsc/variable.h"
 #include <cassert>
@@ -306,19 +307,19 @@ double Block::compute_dgdv(Variable *const v, Variable *const u,
         Constraint *c=*it;
         if(canFollowRight(c,u)) {
             c->lm=compute_dgdv(c->right,v,max_abs_lm);
-            dgdv+=c->lm*c->left->scale;
-            if(c->tentative&&(max_abs_lm==NULL||c->lm>max_abs_lm->lm)) max_abs_lm=c;
+            dgdv+=c->lm*c->left->scale; // Should we multiply by the scale factor? What does this do?
+            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) max_abs_lm=c;
         }
     }
     for(Cit it=v->in.begin();it!=v->in.end();++it) {
         Constraint *c=*it;
         if(canFollowLeft(c,u)) {
             c->lm=-compute_dgdv(c->left,v,max_abs_lm);
-            dgdv-=c->lm*c->right->scale;
-            if(c->tentative&&(max_abs_lm==NULL||c->lm>max_abs_lm->lm)) max_abs_lm=c;
+            dgdv-=c->lm*c->right->scale; // Should multiply or no?
+            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) max_abs_lm=c;
         }
     }
-    return dgdv/v->scale;
+    return dgdv/v->scale; // doesn't really matter anyway
 }
 
 // computes the derivative of v and the lagrange multipliers
