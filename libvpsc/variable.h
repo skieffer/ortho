@@ -75,10 +75,15 @@ public:
 	double dfdv() const {
 		return 2. * weight * ( position() - desiredPosition );
 	}
+    void set_dgdv(double dgdv) { m_dgdv = dgdv; }
+    double dgdv() const {
+        return m_dgdv;
+    }
 private:
 	double position() const {
 		return (block->ps.scale*block->posn+offset)/scale;
 	}
+    double m_dgdv;
 };
 typedef std::vector<Variable*> Variables;
 }

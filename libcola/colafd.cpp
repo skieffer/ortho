@@ -105,6 +105,9 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
+      m_solver(NULL),
+      m_tentative_constraint_threshold(10.0), // What value should it be?
+      m_constraintToReject(NULL),
       m_addSnapStress(snapTo),
       m_snap_distance(snapDistance),
       // snap stress functions:
@@ -203,10 +206,15 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
     case 8:
         // Quadratic U-stress
         //m_snapStressBeta = 60.0;
-        m_snapStressSigma = 30.0;
-        //m_snapStressSigma = m_snap_distance;
+        //m_snapStressSigma = 10.0;
+        m_snapStressSigma = m_snap_distance;
         m_snapStressBeta = 2*m_snapStressSigma;
     }
+}
+
+vpsc::Constraint *ConstrainedFDLayout::getMaxAbsLMConstraint()
+{
+    return m_solver->max_abs_lm;
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
@@ -1038,6 +1046,12 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         //m_debugLineNo++;
 
         computeForces(dim,HMap,g);
+
+        // Set dgdv values.
+        for (int i = 0; i < n; i++) {
+            vs.at(i)->set_dgdv(g[i]);
+        }
+
         //if (dim==vpsc::HORIZONTAL) qDebug() << "g: " << writeVADVect(g);
         SparseMatrix H(HMap);
         //if (dim==vpsc::HORIZONTAL) qDebug() << "H: " << writeSparseMatrix(H,true);
@@ -1049,7 +1063,31 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
 
         setVariableDesiredPositions(vs,cs,des,coords);
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c2: " << writeVADVect(coords);
-        project(vs,cs,coords);
+
+
+        //project(vs,cs,coords);
+        // We do the projection here, so we can keep the solver for later use.
+        unsigned n=coords.size();
+        if (m_solver) {
+            delete m_solver;
+        }
+        m_solver = new vpsc::IncSolver(vs,cs);
+        m_solver->solve();
+        for(unsigned i=0;i<n;++i) {
+            coords[i]=vs[i]->finalPosition;
+        }
+        // end projection
+
+        // Get the tentative constraint with largest absolute LM (may be null).
+        vpsc::Constraint *max_abs_lm = m_solver->max_abs_lm;
+        if (max_abs_lm!=NULL) {
+            // If its LM is large enough (in abs. val.), then mark the
+            // compound constraint to which it belongs as to-be-rejected.
+            if (max_abs_lm->lm >= m_tentative_constraint_threshold) {
+                m_constraintToReject = max_abs_lm->compoundOwner;
+            }
+        }
+
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);
 
         valarray<double> d(n);
@@ -1072,6 +1110,15 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     for_each(cs.begin(),cs.end(),delete_object());
     return stress;
 }
+
+vpsc::Blocks *ConstrainedFDLayout::getBlocks() {
+    if (m_solver==NULL) {
+        return NULL;
+    } else {
+        return m_solver->getBlocks();
+    }
+}
+
 /**
  * Attempts to set coords=oldCoords-stepsize*d.  If this does not reduce
  * the stress from oldStress then stepsize is halved.  This is repeated

@@ -32,6 +32,10 @@
 #include <iostream>
 #include <vector>
 
+namespace cola {
+class CompoundConstraint;
+}
+
 namespace vpsc {
 
 class Variable;
@@ -55,6 +59,8 @@ public:
 	bool active;
 	const bool equality;
 	bool unsatisfiable;
+    bool tentative;
+    cola::CompoundConstraint* compoundOwner;
 };
 class CompareConstraints {
 public:

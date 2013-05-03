@@ -215,6 +215,7 @@ bool IncSolver::solve() {
 #endif
     }
     copyResult();
+    max_abs_lm = bs->getMaxAbsLM();
     return bs->size()!=n; 
 }
 /**

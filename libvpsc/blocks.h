@@ -72,6 +72,9 @@ public:
     size_t size() const;
     Block *at(size_t index) const;
     void insert(Block *block);
+
+    std::vector<Block*> getBlockVector(void) { return m_blocks; }
+    Constraint* getMaxAbsLM(void);
     
     long blockTimeCtr;
 private:

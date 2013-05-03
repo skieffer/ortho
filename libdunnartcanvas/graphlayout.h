@@ -210,6 +210,7 @@ private:
     bool restartFromDunnart;
     bool askedToFinish;
     LayoutThread *m_layout_thread;
+    double m_tentative_constraint_threshold;
 
     cola::UnsatisfiableConstraintInfos unsatisfiableX, unsatisfiableY;
     void run(const bool shouldReinitialise);

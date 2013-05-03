@@ -73,6 +73,7 @@ public:
 	Block(Blocks *blocks, Variable* const v=NULL);
 	~Block(void);
 	Constraint* findMinLM();
+    Constraint* findMaxAbsLM();
 	Constraint* findMinLMBetween(Variable* const lv, Variable* const rv);
 	Constraint* findMinInConstraint();
 	Constraint* findMinOutConstraint();
@@ -104,6 +105,7 @@ private:
 	void list_active(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
+    double compute_dgdv(Variable* const v, Variable* const u, Constraint *&max_abs_lm);
 	bool split_path(Variable*, Variable* const, Variable* const, 
 			Constraint* &min_lm, bool desperation);
 	bool canFollowLeft(Constraint const* c, Variable const* last) const;

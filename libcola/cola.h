@@ -569,6 +569,10 @@ public:
     //! C++ instances, and let them be cleaned up later via this method.
     void freeAssociatedObjects(void);
 
+    vpsc::Blocks *getBlocks(void);
+    vpsc::Constraint *getMaxAbsLMConstraint(void);
+    CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; };
+
 private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;
@@ -620,6 +624,12 @@ private:
     double rectClusterBuffer;
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
+
+    // Lagrangian relaxation
+    vpsc::IncSolver *m_solver;
+    double m_tentative_constraint_threshold;
+    CompoundConstraint *m_constraintToReject;
+    //
 
     // Snap Stress
     bool m_addSnapStress;

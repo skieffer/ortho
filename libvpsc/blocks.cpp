@@ -253,4 +253,15 @@ double Blocks::cost() {
     return c;
 }
 
+Constraint *Blocks::getMaxAbsLM() {
+    Constraint *max_abs_lm = NULL;
+    size_t length = m_blocks.size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        Constraint *c = m_blocks.at(i)->findMaxAbsLM();
+        if (c!=NULL && (max_abs_lm==NULL || c->lm>max_abs_lm->lm) ) max_abs_lm = c;
+    }
+    return max_abs_lm;
+}
+
 }

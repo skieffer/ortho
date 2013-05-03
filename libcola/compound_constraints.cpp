@@ -259,8 +259,11 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         {
             Offset *info = static_cast<Offset *> (*o);
             assertValidVariableIndex(vars, info->varIndex);
-            cs.push_back(new vpsc::Constraint(
-                        variable, vars[info->varIndex], info->distOffset, true));
+            vpsc::Constraint* c = new vpsc::Constraint(
+                        variable, vars[info->varIndex], info->distOffset, true);
+            c->tentative = m_tentative;
+            c->compoundOwner = this;
+            cs.push_back(c);
         }
     }
 }

@@ -43,6 +43,8 @@
 #include "libtopology/topology_graph.h"
 #include "libtopology/cola_topology_addon.h"
 #include "libvpsc/rectangle.h"
+#include "libvpsc/blocks.h"
+#include "libvpsc/block.h"
 #include "libdunnartcanvas/templates.h"
 #include "libdunnartcanvas/template-constraints.h"
 #include "libdunnartcanvas/canvasview.h"
@@ -104,7 +106,8 @@ GraphLayout::GraphLayout(Canvas *canvas)
       freeShiftFromDunnart(false),
       restartFromDunnart(false),
       askedToFinish(false),
-      m_layout_thread(NULL)
+      m_layout_thread(NULL),
+      m_tentative_constraint_threshold(10.0) // What should it be?
 {
     m_layout_thread = new LayoutThread(this);
     m_layout_thread->start();
@@ -1296,6 +1299,29 @@ void GraphLayout::run(const bool shouldReinitialise)
     alg.setUnsatisfiableConstraintInfo(&unsatisfiableX,&unsatisfiableY);
     alg.run(true,true);
     //alg.outputInstanceToSVG();
+
+    //This is creating a segfault:
+    //std::vector<vpsc::Block*> blockvect = alg.getBlocks()->getBlockVector();
+    //qDebug() << "Final number of blocks: " << blockvect.size();
+
+    /*
+    // Get the tentative constraint with largest absolute LM (may be null).
+    vpsc::Constraint *max_abs_lm = alg.getMaxAbsLMConstraint();
+    if (max_abs_lm!=NULL) {
+        // If its LM is large enough (in abs. val.), then throw away the
+        // compound constraint to which it belongs.
+        if (max_abs_lm->lm >= m_tentative_constraint_threshold) {
+            cola::CompoundConstraint *owner = max_abs_lm->compoundOwner;
+            // How to throw it away?
+            // TODO
+        }
+    }
+    */
+
+    cola::CompoundConstraint *reject = alg.getConstraintToReject();
+    if (reject!=NULL) {
+        // TODO
+    }
 }
 
 

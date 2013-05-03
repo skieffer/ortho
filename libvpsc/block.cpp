@@ -295,6 +295,32 @@ inline bool Block::canFollowRight(Constraint const* c, Variable const* last) con
     return c->right->block==this && c->active && last!=c->right;
 }
 
+// Modeled after compute_dfdv, but uses the variables' dgdv method instead of dfdv.
+// Also, this time we record the constraint whose Lagrange multiplier is maximal
+// in absolute value, and we consider only constraints whose 'tentative' field is
+// set to true.
+double Block::compute_dgdv(Variable *const v, Variable *const u,
+               Constraint *&max_abs_lm) {
+    double dgdv=v->dgdv();
+    for(Cit it=v->out.begin();it!=v->out.end();++it) {
+        Constraint *c=*it;
+        if(canFollowRight(c,u)) {
+            c->lm=compute_dgdv(c->right,v,max_abs_lm);
+            dgdv+=c->lm*c->left->scale;
+            if(c->tentative&&(max_abs_lm==NULL||c->lm>max_abs_lm->lm)) max_abs_lm=c;
+        }
+    }
+    for(Cit it=v->in.begin();it!=v->in.end();++it) {
+        Constraint *c=*it;
+        if(canFollowLeft(c,u)) {
+            c->lm=-compute_dgdv(c->left,v,max_abs_lm);
+            dgdv-=c->lm*c->right->scale;
+            if(c->tentative&&(max_abs_lm==NULL||c->lm>max_abs_lm->lm)) max_abs_lm=c;
+        }
+    }
+    return dgdv/v->scale;
+}
+
 // computes the derivative of v and the lagrange multipliers
 // of v's out constraints (as the recursive sum of those below.
 // Does not backtrack over u.
@@ -339,6 +365,7 @@ double Block::compute_dfdv(Variable* const v, Variable* const u) {
     }
     return dfdv/v->scale;
 }
+
 
 // The top level v and r are variables between which we want to find the
 // constraint with the smallest lm.  
@@ -500,6 +527,23 @@ Constraint *Block::findMinLM() {
 #endif
     return min_lm;
 }
+
+/**
+ * finds the constraint, amongst those marked tentative, whose Lagrange multiplier
+ * is of maximal absolute value
+ */
+Constraint *Block::findMaxAbsLM() {
+    Constraint *max_abs_lm=NULL;
+    reset_active_lm(vars->front(),NULL);
+    compute_dgdv(vars->front(),NULL,max_abs_lm);
+#ifdef LIBVPSC_LOGGING
+    ofstream f(LOGFILE,ios::app);
+    f<<"  langrangians for function g: "<<endl;
+    list_active(vars->front(),NULL);
+#endif
+    return max_abs_lm;
+}
+
 Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
     reset_active_lm(vars->front(),NULL);
     compute_dfdv(vars->front(),NULL);

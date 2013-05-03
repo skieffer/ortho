@@ -1465,7 +1465,7 @@ void Canvas::setOptSnapDistanceModifier(double modifier)
 {
     m_opt_snap_distance_modifier = modifier;
     emit optChangedSnapDistanceModifier(modifier);
-    interrupt_graph_layout();
+    fully_restart_graph_layout();
 }
 
 

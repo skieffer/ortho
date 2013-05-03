@@ -268,6 +268,9 @@ class AlignmentConstraint : public CompoundConstraint
                 bool forward = true);
         void updateShapeOffsetsForDifferentCentres(
                 const std::vector<double>& offsets, bool forward = true);
+
+        void setTentative(bool t) { m_tentative = t; }
+        bool isTentative(void) { return m_tentative; }
         
         /** the indicator pointer is used by dunnart to keep a ref to it's 
          * local representation of the alignment constraint
@@ -278,6 +281,7 @@ class AlignmentConstraint : public CompoundConstraint
         // The position of the alignment line
         double _position;
         bool _isFixed;
+        bool m_tentative;
 };
 
 

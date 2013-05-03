@@ -71,6 +71,8 @@ public:
 	Solver(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
 	virtual ~Solver();
 	std::vector<Variable*> const & getVariables() { return vs; }
+    Blocks *getBlocks(void) { return bs; }
+    Constraint* max_abs_lm;
 protected:
 	Blocks *bs;
 	unsigned m;
