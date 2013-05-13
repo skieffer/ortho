@@ -183,7 +183,9 @@ AlignmentConstraint::AlignmentConstraint(const vpsc::Dim dim, double position)
       indicator(NULL),
       variable(NULL),
       _position(position), 
-      _isFixed(false)
+      _isFixed(false),
+      m_tentative(false),
+      m_guidelineID(-1)
 {
 }
 

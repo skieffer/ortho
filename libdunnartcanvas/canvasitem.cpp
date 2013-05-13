@@ -106,6 +106,7 @@ const char *x_contains =         "contains";
 const char *x_constraint =       "constraint";
 const char *x_position =         "position";
 const char *x_direction =        "direction";
+const char *x_tentative =        "tentative";
 const char *x_objOneID =         "objOneID";
 const char *x_objTwoID =         "objTwoID";
 const char *x_constraintID =     "constraintID";

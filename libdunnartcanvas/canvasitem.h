@@ -101,6 +101,7 @@ extern const char *x_contains;
 extern const char *x_constraint;
 extern const char *x_position;
 extern const char *x_direction;
+extern const char *x_tentative;
 extern const char *x_objOneID;
 extern const char *x_objTwoID;
 extern const char *x_constraintID;

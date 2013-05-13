@@ -1320,7 +1320,12 @@ void GraphLayout::run(const bool shouldReinitialise)
 
     cola::CompoundConstraint *reject = alg.getConstraintToReject();
     if (reject!=NULL) {
-        // TODO
+        // For now, only alignment constraints can be set as tentative, and thus only
+        // they are rejectable.
+        cola::AlignmentConstraint *ac = dynamic_cast<cola::AlignmentConstraint*>(reject);
+        qDebug() << "Want to reject guideline" << ac->m_guidelineID;
+    } else {
+        qDebug() << "No rejection candidate.";
     }
 }
 

@@ -308,7 +308,9 @@ double Block::compute_dgdv(Variable *const v, Variable *const u,
         if(canFollowRight(c,u)) {
             c->lm=compute_dgdv(c->right,v,max_abs_lm);
             dgdv+=c->lm*c->left->scale; // Should we multiply by the scale factor? What does this do?
-            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) max_abs_lm=c;
+            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) {
+                max_abs_lm=c;
+            }
         }
     }
     for(Cit it=v->in.begin();it!=v->in.end();++it) {
@@ -316,7 +318,9 @@ double Block::compute_dgdv(Variable *const v, Variable *const u,
         if(canFollowLeft(c,u)) {
             c->lm=-compute_dgdv(c->left,v,max_abs_lm);
             dgdv-=c->lm*c->right->scale; // Should multiply or no?
-            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) max_abs_lm=c;
+            if(c->tentative&&(max_abs_lm==NULL||fabs(c->lm)>fabs(max_abs_lm->lm))) {
+                max_abs_lm=c;
+            }
         }
     }
     return dgdv/v->scale; // doesn't really matter anyway

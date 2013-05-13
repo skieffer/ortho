@@ -8,7 +8,15 @@
 </defs>
 <g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
 
-<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-107,-15)"
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-495.5,-149.998)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L93,0 L0,0"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-495.5,8)"
 font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
 >
 <path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
@@ -16,18 +24,41 @@ font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal"
 </g>
 <g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
 
-<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-107,-170)"
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-495.5,-149.998)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-402.5,5)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-402.5,-149.998)"
 font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
 >
 <path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
 </g>
 </g>
 <!-- Dunnart description -->
-    <dunnart:options flowSeparation="0.5" automaticGraphLayout="0" routingBuffer="4" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="0" defaultIdealConnectorLength="1" segmentPenalty="50" layoutMethod="0" avoidBuffer="0" pageBoundaryConstraints="0"/>
-    <dunnart:node width="70" cx="-107" cy="-170" height="50" type="org.dunnart.shapes.rect" id="1"/>
-    <dunnart:node width="70" cx="-107" cy="-15" height="50" type="org.dunnart.shapes.rect" id="2"/>
-    <dunnart:node direction="100" position="-107" type="guideline" id="3">
+    <dunnart:options flowSeparation="0.5" automaticGraphLayout="1" routingBuffer="4" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="0" defaultIdealConnectorLength="0.93" segmentPenalty="50" layoutMethod="0" avoidBuffer="0" pageBoundaryConstraints="0"/>
+    <dunnart:node width="70" cx="-402.5" cy="-149.998" height="50" type="org.dunnart.shapes.rect" id="1"/>
+    <dunnart:node width="70" cx="-402.5" cy="5" height="50" type="org.dunnart.shapes.rect" id="2"/>
+    <dunnart:node direction="100" tentative="0" position="-402.5" type="guideline" id="3">
         <dunnart:node type="constraint" constraintID="3" alignmentPos="4" relType="alignment" objOneID="2"/>
         <dunnart:node type="constraint" constraintID="3" alignmentPos="4" relType="alignment" objOneID="1"/>
     </dunnart:node>
+    <dunnart:node width="70" cx="-495.5" cy="-149.998" height="50" type="org.dunnart.shapes.rect" id="4"/>
+    <dunnart:node width="70" cx="-495.5" cy="8" lockedPos="1" height="50" type="org.dunnart.shapes.rect" id="5"/>
+    <dunnart:node direction="100" tentative="1" position="-495.5" type="guideline" id="6">
+        <dunnart:node type="constraint" constraintID="6" alignmentPos="4" relType="alignment" objOneID="5"/>
+        <dunnart:node type="constraint" constraintID="6" alignmentPos="4" relType="alignment" objOneID="4"/>
+    </dunnart:node>
+    <dunnart:node libavoidPath="2 -495.5 -149.998 7 8 -402.5 -149.998 7 8 " dstX="-402.5" srcX="-495.5" dstY="-149.998" srcY="-149.998" path="-495.5,-149.998 -402.5,-149.998 " srcID="4" type="connector" dstID="1" id="7"/>
 </svg>

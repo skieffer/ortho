@@ -62,6 +62,7 @@ class Guideline: public Indicator
 {
     Q_OBJECT
     Q_PROPERTY (double position READ position WRITE cmd_setPosition)
+    Q_PROPERTY (bool tentative READ tentative WRITE setTentative)
 
     UNDO_ACTION (Guideline, double, position, setPosition, UNDO_GUIDELINE_POS, "move guideline")
 
@@ -71,6 +72,9 @@ class Guideline: public Indicator
 
         double position(void) const;
         void setPosition(const double position);
+
+        bool tentative(void) const;
+        void setTentative(const bool t);
 
         QDomElement to_QDomElement(const unsigned int subset, 
                 QDomDocument& doc);
@@ -109,6 +113,8 @@ class Guideline: public Indicator
         QRectF calculateBounds(QPointF pos) const;
 
         QRectF bounding_box_;
+
+        bool m_tentative;
 };
 
 

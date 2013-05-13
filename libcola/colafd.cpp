@@ -106,7 +106,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
       m_solver(NULL),
-      m_tentative_constraint_threshold(10.0), // What value should it be?
+      m_tentative_constraint_threshold(0.1), // What value should it be?
       m_constraintToReject(NULL),
       m_addSnapStress(snapTo),
       m_snap_distance(snapDistance),
@@ -1081,11 +1081,16 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         // Get the tentative constraint with largest absolute LM (may be null).
         vpsc::Constraint *max_abs_lm = m_solver->max_abs_lm;
         if (max_abs_lm!=NULL) {
+            qDebug() << "HAVE max_abs_lm";
             // If its LM is large enough (in abs. val.), then mark the
             // compound constraint to which it belongs as to-be-rejected.
-            if (max_abs_lm->lm >= m_tentative_constraint_threshold) {
+            qDebug() << "Its lm in abs val: " << fabs(max_abs_lm->lm);
+            qDebug() << "Threshold: " << m_tentative_constraint_threshold;
+            if (fabs(max_abs_lm->lm) >= m_tentative_constraint_threshold) {
                 m_constraintToReject = max_abs_lm->compoundOwner;
             }
+        } else {
+            qDebug() << "no max_abs_lm";
         }
 
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);

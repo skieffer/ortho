@@ -271,6 +271,8 @@ class AlignmentConstraint : public CompoundConstraint
 
         void setTentative(bool t) { m_tentative = t; }
         bool isTentative(void) { return m_tentative; }
+
+        int m_guidelineID;
         
         /** the indicator pointer is used by dunnart to keep a ref to it's 
          * local representation of the alignment constraint

@@ -47,7 +47,8 @@ namespace dunnart {
 
 
 Guideline::Guideline(dirctn t, double position)
-    : Indicator(ZORD_Guideline)
+    : Indicator(ZORD_Guideline),
+      m_tentative(false)
 {
     type = t;
 
@@ -58,12 +59,14 @@ Guideline::Guideline(dirctn t, double position)
 
 
 Guideline::Guideline(Canvas *canvas, const QDomElement& node, const QString& ns):
-    Indicator(node, ns, ZORD_Guideline)
+    Indicator(node, ns, ZORD_Guideline),
+    m_tentative(false)
 {
     Q_UNUSED (canvas)
 
     type = (dirctn) essentialProp<int>(node, x_direction, ns);
     double position = essentialProp<double>(node, x_position, ns);
+    optionalProp<bool>(node, x_tentative, m_tentative, ns);
 
     initialiser(position);
 }
@@ -345,6 +348,16 @@ void Guideline::setPosition(const double position)
     setPos(posPoint);
 }
 
+bool Guideline::tentative(void) const
+{
+    return m_tentative;
+}
+
+void Guideline::setTentative(const bool t)
+{
+    m_tentative = t;
+}
+
 
 void Guideline::findAttachedSet(CanvasItemSet& objSet)
 {
@@ -531,6 +544,8 @@ QDomElement Guideline::to_QDomElement(const unsigned int subset,
         newProp(node, x_type, x_guideline);
 
         newProp(node, "id", idString());
+
+        newProp(node, x_tentative, m_tentative);
     }
     
     if (subset & XMLSS_IMOVE)
