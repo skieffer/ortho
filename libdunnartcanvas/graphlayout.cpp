@@ -929,7 +929,9 @@ int GraphLayout::initThread()
             m_layout_signal_mutex.unlock();
             run(currInterrupt);
             //interruptFromDunnart = doRejection(); // This one is causing strange errors.
-            //doRejection();
+            if (m_canvas->optRelax()) {
+                doRejection();
+            }
         }
         else
         {
@@ -953,7 +955,7 @@ bool GraphLayout::doRejection() {
         Indicator *ind = m_graph->getIndicator(m_ac_to_reject);
         Guideline *gl = dynamic_cast<Guideline*>(ind);
         qDebug() << "Its guideline is" << gl->idString();
-        m_canvas->deleteItem(gl);
+        //m_canvas->deleteItem(gl);
         rejected = true;
     }
     return rejected;
