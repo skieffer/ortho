@@ -172,6 +172,8 @@ Canvas::Canvas()
       m_use_gml_clusters(true),
       m_connector_nudge_distance(0),
       m_opt_ideal_edge_length_modifier(1.0),
+      m_opt_snap_distance_modifier(10),
+      m_opt_relax_threshold_modifier(0.1),
       m_dragged_item(NULL),
       m_lone_selected_item(NULL),
       m_undo_stack(NULL),
@@ -211,6 +213,7 @@ Canvas::Canvas()
     m_opt_automatic_graph_layout = false;
     m_opt_prevent_overlaps       = false;
     m_opt_snap_to                = false;
+    m_opt_relax                  = false;
     m_opt_preserve_topology      = false;
     m_opt_rubber_band_routing    = false;
     m_opt_fit_within_page        = false;
@@ -1250,6 +1253,11 @@ bool Canvas::optSnapTo(void) const
     return m_opt_snap_to;
 }
 
+bool Canvas::optRelax(void) const
+{
+    return m_opt_relax;
+}
+
 bool Canvas::optPreserveTopology(void) const
 {
     return m_opt_preserve_topology;
@@ -1406,6 +1414,14 @@ void Canvas::setOptSnapTo(const bool value)
 }
 
 
+void Canvas::setOptRelax(const bool value)
+{
+    m_opt_relax = value;
+    emit optChangedRelax(m_opt_relax);
+    fully_restart_graph_layout();
+}
+
+
 void Canvas::setOptRoutingPenaltySegment(const int value)
 {
     m_router->setRoutingParameter(Avoid::segmentPenalty, (double) value);
@@ -1465,6 +1481,20 @@ void Canvas::setOptSnapDistanceModifier(double modifier)
 {
     m_opt_snap_distance_modifier = modifier;
     emit optChangedSnapDistanceModifier(modifier);
+    fully_restart_graph_layout();
+}
+
+
+void Canvas::setOptRelaxThresholdModifierFromSlider(int int_modifier)
+{
+    double double_modifier = int_modifier / 100.0;
+    setOptRelaxThresholdModifier(double_modifier);
+}
+
+void Canvas::setOptRelaxThresholdModifier(double modifier)
+{
+    m_opt_relax_threshold_modifier = modifier;
+    emit optChangedRelaxThresholdModifier(modifier);
     fully_restart_graph_layout();
 }
 
@@ -1595,6 +1625,10 @@ double Canvas::optSnapDistanceModifier(void) const
     return m_opt_snap_distance_modifier;
 }
 
+double Canvas::optRelaxThresholdModifier(void) const
+{
+    return m_opt_relax_threshold_modifier;
+}
 
 int Canvas::optConnectorRoundingDistance(void) const
 {
@@ -1785,7 +1819,126 @@ void Canvas::pasteSelection(void)
     restart_graph_layout();
 }
 
+void Canvas::deleteSelection(void)
+{
+    QList<CanvasItem *> sel_copy = this->selectedItems();
+    deleteItems(sel_copy);
+    restart_graph_layout();
+}
 
+void Canvas::deleteItem(CanvasItem *item)
+{
+    qDebug() << "deleting item: " << item;
+    QList<CanvasItem*> items;
+    items.append(item);
+    deleteItems(items);
+}
+
+void Canvas::deleteItems(QList<CanvasItem*> items)
+{
+    if (items.empty())
+    {
+        return;
+    }
+
+    // Finish dragging if we were in the middle of that.
+    if (m_dragged_item)
+    {
+        m_dragged_item->dragReleaseEvent(NULL);
+    }
+
+    Actions& actions = getActions();
+    actions.clear();
+
+    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+
+    // Disconnect all shape--connector connections where one is inside the
+    // set and one is outside the set.
+    CanvasItemSet selSet;
+    QList<ShapeObj *> sel_shapes;
+
+    stop_graph_layout();
+    if (m_opt_stuctural_editing_disabled)
+    {
+        // If structural editing is disabled then we should only allow
+        // deletion of constraint indicators.
+        for (QList<CanvasItem *>::iterator sh = items.begin();
+                sh != items.end(); )
+        {
+            Indicator *indicator = dynamic_cast<Indicator *> (*sh);
+            if (indicator)
+            {
+                // Indicator, so leave in list.
+                sh++;
+            }
+            else
+            {
+                // Not an idicator, so remove from list.
+                sh = items.erase(sh);
+            }
+        }
+    }
+
+    // Do we need to deselectAll? This is a vestige from when this code
+    // belonged to the deleteSelection method.
+    this->deselectAll();
+    //
+
+    // Do distro's first, in case they have guidelines and distros selected.
+    for (QList<CanvasItem *>::iterator sh = items.begin();
+            sh != items.end(); ++sh)
+    {
+        Distribution *distro = dynamic_cast<Distribution *> (*sh);
+        Separation *sep = dynamic_cast<Separation *> (*sh);
+
+        if (distro || sep)
+        {
+            // Deactivate constraints:
+            (*sh)->deactivateAll(selSet);
+        }
+    }
+
+    for (QList<CanvasItem *>::iterator sh = items.begin();
+            sh != items.end(); ++sh)
+    {
+        Connector  *conn  = dynamic_cast<Connector *>  (*sh);
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (*sh);
+        Guideline *guide = dynamic_cast<Guideline *> (*sh);
+
+        if (conn || guide || shape)
+        {
+            (*sh)->deactivateAll(selSet);
+        }
+        if (shape)
+        {
+            sel_shapes.push_back(shape);
+        }
+    }
+
+    // Remove containment relationships.
+    QList<CanvasItem *> canvas_items = this->items();
+    for (int i = 0; i < canvas_items.size(); ++i)
+    {
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(i));
+        if (shape)
+        {
+            shape->removeContainedShapes(sel_shapes);
+        }
+    }
+
+    for (QList<CanvasItem *>::iterator sh = items.begin();
+            sh != items.end(); ++sh)
+    {
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, *sh);
+        undoMacro->addCommand(cmd);
+    }
+
+    //restart_graph_layout();
+}
+
+
+
+/*
 void Canvas::deleteSelection(void)
 {
     if (selectedItems().empty())
@@ -1884,6 +2037,7 @@ void Canvas::deleteSelection(void)
     }
     restart_graph_layout();
 }
+*/
 
 // Delay, in milliseconds, to give the event loop time to respond to normal
 // events like mouse movements.  A delay of zero will flood the event queue.

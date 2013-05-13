@@ -1081,16 +1081,16 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         // Get the tentative constraint with largest absolute LM (may be null).
         vpsc::Constraint *max_abs_lm = m_solver->max_abs_lm;
         if (max_abs_lm!=NULL) {
-            qDebug() << "HAVE max_abs_lm";
+            //qDebug() << "HAVE max_abs_lm";
             // If its LM is large enough (in abs. val.), then mark the
             // compound constraint to which it belongs as to-be-rejected.
-            qDebug() << "Its lm in abs val: " << fabs(max_abs_lm->lm);
+            qDebug() << "Max lm in abs val: " << fabs(max_abs_lm->lm);
             qDebug() << "Threshold: " << m_tentative_constraint_threshold;
             if (fabs(max_abs_lm->lm) >= m_tentative_constraint_threshold) {
                 m_constraintToReject = max_abs_lm->compoundOwner;
             }
         } else {
-            qDebug() << "no max_abs_lm";
+            //qDebug() << "no max_abs_lm";
         }
 
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);

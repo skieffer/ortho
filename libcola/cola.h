@@ -572,6 +572,7 @@ public:
     vpsc::Blocks *getBlocks(void);
     vpsc::Constraint *getMaxAbsLMConstraint(void);
     CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; };
+    void setRelaxThreshold(double t) { m_tentative_constraint_threshold = t; }
 
 private:
     unsigned n; // number of nodes

@@ -200,6 +200,7 @@ class Canvas : public QGraphicsScene
         bool optAutomaticGraphLayout(void) const;
         bool optPreventOverlaps(void) const;
         bool optSnapTo(void) const;
+        bool optRelax(void) const;
         bool optPreserveTopology(void) const;
         bool optRubberBandRouting(void) const;
         bool optFitWithinPage(void) const;
@@ -207,6 +208,7 @@ class Canvas : public QGraphicsScene
         bool optStructuralEditingDisabled(void) const;
         double optIdealEdgeLengthModifier(void) const;
         double optSnapDistanceModifier(void) const;
+        double optRelaxThresholdModifier(void) const;
         int optConnectorRoundingDistance(void) const;
         int optRoutingPenaltySegment(void) const;
         int optRoutingShapePadding(void) const;
@@ -260,6 +262,9 @@ class Canvas : public QGraphicsScene
         void copySelection(void);
         void pasteSelection(void);
         void deleteSelection(void);
+        void deleteItem(CanvasItem *item);
+        void deleteItems(QList<CanvasItem*> items);
+
         void toggleSelectedShapePinning(void);
         void selectAll(void);
         void templateFromSelection(int type);
@@ -283,11 +288,14 @@ class Canvas : public QGraphicsScene
         void setOptIdealEdgeLengthModifier(double modifier);
         void setOptSnapDistanceModifierFromSlider(int int_modifier);
         void setOptSnapDistanceModifier(double modifier);
+        void setOptRelaxThresholdModifierFromSlider(int int_modifier);
+        void setOptRelaxThresholdModifier(double modifier);
 
         void setDebugCOLAOutput(const bool value);
         void setOptAutomaticGraphLayout(const bool value);
         void setOptPreventOverlaps(const bool value);
         void setOptSnapTo(const bool value);
+        void setOptRelax(const bool value);
         void setOptPreserveTopology(const bool value);
         void setOptRubberBandRouting(const bool value);
         void setOptFitWithinPage(const bool value);
@@ -332,11 +340,13 @@ class Canvas : public QGraphicsScene
         void optChangedPreserveTopology(bool checked);
         void optChangedPreventOverlaps(bool checked);
         void optChangedSnapTo(bool checked);
+        void optChangedRelax(bool checked);
         void optChangedRubberBandRouting(bool checked);
         void optChangedFitWithinPage(bool checked);
         void optChangedStructuralEditingDisabled(bool checked);
         void optChangedIdealEdgeLengthModifier(double value);
         void optChangedSnapDistanceModifier(double value);
+        void optChangedRelaxThresholdModifier(double value);
         void optChangedLayoutMode(int mode);
         void optChangedDirectedEdgeSeparationModifier(double modifier);
         void optChangedFlowDirection(int direction);
@@ -412,11 +422,13 @@ class Canvas : public QGraphicsScene
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
+        double m_opt_relax_threshold_modifier;
         double m_opt_shape_nonoverlap_padding;
         int  m_opt_connector_rounding_distance;
         bool m_opt_automatic_graph_layout;
         bool m_opt_prevent_overlaps;
         bool m_opt_snap_to;
+        bool m_opt_relax;
         bool m_opt_preserve_topology;
         bool m_opt_rubber_band_routing;
         bool m_opt_fit_within_page;

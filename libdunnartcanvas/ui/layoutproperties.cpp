@@ -74,6 +74,11 @@ LayoutPropertiesDialog::LayoutPropertiesDialog(Canvas *canvas, QWidget *parent)
     connect(this, SIGNAL(optChangedSnapTo(bool)),
             snapToCheckBox, SLOT(setChecked(bool)));
 
+    connect(relaxCheckBox, SIGNAL(clicked(bool)),
+            this, SIGNAL(setOptRelax(bool)));
+    connect(this, SIGNAL(optChangedRelax(bool)),
+            relaxCheckBox, SLOT(setChecked(bool)));
+
     connect(preserveTopologyCheckBox, SIGNAL(clicked(bool) ),
             this, SIGNAL(setOptPreserveTopology(bool)));
     connect(this, SIGNAL(optChangedPreserveTopology(bool) ),
@@ -124,6 +129,7 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
         disconnect(this, 0, m_canvas, 0);
         disconnect(idealLengthSlider, 0, m_canvas, 0);
         disconnect(snapDistanceSlider, 0, m_canvas, 0);
+        disconnect(relaxThresholdSlider, 0, m_canvas, 0);
         disconnect(flowSeparationSlider, 0, m_canvas, 0);
         disconnect(flowDirectionDial, 0, m_canvas, 0);
     }
@@ -148,6 +154,11 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
             m_canvas, SLOT(setOptSnapTo(bool)));
     connect(m_canvas, SIGNAL(optChangedSnapTo(bool)),
             this, SIGNAL(optChangedSnapTo(bool)));
+
+    connect(this, SIGNAL(setOptRelax(bool)),
+            m_canvas, SLOT(setOptRelax(bool)));
+    connect(m_canvas, SIGNAL(optChangedRelax(bool)),
+            this, SIGNAL(optChangedRelax(bool)));
 
     connect(this, SIGNAL(setOptPreserveTopology(bool) ),
             m_canvas, SLOT(setOptPreserveTopology(bool) ));
@@ -174,6 +185,11 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     connect(m_canvas, SIGNAL(optChangedSnapDistanceModifier(double)),
             this, SLOT(changeSnapDistance(double)));
 
+    connect(relaxThresholdSlider, SIGNAL(sliderMoved(int)),
+            m_canvas, SLOT(setOptRelaxThresholdModifierFromSlider(int)));
+    connect(m_canvas, SIGNAL(optChangedRelaxThresholdModifier(double)),
+            this, SLOT(changeRelaxThreshold(double)));
+
     connect(flowSeparationSlider, SIGNAL(sliderMoved(int)),
             m_canvas, SLOT(setOptFlowSeparationModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedDirectedEdgeSeparationModifier(double)),
@@ -194,6 +210,8 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
             m_canvas->optIdealEdgeLengthModifier() * 100);
     snapDistanceSlider->setSliderPosition(
             m_canvas->optSnapDistanceModifier());
+    relaxThresholdSlider->setSliderPosition(
+            m_canvas->optRelaxThresholdModifier() * 100);
     flowSeparationSlider->setSliderPosition(
             m_canvas->optFlowSeparationModifier() * 100);
     bool value = m_canvas->optPreventOverlaps();
@@ -202,6 +220,7 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     preserveTopologyCheckBox->setEnabled(value);
 
     snapToCheckBox->setChecked(m_canvas->optSnapTo());
+    relaxCheckBox->setChecked(m_canvas->optRelax());
 
     flowDirectionDial->setSliderPosition(m_canvas->optFlowDirection());
 
@@ -284,6 +303,11 @@ void LayoutPropertiesDialog::changeIdealEdgeLength(double value)
 void LayoutPropertiesDialog::changeSnapDistance(double value)
 {
     snapDistanceSlider->setSliderPosition(value);
+}
+
+void LayoutPropertiesDialog::changeRelaxThreshold(double value)
+{
+    relaxThresholdSlider->setSliderPosition(value * 100);
 }
 
 }

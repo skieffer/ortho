@@ -46,6 +46,7 @@ class LayoutPropertiesDialog : public QDockWidget, private Ui::LayoutProperties
         void optChangedPreserveTopology(bool checked);
         void optChangedPreventOverlaps(bool checked);
         void optChangedSnapTo(bool checked);
+        void optChangedRelax(bool checked);
         void optChangedRubberBandRouting(bool checked);
         void optChangedFitWithinPage(bool checked);
         void optChangedShapeNonoverlapPadding(int value);
@@ -55,6 +56,7 @@ class LayoutPropertiesDialog : public QDockWidget, private Ui::LayoutProperties
         void setOptAutomaticGraphLayout(const bool value);
         void setOptPreventOverlaps(const bool value);
         void setOptSnapTo(const bool value);
+        void setOptRelax(const bool value);
         void setOptPreserveTopology(const bool value);
         void setOptRubberBandRouting(const bool value);
         void setOptFitWithinPage(const bool value);
@@ -67,6 +69,7 @@ class LayoutPropertiesDialog : public QDockWidget, private Ui::LayoutProperties
         void changeDirectedEdgeSeparationModifier(double value);
         void changeIdealEdgeLength(double value);
         void changeSnapDistance(double value);
+        void changeRelaxThreshold(double value);
     private:
         Canvas *m_canvas;
         QSignalMapper *m_mode_signal_mapper;

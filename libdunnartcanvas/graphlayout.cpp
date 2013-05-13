@@ -928,7 +928,8 @@ int GraphLayout::initThread()
             interruptFromDunnart = false;
             m_layout_signal_mutex.unlock();
             run(currInterrupt);
-            interruptFromDunnart = doRejection();
+            //interruptFromDunnart = doRejection(); // This one is causing strange errors.
+            //doRejection();
         }
         else
         {
@@ -952,7 +953,7 @@ bool GraphLayout::doRejection() {
         Indicator *ind = m_graph->getIndicator(m_ac_to_reject);
         Guideline *gl = dynamic_cast<Guideline*>(ind);
         qDebug() << "Its guideline is" << gl->idString();
-        // TODO
+        m_canvas->deleteItem(gl);
         rejected = true;
     }
     return rejected;
@@ -1279,6 +1280,7 @@ void GraphLayout::run(const bool shouldReinitialise)
             &elengths[0], postIter, &preIter);
     alg.setConstraints(m_graph->ccs);
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
+    alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
     if (runLevel == 1)
     {
         if (shouldReinitialise)
@@ -1341,7 +1343,7 @@ void GraphLayout::run(const bool shouldReinitialise)
         qDebug() << "Want to reject guideline" << ac->m_guidelineID;
         m_ac_to_reject = ac;
     } else {
-        qDebug() << "No rejection candidate.";
+        //qDebug() << "No rejection candidate.";
         m_ac_to_reject = NULL;
     }
 }
