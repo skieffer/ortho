@@ -906,7 +906,7 @@ void Canvas::customEvent(QEvent *event)
 
         //CanvasItem *item = m_dragged_item;
 
-        GraphLayout* gl = m_graphlayout;
+        //GraphLayout* gl = m_graphlayout;
         //gl->setLayoutSuspended(true);
 
         //deleteItem(gdln);

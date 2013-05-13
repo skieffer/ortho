@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>231</width>
-    <height>625</height>
+    <height>645</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>231</width>
-    <height>625</height>
+    <height>645</height>
    </size>
   </property>
   <property name="allowedAreas">
@@ -418,6 +418,9 @@ Manual layout</string>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
