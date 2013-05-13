@@ -897,6 +897,37 @@ void Canvas::customEvent(QEvent *event)
         m_routing_event_posted = false;
         reroute_connectors(this);
     }
+    else if (dynamic_cast<ConstraintRejectedEvent *> (event))
+    {
+        qDebug() << "Received ConstraintRejectedEvent.";
+        ConstraintRejectedEvent *cre = dynamic_cast<ConstraintRejectedEvent *> (event);
+        Guideline *gdln = cre->m_guideline;
+        //stop_graph_layout();
+
+        //CanvasItem *item = m_dragged_item;
+
+        GraphLayout* gl = m_graphlayout;
+        //gl->setLayoutSuspended(true);
+
+        //deleteItem(gdln);
+        stop_graph_layout();
+        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+        CanvasItemSet dummySet;
+        gdln->deactivateAll(dummySet);
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+        undoMacro->addCommand(cmd);
+
+
+        //setDraggedItem(item);
+
+        //gl->setRestartFromDunnart();
+        //gl->setLayoutSuspended(false);
+
+        //interrupt_graph_layout();
+
+        //GraphLayout* gl = m_graphlayout;
+        //gl->setInterruptFromDunnart();
+    }
     else
     {
         QGraphicsScene::customEvent(event);

@@ -554,9 +554,9 @@ struct PageBoundsPosInfo : PosInfo {
 };
 
 /**
- * called during alt-dragging with false to prevent layout from occurring
+ * called during alt-dragging with true to prevent layout from occurring
  * during the drag.  When the drag is completed (i.e. alt released) it is
- * called again with value=true.
+ * called again with value=false.
  * interruptFromDunnart is set true at completion of drag to trigger layout
  * GraphLayout::initialise (otherwise false because nothing should happen).
  */
@@ -904,6 +904,11 @@ int GraphLayout::initThread()
             
             firstRun = false;
             m_is_running = false;
+
+            if (m_canvas->optRelax()) {
+                doRejection();
+            }
+
             m_layout_signal_mutex.unlock();
 
             m_layout_mutex.lock();
@@ -929,9 +934,7 @@ int GraphLayout::initThread()
             m_layout_signal_mutex.unlock();
             run(currInterrupt);
             //interruptFromDunnart = doRejection(); // This one is causing strange errors.
-            if (m_canvas->optRelax()) {
-                doRejection();
-            }
+
         }
         else
         {
@@ -956,6 +959,10 @@ bool GraphLayout::doRejection() {
         Guideline *gl = dynamic_cast<Guideline*>(ind);
         qDebug() << "Its guideline is" << gl->idString();
         //m_canvas->deleteItem(gl);
+
+        ConstraintRejectedEvent *cre = new ConstraintRejectedEvent();
+        cre->m_guideline = gl;
+        QCoreApplication::postEvent(m_canvas, cre, Qt::HighEventPriority);
         rejected = true;
     }
     return rejected;

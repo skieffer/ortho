@@ -532,6 +532,16 @@ class RoutingRequiredEvent : public QEvent
         }
 };
 
+class ConstraintRejectedEvent : public QEvent
+{
+    public:
+        ConstraintRejectedEvent() :
+            QEvent((QEvent::Type) (QEvent::User + 4)),
+            m_guideline(NULL)
+        {
+        }
+        Guideline *m_guideline;
+};
 
 extern QRectF diagramBoundingRect(const QList<CanvasItem *>& list);
 
