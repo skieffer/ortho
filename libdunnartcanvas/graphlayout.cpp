@@ -107,7 +107,8 @@ GraphLayout::GraphLayout(Canvas *canvas)
       restartFromDunnart(false),
       askedToFinish(false),
       m_layout_thread(NULL),
-      m_tentative_constraint_threshold(10.0) // What should it be?
+      m_tentative_constraint_threshold(10.0), // no longer used here
+      m_ac_to_reject(NULL)
 {
     m_layout_thread = new LayoutThread(this);
     m_layout_thread->start();
@@ -927,6 +928,7 @@ int GraphLayout::initThread()
             interruptFromDunnart = false;
             m_layout_signal_mutex.unlock();
             run(currInterrupt);
+            doRejection();
         }
         else
         {
@@ -941,6 +943,15 @@ int GraphLayout::initThread()
 
     return EXIT_SUCCESS;
 
+}
+
+void GraphLayout::doRejection() {
+    if (m_ac_to_reject!=NULL) {
+        qDebug() << "Will try to reject constraint.";
+        Indicator *ind = m_graph->getIndicator(m_ac_to_reject);
+        Guideline *gl = dynamic_cast<Guideline*>(ind);
+        qDebug() << "Its guideline is" << gl->idString();
+    }
 }
 
 // Animation that is used to redraw connectors.
@@ -1324,8 +1335,10 @@ void GraphLayout::run(const bool shouldReinitialise)
         // they are rejectable.
         cola::AlignmentConstraint *ac = dynamic_cast<cola::AlignmentConstraint*>(reject);
         qDebug() << "Want to reject guideline" << ac->m_guidelineID;
+        m_ac_to_reject = ac;
     } else {
         qDebug() << "No rejection candidate.";
+        m_ac_to_reject = NULL;
     }
 }
 

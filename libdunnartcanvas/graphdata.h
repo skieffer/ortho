@@ -86,6 +86,19 @@ public:
         assert(i!=ccMap.end());
         return i->second;
     }
+    /// gets the first dunnart Indicator reference pointing to a cola constraint; null if none
+    Indicator* getIndicator(cola::CompoundConstraint* cc) {
+        Indicator *ind = NULL;
+        for (std::map<Indicator*, cola::CompoundConstraint*>::const_iterator i=ccMap.begin();
+             i != ccMap.end(); ++i) {
+            if (i->second == cc) {
+                ind = i->first;
+                break;
+            }
+        }
+        return ind;
+    }
+
     // the following getters return the graph data in the
     // most suitable format for cola layout algorithm constructors.
     cola::RootCluster* getRootCluster() {
