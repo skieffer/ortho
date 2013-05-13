@@ -212,7 +212,7 @@ private:
     LayoutThread *m_layout_thread;
     double m_tentative_constraint_threshold;
     cola::AlignmentConstraint *m_ac_to_reject;
-    void doRejection(void);
+    bool doRejection(void);
 
     cola::UnsatisfiableConstraintInfos unsatisfiableX, unsatisfiableY;
     void run(const bool shouldReinitialise);

@@ -928,7 +928,7 @@ int GraphLayout::initThread()
             interruptFromDunnart = false;
             m_layout_signal_mutex.unlock();
             run(currInterrupt);
-            doRejection();
+            interruptFromDunnart = doRejection();
         }
         else
         {
@@ -945,13 +945,17 @@ int GraphLayout::initThread()
 
 }
 
-void GraphLayout::doRejection() {
+bool GraphLayout::doRejection() {
+    bool rejected = false;
     if (m_ac_to_reject!=NULL) {
         qDebug() << "Will try to reject constraint.";
         Indicator *ind = m_graph->getIndicator(m_ac_to_reject);
         Guideline *gl = dynamic_cast<Guideline*>(ind);
         qDebug() << "Its guideline is" << gl->idString();
+        // TODO
+        rejected = true;
     }
+    return rejected;
 }
 
 // Animation that is used to redraw connectors.
