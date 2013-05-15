@@ -59,6 +59,8 @@ class Indicator: public CanvasItem
         void setHighlighted(bool highlight);
         bool isHighlighted(void) const;
 
+        virtual bool isTentative(void);
+
         virtual void paint(QPainter *painter,
                 const QStyleOptionGraphicsItem *option, QWidget *widget);
         virtual void loneSelectedChange(const bool value);
@@ -74,6 +76,10 @@ class Indicator: public CanvasItem
         QPen m_indicator_pen;
         QPen m_highlight_pen;
         QPen m_selection_pen;
+
+        QPen m_indicator_tentative_pen;
+        QPen m_selection_tentative_pen;
+
         qreal m_curr_path_one_pixel;
 
     private:

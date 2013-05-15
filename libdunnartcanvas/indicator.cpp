@@ -107,6 +107,15 @@ void Indicator::initialiser(void)
     m_highlight_pen.setColor(QColor(255, 0, 220, 65));
     m_highlight_pen.setWidth(5);
     m_highlight_pen.setCosmetic(true);
+
+    // For "tentative" guidelines:
+    m_indicator_tentative_pen.setColor(QColor(255, 0, 0, 135));
+    m_indicator_tentative_pen.setWidth(1);
+    m_indicator_tentative_pen.setCosmetic(true);
+
+    m_selection_tentative_pen.setColor(QColor(255, 0, 220, 65));
+    m_selection_tentative_pen.setWidth(5);
+    m_selection_tentative_pen.setCosmetic(true);
 }
 
 
@@ -230,7 +239,8 @@ void Indicator::paint(QPainter *painter,
     if (isSelected() && canvas()->inSelectionMode())
     {
         // Draw selection cue.
-        painter->setPen(m_selection_pen);
+        QPen sel_pen = isTentative() ? m_selection_tentative_pen : m_selection_pen;
+        painter->setPen(sel_pen);
         painter->drawPath(painterPath());
     }
     else if (isHighlighted())
@@ -239,11 +249,15 @@ void Indicator::paint(QPainter *painter,
         painter->setPen(m_highlight_pen);
         painter->drawPath(painterPath());
     }
-    QPen pen = constraintConflict() ? QPen(HAZARD_COLOUR) : m_indicator_pen;
+    QPen ind_pen = isTentative() ? m_indicator_tentative_pen : m_indicator_pen;
+    QPen pen = constraintConflict() ? QPen(HAZARD_COLOUR) : ind_pen;
     painter->setPen(pen);
     painter->drawPath(painterPath());
 }
 
+bool Indicator::isTentative(void) {
+    return false;
+}
 
 void Indicator::loneSelectedChange(const bool value)
 {

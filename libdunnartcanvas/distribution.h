@@ -77,6 +77,8 @@ class Distribution: public Indicator
         virtual QPainterPath shape() const;
         virtual QRectF boundingRect() const;
 
+        bool isTentative(void) { return false; }
+
         dirctn type;
         dgtype lock_state;
 

@@ -327,7 +327,7 @@ void CanvasTabWidget::currentChanged(int index)
             m_canvas, SLOT(improveOrthogonalTopology()));
 
     m_action_infer_alignments->disconnect();
-    connect(m_action_infer_alignments, SIGNAL(triggered()), m_canvas, SLOT(inferAlignments()));
+    connect(m_action_infer_alignments, SIGNAL(triggered()), m_canvas, SLOT(inferAndApplyAlignments()));
 
     m_action_apply_fm3->disconnect();
     connect(m_action_apply_fm3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));

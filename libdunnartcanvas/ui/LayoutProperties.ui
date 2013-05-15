@@ -426,7 +426,7 @@ Manual layout</string>
             <item>
              <widget class="QLabel" name="relaxStressLabel">
               <property name="text">
-               <string>Stress threshold:</string>
+               <string>Stress Threshold:</string>
               </property>
              </widget>
             </item>

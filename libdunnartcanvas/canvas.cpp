@@ -203,6 +203,7 @@ Canvas::Canvas()
     m_batch_diagram_layout = false;
     m_simple_paths_during_layout = true;
     m_force_orthogonal_connectors = false;
+    m_infer_tentative_alignments = true;
 
     m_undo_stack = new QUndoStack(this);
 
@@ -3513,7 +3514,17 @@ void Canvas::getRestrConnComp(QMap<ShapeObj *, ShapeObj *> nbrs, ShapeObj *sh,
     }
 }
 
-void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeObj *> nbrs, Dimension dim)
+struct AlignDesc {
+    AlignDesc(atypes at, CanvasItemList cil) {
+        alignType = at;
+        items = cil;
+    }
+    atypes alignType;
+    CanvasItemList items;
+};
+
+QList<AlignDesc> Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeObj *> nbrs,
+                                          Dimension dim, qreal tolerance)
 {
     // Sort by x-coord for vertical alignment, y-coord for horizontal.
     QMap<qreal,ShapeObj*> coordmap;
@@ -3523,7 +3534,7 @@ void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeOb
         coordmap.insertMulti(coord,sh);
     }
     // Partition into equivalence classes by coord
-    qreal eps = 1; // tolerance
+    qreal eps = tolerance; // tolerance
     QList< QList<ShapeObj*> > classes;
     QList<qreal> keys = coordmap.uniqueKeys();
     int N = keys.length();
@@ -3546,6 +3557,8 @@ void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeOb
         }
         lastKey = k;
     }
+    // Prepare return value.
+    QList<AlignDesc> aligns;
     // Now partition each list into connected components.
     foreach (QList<ShapeObj*> list, classes)
     {
@@ -3568,12 +3581,14 @@ void Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeOb
                 items.append(sh);
             }
             atypes alignType = (dim == VERT ? ALIGN_CENTER : ALIGN_MIDDLE);
-            createAlignment(alignType, items);
+            //createAlignment(alignType, items);
+            aligns.append(AlignDesc(alignType,items));
         }
     }
+    return aligns;
 }
 
-void Canvas::inferAlignments()
+QList<AlignDesc> Canvas::inferAlignments(qreal tolerance)
 {
     // Build list of shapes, and map from each shape to list of all of its neighbours.
     QList<ShapeObj*> shapes;
@@ -3592,14 +3607,31 @@ void Canvas::inferAlignments()
         }
     }
 
-    // Vertical alignments
-    inferAlignOneDim(shapes, nbrs, VERT);
-    // Horizontal alignments
-    inferAlignOneDim(shapes, nbrs, HORIZ);
+    QList<AlignDesc> aligns;
 
+    // Vertical alignments
+    aligns.append(inferAlignOneDim(shapes, nbrs, VERT, tolerance));
+    // Horizontal alignments
+    aligns.append(inferAlignOneDim(shapes, nbrs, HORIZ, tolerance));
+
+    return aligns;
 }
 
-void Canvas::applyKM3()
+void Canvas::inferAndApplyAlignments()
+{
+    qreal tolerance = m_opt_snap_distance_modifier;
+    QList<AlignDesc> aligns = inferAlignments(tolerance);
+    stop_graph_layout();
+    foreach (AlignDesc d, aligns) {
+        Guideline *gdln = createAlignment(d.alignType, d.items);
+        if (m_infer_tentative_alignments) {
+            gdln->setTentative(true);
+        }
+    }
+    restart_graph_layout();
+}
+
+void Canvas::applyFM3()
 {
     m_bclayout->applyFM3();
 }

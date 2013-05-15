@@ -1193,9 +1193,9 @@ void GraphData::guideToAlignmentConstraint(Guideline* guide) {
             (guide->get_dir()==GUIDE_TYPE_HORI) ? vpsc::YDIM : vpsc::XDIM;
     cola::AlignmentConstraint *ac = 
             new cola::AlignmentConstraint(dim, guide->position());
-    ac->setTentative(guide->tentative());
+    ac->setTentative(guide->isTentative());
     ac->m_guidelineID = guide->idString().toInt();
-    qDebug() << "Guide" << guide->idString() << (guide->tentative()?"is":"is NOT") << "tentative.";
+    qDebug() << "Guide" << guide->idString() << (guide->isTentative()?"is":"is NOT") << "tentative.";
     ccMap[guide]=ac;
     ac->indicator=(void*)guide;
     ccs.push_back(ac);

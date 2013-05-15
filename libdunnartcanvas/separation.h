@@ -69,6 +69,8 @@ class Separation: public Indicator
         virtual QPainterPath shape() const;
         virtual QRectF boundingRect() const;
 
+        bool isTentative(void) { return false; }
+
         dirctn type;
         sgtype lock_state;
         double handle_x, handle_y;

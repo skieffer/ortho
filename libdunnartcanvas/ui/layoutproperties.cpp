@@ -208,12 +208,18 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     // Set initial control values.
     idealLengthSlider->setSliderPosition(
             m_canvas->optIdealEdgeLengthModifier() * 100);
-    snapDistanceSlider->setSliderPosition(
-            m_canvas->optSnapDistanceModifier());
-    relaxThresholdSlider->setSliderPosition(
-            m_canvas->optRelaxThresholdModifier() * 100);
+
+    double snap_distance = m_canvas->optSnapDistanceModifier();
+    snapDistanceSlider->setSliderPosition(snap_distance);
+    snapDistanceLabel->setText(QString("Snap Distance: %1").arg(snap_distance));
+
+    double relax_threshold = m_canvas->optRelaxThresholdModifier();
+    relaxThresholdSlider->setSliderPosition(relax_threshold * 100);
+    relaxStressLabel->setText(QString("Stress Threshold: %1").arg(relax_threshold));
+
     flowSeparationSlider->setSliderPosition(
             m_canvas->optFlowSeparationModifier() * 100);
+
     bool value = m_canvas->optPreventOverlaps();
     preventOverlapsCheckBox->setChecked(value);
     preventOverlapsCheckBox2->setChecked(value);
@@ -303,11 +309,13 @@ void LayoutPropertiesDialog::changeIdealEdgeLength(double value)
 void LayoutPropertiesDialog::changeSnapDistance(double value)
 {
     snapDistanceSlider->setSliderPosition(value);
+    snapDistanceLabel->setText(QString("Snap Distance: %1").arg(value));
 }
 
 void LayoutPropertiesDialog::changeRelaxThreshold(double value)
 {
     relaxThresholdSlider->setSliderPosition(value * 100);
+    relaxStressLabel->setText(QString("Stress Threshold: %1").arg(value));
 }
 
 }

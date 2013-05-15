@@ -62,7 +62,7 @@ class Guideline: public Indicator
 {
     Q_OBJECT
     Q_PROPERTY (double position READ position WRITE cmd_setPosition)
-    Q_PROPERTY (bool tentative READ tentative WRITE setTentative)
+    Q_PROPERTY (bool isTentative READ isTentative WRITE setTentative)
 
     UNDO_ACTION (Guideline, double, position, setPosition, UNDO_GUIDELINE_POS, "move guideline")
 
@@ -73,7 +73,7 @@ class Guideline: public Indicator
         double position(void) const;
         void setPosition(const double position);
 
-        bool tentative(void) const;
+        bool isTentative(void);
         void setTentative(const bool t);
 
         QDomElement to_QDomElement(const unsigned int subset, 

@@ -82,6 +82,8 @@ class Actions {
         bool empty(void) const;
 };
 
+struct AlignDesc;
+
 static const unsigned int DEFAULT_CANVAS_FONT_SIZE = 11;
 
 static const uint MESSAGEBOX_PIXMAP_SIZE = 70;
@@ -273,8 +275,8 @@ class Canvas : public QGraphicsScene
         void separateSelection(int type);
 
         void improveOrthogonalTopology(void);
-        void inferAlignments(void);
-        void applyKM3(void);
+        void inferAndApplyAlignments(void);
+        void applyFM3(void);
         void layoutBCTrees(void);
         void BCWithFM3(void);
         void BCWithSpringEmbedder(void);
@@ -383,9 +385,10 @@ class Canvas : public QGraphicsScene
         bool hasVisibleOverlays(void) const;
         void updateConnectorsForLayout(void);
 
-        void inferAlignOneDim(QList<ShapeObj*> shapes,
+        QList<AlignDesc> inferAlignments(qreal tolerance=1.0);
+        QList<AlignDesc> inferAlignOneDim(QList<ShapeObj*> shapes,
                               QMap<ShapeObj*,ShapeObj*> nbrs,
-                              Dimension dim);
+                              Dimension dim, qreal tolerance=1.0);
         void getRestrConnComp(QMap<ShapeObj*,ShapeObj*> nbrs, ShapeObj *sh,
                               QSet<ShapeObj*> &R, QSet<ShapeObj*> &C);
 
@@ -419,6 +422,7 @@ class Canvas : public QGraphicsScene
         bool m_simple_paths_during_layout;
         bool m_batch_diagram_layout;
         bool m_force_orthogonal_connectors;
+        bool m_infer_tentative_alignments;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

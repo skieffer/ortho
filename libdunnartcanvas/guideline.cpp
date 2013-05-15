@@ -348,7 +348,7 @@ void Guideline::setPosition(const double position)
     setPos(posPoint);
 }
 
-bool Guideline::tentative(void) const
+bool Guideline::isTentative(void)
 {
     return m_tentative;
 }
