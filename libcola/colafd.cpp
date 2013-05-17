@@ -1267,11 +1267,13 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
         //qDebug() << "q, |r|: " << q << r;
         if (r!=0.5) { // no "tug of war"
             d = r<0.5 ? z-q*D : ( z>0 ? z-(q+1)*D : z-(q-1)*D );
-            t = d>0 ? 1 : -1;
             if (-sig<=d && d<=sig) {
-                g[u]+=k*d;
-                H(u,u)+=t*k;
-                //qDebug() << "gf: " << k*d;
+                double dg = k*d;
+                double dH = k;
+                g[u]+=dg;
+                H(u,u)+=dH;
+                //qDebug() << "g: " << dg;
+                //qDebug() << "H: " << dH;
             }
         }
     }

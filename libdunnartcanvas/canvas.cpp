@@ -595,7 +595,7 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
 
         double q,r;
         r = modf(rect.top()/(2*dlen),&q) * 2*dlen;
-        qDebug() << "offset: " << r;
+        //qDebug() << "offset: " << r;
         pen.setDashOffset(r);
         painter->setPen(pen);
 
