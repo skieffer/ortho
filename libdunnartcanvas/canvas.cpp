@@ -173,6 +173,8 @@ Canvas::Canvas()
       m_connector_nudge_distance(0),
       m_opt_ideal_edge_length_modifier(1.0),
       m_opt_snap_distance_modifier(10),
+      m_opt_snap_grid_width(200.0),
+      m_opt_snap_grid_height(200.0),
       m_opt_relax_threshold_modifier(0.1),
       m_dragged_item(NULL),
       m_lone_selected_item(NULL),
@@ -214,6 +216,7 @@ Canvas::Canvas()
     m_opt_automatic_graph_layout = false;
     m_opt_prevent_overlaps       = false;
     m_opt_snap_to                = false;
+    m_opt_grid_snap              = true;
     m_opt_relax                  = false;
     m_opt_preserve_topology      = false;
     m_opt_rubber_band_routing    = false;
@@ -571,6 +574,50 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
     painter->fillRect(m_page, QColor(255, 255, 255));
     painter->setPen(QColor(110, 110, 110));
     painter->drawRect(m_expanded_page);
+
+    // Draw snap grid lines
+    if (m_opt_grid_snap) {
+        QPen pen;
+        pen.setColor(QColor(128,128,128));
+        QVector<qreal> dashes;
+        qreal dlen = 10;
+        dashes << dlen << dlen;
+        pen.setDashPattern(dashes);
+        painter->setPen(pen);
+
+        double W = m_opt_snap_grid_width;
+        double H = m_opt_snap_grid_height;
+
+        int n0 = ceil(rect.left()/W);
+        int n1 = floor(rect.right()/W);
+        int n = n1 - n0 + 1;
+        double x = n0*W;
+
+        double q,r;
+        r = modf(rect.top()/(2*dlen),&q) * 2*dlen;
+        qDebug() << "offset: " << r;
+        pen.setDashOffset(r);
+        painter->setPen(pen);
+
+        for (int j = 0; j < n; j++) {
+            painter->drawLine(x,rect.top(),x,rect.bottom());
+            x += W;
+        }
+
+        int m0 = ceil(rect.top()/H);
+        int m1 = floor(rect.bottom()/H);
+        int m = m1 - m0 + 1;
+        double y = m0*H;
+
+        r = modf(rect.left()/(2*dlen),&q) * 2*dlen;
+        pen.setDashOffset(r);
+        painter->setPen(pen);
+
+        for (int i = 0; i < m; i++) {
+            painter->drawLine(rect.left(),y,rect.right(),y);
+            y += H;
+        }
+    }
 }
 
 

@@ -426,12 +426,15 @@ class Canvas : public QGraphicsScene
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
+        double m_opt_snap_grid_width;
+        double m_opt_snap_grid_height;
         double m_opt_relax_threshold_modifier;
         double m_opt_shape_nonoverlap_padding;
         int  m_opt_connector_rounding_distance;
         bool m_opt_automatic_graph_layout;
         bool m_opt_prevent_overlaps;
         bool m_opt_snap_to;
+        bool m_opt_grid_snap;
         bool m_opt_relax;
         bool m_opt_preserve_topology;
         bool m_opt_rubber_band_routing;
