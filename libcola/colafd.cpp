@@ -1271,7 +1271,7 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
             if (-sig<=d && d<=sig) {
                 g[u]+=k*d;
                 H(u,u)+=t*k;
-                qDebug() << "gf: " << k*d;
+                //qDebug() << "gf: " << k*d;
             }
         }
     }
