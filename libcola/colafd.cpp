@@ -109,6 +109,9 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_tentative_constraint_threshold(0.1), // What value should it be?
       m_constraintToReject(NULL),
       m_addSnapStress(snapTo),
+      m_addGridSnapStress(true),
+      m_snapGridX(200.0),
+      m_snapGridY(200.0),
       m_snap_distance(snapDistance),
       // snap stress functions:
       //  1: smooth M-stress
@@ -1173,7 +1176,7 @@ void ConstrainedFDLayout::computeForces(
         valarray<double> &g) {
     if(n==1) return;
     g=0;
-#define BASICSTRESS
+//#define BASICSTRESS
 #ifdef  BASICSTRESS
     // for each node:
     for(unsigned u=0;u<n;u++) {
@@ -1203,6 +1206,9 @@ void ConstrainedFDLayout::computeForces(
 #endif
     if(m_addSnapStress) {
         computeSnapForces(dim,H,g);
+    }
+    if(m_addGridSnapStress) {
+        computeGridSnapForces(dim,H,g);
     }
     if(desiredPositions) {
         for(DesiredPositions::const_iterator p=desiredPositions->begin();
@@ -1244,6 +1250,30 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
     case 8:
         quadUForces(dim,H,g);
         break;
+    }
+}
+
+// Grid forces; uses quadratic U-stress:
+void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, valarray<double> &g) {
+    double b = m_snapStressBeta;
+    double sig = m_snapStressSigma;
+    double k = b/(sig*sig);
+    for(unsigned u=0;u<n;u++) {
+        double z=dim==vpsc::HORIZONTAL?X[u]:Y[u];
+        double D=dim==vpsc::HORIZONTAL?m_snapGridX:m_snapGridY;
+        double q,r;
+        double d=0,u=0;
+        r = modf(z/D, &q);
+        qDebug() << "q, r: " << q << r;
+        if (r!=0.5) { // no "tug of war"
+            d=r<0.5?r*D:(1-r)*D;
+            u=r<0.5?1:-1;
+            if (d<=sig) {
+                g[u]+=u*k*d;
+                H(u,u)+=u*k;
+                qDebug() << "gf: " << u*k*d;
+            }
+        }
     }
 }
 
@@ -1549,6 +1579,11 @@ double ConstrainedFDLayout::computeStress() const {
         //qDebug() << "ss: " << snapstress;
         stress += snapstress;
     }
+    if(m_addGridSnapStress) {
+        double gridSnapStress = computeGridSnapStress();
+        //qDebug() << "gs: " << gridSnapStress;
+        stress += gridSnapStress;
+    }
     //qDebug() << "plus snap stress: " << stress;
     if(preIteration) {
         if ((*preIteration)()) {
@@ -1592,6 +1627,46 @@ double ConstrainedFDLayout::computeSnapStress() const {
     case 8:
         return quadUStress();
     }
+}
+
+// Grid snap stress; will use Quadratic U-stress:
+double ConstrainedFDLayout::computeGridSnapStress() const {
+    double stress=0;
+    for(unsigned u=0;u<n;u++) {
+        double x=X[u], y=Y[u];
+        double sig = m_snap_distance;
+        double sig2 = sig*sig;
+        double W = m_snapGridX, H = m_snapGridY;
+        double q,r;
+        double dx=0,dy=0;
+        double sx=0,sy=0;
+        // x-dimension
+        r = fabs(modf(x/W, &q));
+        if (r!=0.5) { // no "tug of war"
+            dx=r<0.5?r*W:(1-r)*W;
+            if (dx<=sig) {
+                sx = dx*dx/sig2;
+            }
+        }
+
+        /*
+        qDebug() << "u: " << u;
+        qDebug() << "q, r: " << q << r;
+        qDebug() << "dx, sx: " << dx << sx;
+        */
+
+        // y-dimension
+        r = fabs(modf(y/H, &q));
+        if (r!=0.5) {
+            dy=r<0.5?r*H:(1-r)*H;
+            if (dy<=sig) {
+                sy = dy*dy/sig2;
+            }
+        }
+
+        stress+=sx+sy;
+    }
+    return m_snapStressBeta*stress;
 }
 
 // Quadratic U-stress:

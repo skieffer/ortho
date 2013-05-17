@@ -634,6 +634,9 @@ private:
 
     // Snap Stress
     bool m_addSnapStress;
+    bool m_addGridSnapStress;
+    double m_snapGridX;
+    double m_snapGridY;
     int m_snapStressFunction;
     double m_snap_distance;
     double m_snapStressAlpha;
@@ -641,6 +644,7 @@ private:
     double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
+    double computeGridSnapStress() const;
     double computeSnapStress() const;
     double quadUStress() const;
     double smoothVStress() const;
@@ -650,6 +654,7 @@ private:
     double dualQuadraticStress() const;
     double invertedQuadraticStress() const;
     double quarticStress() const;
+    void computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void quadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void smoothVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
