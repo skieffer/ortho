@@ -28,7 +28,7 @@
 #ifndef COLA_H
 #define COLA_H
 
-#include <QString>
+//#include <QString>
 
 #include <utility>
 #include <iterator>
@@ -659,8 +659,8 @@ private:
     void dualQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void invertedQuadraticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void quarticForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
-    QString writeVADVect(std::valarray<double> v) const;
-    QString writeSparseMatrix(SparseMatrix M, bool linear=false) const;
+    //QString writeVADVect(std::valarray<double> v) const;
+    //QString writeSparseMatrix(SparseMatrix M, bool linear=false) const;
     int m_debugLineNo;
     // end Snap Stress
 

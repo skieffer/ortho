@@ -982,6 +982,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     for_each(cs.begin(),cs.end(),delete_object());
 }
 
+/*
 QString ConstrainedFDLayout::writeVADVect(valarray<double> v) const {
     QString s = "";
     for (int i = 0; i < v.size(); i++) {
@@ -1002,6 +1003,7 @@ QString ConstrainedFDLayout::writeSparseMatrix(SparseMatrix M, bool linear) cons
     }
     return s;
 }
+*/
 
 /**
  * The following computes an unconstrained solution then uses Projection to
