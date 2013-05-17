@@ -1176,7 +1176,7 @@ void ConstrainedFDLayout::computeForces(
         valarray<double> &g) {
     if(n==1) return;
     g=0;
-//#define BASICSTRESS
+#define BASICSTRESS
 #ifdef  BASICSTRESS
     // for each node:
     for(unsigned u=0;u<n;u++) {
@@ -1262,16 +1262,16 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
         double z=dim==vpsc::HORIZONTAL?X[u]:Y[u];
         double D=dim==vpsc::HORIZONTAL?m_snapGridX:m_snapGridY;
         double q,r;
-        double d=0,u=0;
-        r = modf(z/D, &q);
-        qDebug() << "q, r: " << q << r;
+        double d=0,t=0;
+        r = fabs(modf(z/D, &q));
+        //qDebug() << "q, |r|: " << q << r;
         if (r!=0.5) { // no "tug of war"
-            d=r<0.5?r*D:(1-r)*D;
-            u=r<0.5?1:-1;
-            if (d<=sig) {
-                g[u]+=u*k*d;
-                H(u,u)+=u*k;
-                qDebug() << "gf: " << u*k*d;
+            d = r<0.5 ? z-q*D : ( z>0 ? z-(q+1)*D : z-(q-1)*D );
+            t = d>0 ? 1 : -1;
+            if (-sig<=d && d<=sig) {
+                g[u]+=k*d;
+                H(u,u)+=t*k;
+                qDebug() << "gf: " << k*d;
             }
         }
     }
