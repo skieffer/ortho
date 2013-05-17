@@ -113,6 +113,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_snapGridX(50.0),
       m_snapGridY(50.0),
       m_snap_distance(snapDistance),
+      m_snap_strength(20.0),
       // snap stress functions:
       //  1: smooth M-stress
       //  2: piecewise linear M-stress
@@ -211,7 +212,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         //m_snapStressBeta = 60.0;
         //m_snapStressSigma = 10.0;
         m_snapStressSigma = m_snap_distance;
-        m_snapStressBeta = 2*m_snapStressSigma;
+        //m_snapStressBeta = 2*m_snapStressSigma;
+        m_snapStressBeta = m_snap_strength;
     }
 }
 
@@ -1255,8 +1257,10 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
 
 // Grid forces; uses quadratic U-stress:
 void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, valarray<double> &g) {
-    double b = m_snapStressBeta;
-    double sig = m_snapStressSigma;
+    //double b = m_snapStressBeta;
+    //double sig = m_snapStressSigma;
+    double b = m_snap_strength;
+    double sig = m_snap_distance;
     double k = b/(sig*sig);
     for(unsigned u=0;u<n;u++) {
         double z=dim==vpsc::HORIZONTAL?X[u]:Y[u];
@@ -1668,7 +1672,8 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
 
         stress+=sx+sy;
     }
-    return m_snapStressBeta*stress;
+    //return m_snapStressBeta*stress;
+    return m_snap_strength*stress;
 }
 
 // Quadratic U-stress:

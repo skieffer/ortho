@@ -173,8 +173,9 @@ Canvas::Canvas()
       m_connector_nudge_distance(0),
       m_opt_ideal_edge_length_modifier(1.0),
       m_opt_snap_distance_modifier(10),
-      m_opt_snap_grid_width(200.0),
-      m_opt_snap_grid_height(200.0),
+      m_opt_snap_strength_modifier(20),
+      m_opt_snap_grid_width(50.0),
+      m_opt_snap_grid_height(50.0),
       m_opt_relax_threshold_modifier(0.1),
       m_dragged_item(NULL),
       m_lone_selected_item(NULL),
@@ -1564,7 +1565,7 @@ void Canvas::setOptIdealEdgeLengthModifier(double modifier)
 
 void Canvas::setOptSnapDistanceModifierFromSlider(int int_modifier)
 {
-    qDebug() << "Snap Distance int modifier: " << int_modifier;
+    //qDebug() << "Snap Distance int modifier: " << int_modifier;
     double double_modifier = int_modifier / 1.0;
     setOptSnapDistanceModifier(double_modifier);
 }
@@ -1576,6 +1577,45 @@ void Canvas::setOptSnapDistanceModifier(double modifier)
     fully_restart_graph_layout();
 }
 
+
+void Canvas::setOptSnapStrengthModifierFromSlider(int int_modifier)
+{
+    double double_modifier = int_modifier / 1.0;
+    setOptSnapStrengthModifier(double_modifier);
+}
+
+void Canvas::setOptSnapStrengthModifier(double modifier)
+{
+    m_opt_snap_strength_modifier = modifier;
+    emit optChangedSnapStrengthModifier(modifier);
+    fully_restart_graph_layout();
+}
+
+void Canvas::setOptGridWidthModifierFromSlider(int int_modifier)
+{
+    double double_modifier = int_modifier / 1.0;
+    setOptGridWidthModifier(double_modifier);
+}
+
+void Canvas::setOptGridWidthModifier(double modifier)
+{
+    m_opt_snap_grid_width = modifier;
+    emit optChangedGridWidthModifier(modifier);
+    fully_restart_graph_layout();
+}
+
+void Canvas::setOptGridHeightModifierFromSlider(int int_modifier)
+{
+    double double_modifier = int_modifier / 1.0;
+    setOptGridHeightModifier(double_modifier);
+}
+
+void Canvas::setOptGridHeightModifier(double modifier)
+{
+    m_opt_snap_grid_height = modifier;
+    emit optChangedGridHeightModifier(modifier);
+    fully_restart_graph_layout();
+}
 
 void Canvas::setOptRelaxThresholdModifierFromSlider(int int_modifier)
 {
@@ -1715,6 +1755,21 @@ double Canvas::optIdealEdgeLengthModifier(void) const
 double Canvas::optSnapDistanceModifier(void) const
 {
     return m_opt_snap_distance_modifier;
+}
+
+double Canvas::optSnapStrengthModifier(void) const
+{
+    return m_opt_snap_strength_modifier;
+}
+
+double Canvas::optGridWidthModifier(void) const
+{
+    return m_opt_snap_grid_width;
+}
+
+double Canvas::optGridHeightModifier(void) const
+{
+    return m_opt_snap_grid_height;
 }
 
 double Canvas::optRelaxThresholdModifier(void) const

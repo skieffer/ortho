@@ -247,11 +247,11 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
 
     double grid_width = m_canvas->optGridWidthModifier();
     gridWidthSlider->setSliderPosition(grid_width);
-    gridWidthSlider->setText(QString("Width: %1").arg(grid_width));
+    gridWLabel->setText(QString("Width: %1").arg(grid_width));
 
     double grid_height = m_canvas->optGridHeightModifier();
     gridHeightSlider->setSliderPosition(grid_height);
-    gridHeightSlider->setText(QString("Height: %1").arg(grid_height));
+    gridHLabel->setText(QString("Height: %1").arg(grid_height));
 
     double relax_threshold = m_canvas->optRelaxThresholdModifier();
     relaxThresholdSlider->setSliderPosition(relax_threshold * 100);
@@ -362,13 +362,13 @@ void LayoutPropertiesDialog::changeSnapStrength(double value)
 void LayoutPropertiesDialog::changeGridWidth(double value)
 {
     gridWidthSlider->setSliderPosition(value);
-    gridWidthSlider->setText(QString("Width: %1").arg(value));
+    gridWLabel->setText(QString("Width: %1").arg(value));
 }
 
 void LayoutPropertiesDialog::changeGridHeight(double value)
 {
     gridHeightSlider->setSliderPosition(value);
-    gridHeightSlider->setText(QString("Height: %1").arg(value));
+    gridHLabel->setText(QString("Height: %1").arg(value));
 }
 
 void LayoutPropertiesDialog::changeRelaxThreshold(double value)

@@ -1291,6 +1291,9 @@ void GraphLayout::run(const bool shouldReinitialise)
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
     alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
     alg.addGridSnapStress(m_canvas->m_opt_grid_snap);
+    alg.setSnapStrength(m_canvas->m_opt_snap_strength_modifier);
+    alg.setSnapGridWidth(m_canvas->m_opt_snap_grid_width);
+    alg.setSnapGridHeight(m_canvas->m_opt_snap_grid_height);
     if (runLevel == 1)
     {
         if (shouldReinitialise)

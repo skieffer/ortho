@@ -574,6 +574,9 @@ public:
     CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; };
     void setRelaxThreshold(double t) { m_tentative_constraint_threshold = t; }
     void addGridSnapStress(bool b) { m_addGridSnapStress = b; }
+    void setSnapStrength(double s) { m_snap_strength = s; }
+    void setSnapGridWidth(double w) { m_snapGridX = w; }
+    void setSnapGridHeight(double h) { m_snapGridY = h; }
 
 private:
     unsigned n; // number of nodes
@@ -640,6 +643,7 @@ private:
     double m_snapGridY;
     int m_snapStressFunction;
     double m_snap_distance;
+    double m_snap_strength;
     double m_snapStressAlpha;
     double m_snapStressBeta;
     double m_snapStressGamma;
