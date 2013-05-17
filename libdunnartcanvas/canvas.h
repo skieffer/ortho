@@ -202,6 +202,7 @@ class Canvas : public QGraphicsScene
         bool optAutomaticGraphLayout(void) const;
         bool optPreventOverlaps(void) const;
         bool optSnapTo(void) const;
+        bool optGridSnap(void) const;
         bool optRelax(void) const;
         bool optPreserveTopology(void) const;
         bool optRubberBandRouting(void) const;
@@ -210,6 +211,9 @@ class Canvas : public QGraphicsScene
         bool optStructuralEditingDisabled(void) const;
         double optIdealEdgeLengthModifier(void) const;
         double optSnapDistanceModifier(void) const;
+        double optSnapStrengthModifier(void) const;
+        double optGridWidthModifier(void) const;
+        double optGridHeightModifier(void) const;
         double optRelaxThresholdModifier(void) const;
         int optConnectorRoundingDistance(void) const;
         int optRoutingPenaltySegment(void) const;
@@ -290,6 +294,12 @@ class Canvas : public QGraphicsScene
         void setOptIdealEdgeLengthModifier(double modifier);
         void setOptSnapDistanceModifierFromSlider(int int_modifier);
         void setOptSnapDistanceModifier(double modifier);
+        void setOptSnapStrengthModifierFromSlider(int int_modifier);
+        void setOptSnapStrengthModifier(double modifier);
+        void setOptGridWidthModifierFromSlider(int int_modifier);
+        void setOptGridWidthModifier(double modifier);
+        void setOptGridHeightModifierFromSlider(int int_modifier);
+        void setOptGridHeightModifier(double modifier);
         void setOptRelaxThresholdModifierFromSlider(int int_modifier);
         void setOptRelaxThresholdModifier(double modifier);
 
@@ -297,6 +307,7 @@ class Canvas : public QGraphicsScene
         void setOptAutomaticGraphLayout(const bool value);
         void setOptPreventOverlaps(const bool value);
         void setOptSnapTo(const bool value);
+        void setOptGridSnap(const bool value);
         void setOptRelax(const bool value);
         void setOptPreserveTopology(const bool value);
         void setOptRubberBandRouting(const bool value);
@@ -342,12 +353,16 @@ class Canvas : public QGraphicsScene
         void optChangedPreserveTopology(bool checked);
         void optChangedPreventOverlaps(bool checked);
         void optChangedSnapTo(bool checked);
+        void optChangedGridSnap(bool checked);
         void optChangedRelax(bool checked);
         void optChangedRubberBandRouting(bool checked);
         void optChangedFitWithinPage(bool checked);
         void optChangedStructuralEditingDisabled(bool checked);
         void optChangedIdealEdgeLengthModifier(double value);
         void optChangedSnapDistanceModifier(double value);
+        void optChangedSnapStrengthModifier(double value);
+        void optChangedGridWidthModifier(double value);
+        void optChangedGridHeightModifier(double value);
         void optChangedRelaxThresholdModifier(double value);
         void optChangedLayoutMode(int mode);
         void optChangedDirectedEdgeSeparationModifier(double modifier);
@@ -426,6 +441,7 @@ class Canvas : public QGraphicsScene
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
+        double m_opt_snap_strength_modifier;
         double m_opt_snap_grid_width;
         double m_opt_snap_grid_height;
         double m_opt_relax_threshold_modifier;

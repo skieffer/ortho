@@ -216,7 +216,7 @@ Canvas::Canvas()
     m_opt_automatic_graph_layout = false;
     m_opt_prevent_overlaps       = false;
     m_opt_snap_to                = false;
-    m_opt_grid_snap              = true;
+    m_opt_grid_snap              = false;
     m_opt_relax                  = false;
     m_opt_preserve_topology      = false;
     m_opt_rubber_band_routing    = false;
@@ -1332,6 +1332,11 @@ bool Canvas::optSnapTo(void) const
     return m_opt_snap_to;
 }
 
+bool Canvas::optGridSnap(void) const
+{
+    return m_opt_grid_snap;
+}
+
 bool Canvas::optRelax(void) const
 {
     return m_opt_relax;
@@ -1489,6 +1494,14 @@ void Canvas::setOptSnapTo(const bool value)
 {
     m_opt_snap_to = value;
     emit optChangedSnapTo(m_opt_snap_to);
+    fully_restart_graph_layout();
+}
+
+
+void Canvas::setOptGridSnap(const bool value)
+{
+    m_opt_grid_snap = value;
+    emit optChangedGridSnap(m_opt_grid_snap);
     fully_restart_graph_layout();
 }
 

@@ -573,6 +573,7 @@ public:
     vpsc::Constraint *getMaxAbsLMConstraint(void);
     CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; };
     void setRelaxThreshold(double t) { m_tentative_constraint_threshold = t; }
+    void addGridSnapStress(bool b) { m_addGridSnapStress = b; }
 
 private:
     unsigned n; // number of nodes

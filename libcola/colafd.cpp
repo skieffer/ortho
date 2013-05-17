@@ -109,9 +109,9 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_tentative_constraint_threshold(0.1), // What value should it be?
       m_constraintToReject(NULL),
       m_addSnapStress(snapTo),
-      m_addGridSnapStress(true),
-      m_snapGridX(200.0),
-      m_snapGridY(200.0),
+      m_addGridSnapStress(false),
+      m_snapGridX(50.0),
+      m_snapGridY(50.0),
       m_snap_distance(snapDistance),
       // snap stress functions:
       //  1: smooth M-stress

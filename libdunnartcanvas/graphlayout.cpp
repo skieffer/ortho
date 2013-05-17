@@ -1290,6 +1290,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     alg.setConstraints(m_graph->ccs);
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
     alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
+    alg.addGridSnapStress(m_canvas->m_opt_grid_snap);
     if (runLevel == 1)
     {
         if (shouldReinitialise)

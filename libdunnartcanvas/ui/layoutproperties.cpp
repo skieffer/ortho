@@ -74,6 +74,11 @@ LayoutPropertiesDialog::LayoutPropertiesDialog(Canvas *canvas, QWidget *parent)
     connect(this, SIGNAL(optChangedSnapTo(bool)),
             snapToCheckBox, SLOT(setChecked(bool)));
 
+    connect(gridSnapCheckBox, SIGNAL(clicked(bool)),
+            this, SIGNAL(setOptGridSnap(bool)));
+    connect(this, SIGNAL(optChangedGridSnap(bool)),
+            gridSnapCheckBox, SLOT(setChecked(bool)));
+
     connect(relaxCheckBox, SIGNAL(clicked(bool)),
             this, SIGNAL(setOptRelax(bool)));
     connect(this, SIGNAL(optChangedRelax(bool)),
@@ -129,6 +134,9 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
         disconnect(this, 0, m_canvas, 0);
         disconnect(idealLengthSlider, 0, m_canvas, 0);
         disconnect(snapDistanceSlider, 0, m_canvas, 0);
+        disconnect(snapStrengthSlider, 0, m_canvas, 0);
+        disconnect(gridWidthSlider, 0, m_canvas, 0);
+        disconnect(gridHeightSlider, 0, m_canvas, 0);
         disconnect(relaxThresholdSlider, 0, m_canvas, 0);
         disconnect(flowSeparationSlider, 0, m_canvas, 0);
         disconnect(flowDirectionDial, 0, m_canvas, 0);
@@ -154,6 +162,11 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
             m_canvas, SLOT(setOptSnapTo(bool)));
     connect(m_canvas, SIGNAL(optChangedSnapTo(bool)),
             this, SIGNAL(optChangedSnapTo(bool)));
+
+    connect(this, SIGNAL(setOptGridSnap(bool)),
+            m_canvas, SLOT(setOptGridSnap(bool)));
+    connect(m_canvas, SIGNAL(optChangedGridSnap(bool)),
+            this, SIGNAL(optChangedGridSnap(bool)));
 
     connect(this, SIGNAL(setOptRelax(bool)),
             m_canvas, SLOT(setOptRelax(bool)));
@@ -185,6 +198,21 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     connect(m_canvas, SIGNAL(optChangedSnapDistanceModifier(double)),
             this, SLOT(changeSnapDistance(double)));
 
+    connect(snapStrengthSlider, SIGNAL(sliderMoved(int)),
+            m_canvas, SLOT(setOptSnapStrengthModifierFromSlider(int)));
+    connect(m_canvas, SIGNAL(optChangedSnapStrengthModifier(double)),
+            this, SLOT(changeSnapStrength(double)));
+
+    connect(gridWidthSlider, SIGNAL(sliderMoved(int)),
+            m_canvas, SLOT(setOptGridWidthModifierFromSlider(int)));
+    connect(m_canvas, SIGNAL(optChangedGridWidthModifier(double)),
+            this, SLOT(changeGridWidth(double)));
+
+    connect(gridHeightSlider, SIGNAL(sliderMoved(int)),
+            m_canvas, SLOT(setOptGridHeightModifierFromSlider(int)));
+    connect(m_canvas, SIGNAL(optChangedGridHeightModifier(double)),
+            this, SLOT(changeGridHeight(double)));
+
     connect(relaxThresholdSlider, SIGNAL(sliderMoved(int)),
             m_canvas, SLOT(setOptRelaxThresholdModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedRelaxThresholdModifier(double)),
@@ -211,7 +239,19 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
 
     double snap_distance = m_canvas->optSnapDistanceModifier();
     snapDistanceSlider->setSliderPosition(snap_distance);
-    snapDistanceLabel->setText(QString("Snap Distance: %1").arg(snap_distance));
+    snapDistanceLabel->setText(QString("Distance: %1").arg(snap_distance));
+
+    double snap_strength = m_canvas->optSnapStrengthModifier();
+    snapStrengthSlider->setSliderPosition(snap_strength);
+    snapStrengthLabel->setText(QString("Strength: %1").arg(snap_strength));
+
+    double grid_width = m_canvas->optGridWidthModifier();
+    gridWidthSlider->setSliderPosition(grid_width);
+    gridWidthSlider->setText(QString("Width: %1").arg(grid_width));
+
+    double grid_height = m_canvas->optGridHeightModifier();
+    gridHeightSlider->setSliderPosition(grid_height);
+    gridHeightSlider->setText(QString("Height: %1").arg(grid_height));
 
     double relax_threshold = m_canvas->optRelaxThresholdModifier();
     relaxThresholdSlider->setSliderPosition(relax_threshold * 100);
@@ -226,6 +266,7 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     preserveTopologyCheckBox->setEnabled(value);
 
     snapToCheckBox->setChecked(m_canvas->optSnapTo());
+    gridSnapCheckBox->setChecked(m_canvas->optGridSnap());
     relaxCheckBox->setChecked(m_canvas->optRelax());
 
     flowDirectionDial->setSliderPosition(m_canvas->optFlowDirection());
@@ -309,7 +350,25 @@ void LayoutPropertiesDialog::changeIdealEdgeLength(double value)
 void LayoutPropertiesDialog::changeSnapDistance(double value)
 {
     snapDistanceSlider->setSliderPosition(value);
-    snapDistanceLabel->setText(QString("Snap Distance: %1").arg(value));
+    snapDistanceLabel->setText(QString("Distance: %1").arg(value));
+}
+
+void LayoutPropertiesDialog::changeSnapStrength(double value)
+{
+    snapStrengthSlider->setSliderPosition(value);
+    snapStrengthLabel->setText(QString("Strength: %1").arg(value));
+}
+
+void LayoutPropertiesDialog::changeGridWidth(double value)
+{
+    gridWidthSlider->setSliderPosition(value);
+    gridWidthSlider->setText(QString("Width: %1").arg(value));
+}
+
+void LayoutPropertiesDialog::changeGridHeight(double value)
+{
+    gridHeightSlider->setSliderPosition(value);
+    gridHeightSlider->setText(QString("Height: %1").arg(value));
 }
 
 void LayoutPropertiesDialog::changeRelaxThreshold(double value)
