@@ -169,17 +169,7 @@ void Guideline::rangeOfAttachedObjects(double& min, double& max) const
     // Cope with the case where there are no attached objects.
     if ((min == DBL_MAX) && (max = -DBL_MAX) && canvas())
     {
-        QList<QGraphicsView *> views = canvas()->views();
-        QRectF sceneBounds;
-
-        // Determine bounds by taking the union of all view bounds.
-        for (int v = 0; v < views.size(); ++v)
-        {
-            QGraphicsView *view = views.at(v);
-
-            sceneBounds = sceneBounds.united(QRectF(view->mapToScene(0,0),
-                    view->mapToScene(view->width(), view->height())));
-        }
+        QRectF sceneBounds = canvas()->combinedViewsRect();
 
         if (get_dir() == GUIDE_TYPE_HORI)
         {
