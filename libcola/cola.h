@@ -618,6 +618,8 @@ private:
     cola::CompoundConstraints ccs;
     double** D;
     unsigned short** G;
+    std::vector< Edge > edges;
+
 
     TopologyAddonInterface *topologyAddon;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;

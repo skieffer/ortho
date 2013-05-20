@@ -110,8 +110,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_constraintToReject(NULL),
       m_addSnapStress(snapTo),
       m_addGridSnapStress(false),
-      m_snapGridX(50.0),
-      m_snapGridY(50.0),
+      m_snapGridX(100.0),
+      m_snapGridY(100.0),
       m_snap_distance(snapDistance),
       m_snap_strength(20.0),
       // snap stress functions:
@@ -142,6 +142,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         D[i]=new double[n];
         G[i]=new unsigned short[n];
     }
+
+    edges = es;
 
     if(eLengths == NULL) {
         computePathLengths(es,NULL);
@@ -1288,6 +1290,38 @@ void ConstrainedFDLayout::quadUForces(const vpsc::Dim dim, SparseMap &H, std::va
     double b = m_snapStressBeta;
     double sig = m_snapStressSigma;
     double k = b/(sig*sig);
+#define nbrSnap
+#ifdef nbrSnap
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+        if (-sig <= d && d <= sig) {
+            double kd = k*d;
+            g[u]+=kd;
+            H(u,v)-=k;
+            H(u,u)+=k;
+            g[v]-=kd;
+            H(v,u)-=k;
+            H(v,v)+=k;
+        }
+        /*
+        unsigned u = e.first, v = e.second;
+        double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+        if (-sig <= d && d <= sig) {
+            g[u]+=k*d;
+            H(u,v)-=k;
+            H(u,u)+=k;
+        }
+        u = e.second, v = e.first;
+        d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+        if (-sig <= d && d <= sig) {
+            g[u]+=k*d;
+            H(u,v)-=k;
+            H(u,u)+=k;
+        }
+        */
+    }
+#else
     for(unsigned u=0;u<n;u++) {
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
@@ -1304,6 +1338,7 @@ void ConstrainedFDLayout::quadUForces(const vpsc::Dim dim, SparseMap &H, std::va
             //qDebug() << "g[u] += " << k*d;
         }
     }
+#endif
 }
 
 // Smooth V-stress forces:
@@ -1682,6 +1717,32 @@ double ConstrainedFDLayout::quadUStress() const {
     double sig = m_snapStressSigma;
     double sig2 = sig*sig;
     double c=0.0; // the constant stress -- experiment with 0 and 1 here!
+#ifdef nbrSnap
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double dx=X[u]-X[v], dy=Y[u]-Y[v];
+
+        double sx = 0;
+        if (dx < -sig) {
+            sx = c;
+        } else if (-sig <= dx && dx <= sig) {
+            sx = dx*dx/sig2;
+        } else { // sig < dx
+            sx = c;
+        }
+
+        double sy = 0;
+        if (dy < -sig) {
+            sy = c;
+        } else if (-sig <= dy && dy <= sig) {
+            sy = dy*dy/sig2;
+        } else { // sig < dy
+            sy = c;
+        }
+
+        stress+=sx+sy;
+    }
+#else
     for(unsigned u=0;(u + 1)<n;u++) {
         for(unsigned v=u+1;v<n;v++) {
             unsigned short p=G[u][v];
@@ -1709,7 +1770,8 @@ double ConstrainedFDLayout::quadUStress() const {
 
             stress+=sx+sy;
         }
-    }
+    }   
+#endif
     return m_snapStressBeta*stress;
 }
 
