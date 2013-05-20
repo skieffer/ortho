@@ -3746,6 +3746,11 @@ void Canvas::inferAndApplyAlignments()
     restart_graph_layout();
 }
 
+void Canvas::tryAlignments()
+{
+    // TODO
+}
+
 void Canvas::applyFM3()
 {
     m_bclayout->applyFM3();

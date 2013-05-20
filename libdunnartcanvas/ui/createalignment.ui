@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>181</width>
-    <height>289</height>
+    <height>324</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -234,11 +234,22 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPushButton" name="inferAlignButton">
-         <property name="text">
-          <string>Infer Alignments</string>
-         </property>
-        </widget>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QPushButton" name="inferAlignButton">
+           <property name="text">
+            <string>Infer Alignments</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="tryAlignButton">
+           <property name="text">
+            <string>Try Alignments</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

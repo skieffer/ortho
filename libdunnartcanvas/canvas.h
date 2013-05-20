@@ -280,6 +280,7 @@ class Canvas : public QGraphicsScene
 
         void improveOrthogonalTopology(void);
         void inferAndApplyAlignments(void);
+        void tryAlignments(void);
         void applyFM3(void);
         void layoutBCTrees(void);
         void BCWithFM3(void);
