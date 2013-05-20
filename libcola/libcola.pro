@@ -5,7 +5,7 @@ DEPENDPATH += .. .
 INCLUDEPATH += .. \
     ../libvpsc
 include(../common_options.qmake)
-#CONFIG -= qt
+CONFIG += qt
 
 #LIBS += -Wl,-undefined -Wl,dynamic_lookup
 

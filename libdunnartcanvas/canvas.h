@@ -185,6 +185,7 @@ class Canvas : public QGraphicsScene
         void moveSelectionResizeHandle(const int index, const QPointF pos);
         void storeSelectionResizeInfo(void);
         QFont& canvasFont(void);
+        QRectF combinedViewsRect(void) const;
 
         QString saveConstraintInfoToString(void) const;
         void loadConstraintInfoFromString(const QString& constraintInfo);

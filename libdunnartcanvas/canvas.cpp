@@ -579,11 +579,7 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
     // Draw snap grid lines
     if (m_opt_grid_snap) {
         QPen pen;
-        pen.setColor(QColor(128,128,128));
-        QVector<qreal> dashes;
-        qreal dlen = 10;
-        dashes << dlen << dlen;
-        pen.setDashPattern(dashes);
+        pen.setColor(QColor(128,128,128,64));
         painter->setPen(pen);
 
         double W = m_opt_snap_grid_width;
@@ -594,12 +590,6 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
         int n = n1 - n0 + 1;
         double x = n0*W;
 
-        double q,r;
-        r = modf(rect.top()/(2*dlen),&q) * 2*dlen;
-        //qDebug() << "offset: " << r;
-        pen.setDashOffset(r);
-        painter->setPen(pen);
-
         for (int j = 0; j < n; j++) {
             painter->drawLine(x,rect.top(),x,rect.bottom());
             x += W;
@@ -609,10 +599,6 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
         int m1 = floor(rect.bottom()/H);
         int m = m1 - m0 + 1;
         double y = m0*H;
-
-        r = modf(rect.left()/(2*dlen),&q) * 2*dlen;
-        pen.setDashOffset(r);
-        painter->setPen(pen);
 
         for (int i = 0; i < m; i++) {
             painter->drawLine(rect.left(),y,rect.right(),y);
@@ -1504,6 +1490,20 @@ void Canvas::setOptGridSnap(const bool value)
     m_opt_grid_snap = value;
     emit optChangedGridSnap(m_opt_grid_snap);
     fully_restart_graph_layout();
+    this->update(combinedViewsRect());
+}
+
+QRectF Canvas::combinedViewsRect(void) const
+{
+    QRectF viewsRect;
+
+    // Determine bounds by taking the union of all view bounds.
+    foreach (QGraphicsView *view, views())
+    {
+        viewsRect = viewsRect.united(QRectF(view->mapToScene(0,0),
+                view->mapToScene(view->width(), view->height())));
+    }
+    return viewsRect;
 }
 
 
@@ -1602,6 +1602,7 @@ void Canvas::setOptGridWidthModifier(double modifier)
     m_opt_snap_grid_width = modifier;
     emit optChangedGridWidthModifier(modifier);
     fully_restart_graph_layout();
+    this->update(combinedViewsRect());
 }
 
 void Canvas::setOptGridHeightModifierFromSlider(int int_modifier)
@@ -1615,6 +1616,7 @@ void Canvas::setOptGridHeightModifier(double modifier)
     m_opt_snap_grid_height = modifier;
     emit optChangedGridHeightModifier(modifier);
     fully_restart_graph_layout();
+    this->update(combinedViewsRect());
 }
 
 void Canvas::setOptRelaxThresholdModifierFromSlider(int int_modifier)
