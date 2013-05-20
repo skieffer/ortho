@@ -2,14 +2,13 @@
 TEMPLATE = lib
 TARGET = topology
 
-CONFIG += shared
+CONFIG += qt shared
 
 
 INCLUDEPATH += .. .
 INCLUDEPATH += .. ../libvpsc ../libavoid ../libcola
 
 include(../common_options.qmake)
-CONFIG -= qt
 
 LIBS += -L$$DESTDIR -lvpsc -lcola -lavoid
 
