@@ -3755,7 +3755,26 @@ void Canvas::inferAndApplyAlignments()
 
 void Canvas::tryAlignments()
 {
-    // TODO
+    double eps = 1;
+    double sig = m_opt_snap_distance_modifier;
+    // For now, try simply aligning neighbours which are not already aligned.
+    foreach (CanvasItem *item, items())
+    {
+        if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            ShapeObj *s = conn->getAttachedShapes().first;
+            ShapeObj *t = conn->getAttachedShapes().second;
+            double sx=s->centrePos().x(), sy=s->centrePos().y();
+            double tx=t->centrePos().x(), ty=t->centrePos().y();
+            double ady=fabs(ty-sy), adx=fabs(tx-sx);
+            if (adx < eps || ady < eps) continue; // already aligned
+            if (adx < ady && adx <= sig) {
+                // Apply a vertical alignment
+            } else if (ady <= sig) {
+                // Apply a horizontal alignment
+            }
+        }
+    }
 }
 
 void Canvas::arrangePendants()
