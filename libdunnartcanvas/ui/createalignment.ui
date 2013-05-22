@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>181</width>
-    <height>324</height>
+    <height>357</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -246,6 +246,13 @@
           <widget class="QPushButton" name="tryAlignButton">
            <property name="text">
             <string>Try Alignments</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pendantsButton">
+           <property name="text">
+            <string>Pendants</string>
            </property>
           </widget>
          </item>

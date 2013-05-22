@@ -193,7 +193,8 @@ Canvas::Canvas()
       m_canvas_font(NULL),
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
       m_animation_group(NULL),
-      m_bclayout(NULL)
+      m_bclayout(NULL),
+      m_wtf(true)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -3737,6 +3738,10 @@ QList<AlignDesc> Canvas::inferAlignments(qreal tolerance)
 void Canvas::inferAndApplyAlignments()
 {
     qreal tolerance = m_opt_snap_distance_modifier;
+//#define reach
+#ifdef reach
+    tolerance = m_opt_snap_grid_width * 1.2;
+#endif
     QList<AlignDesc> aligns = inferAlignments(tolerance);
     stop_graph_layout();
     foreach (AlignDesc d, aligns) {
@@ -3751,6 +3756,180 @@ void Canvas::inferAndApplyAlignments()
 void Canvas::tryAlignments()
 {
     // TODO
+}
+
+void Canvas::arrangePendants()
+{
+    // Why does this method get called twice when we press the button?
+    if (!m_wtf) {
+        m_wtf = true;
+        return;
+    }
+    m_wtf = false;
+
+    // Build list of shapes, and map from each shape to list of all of its neighbours.
+    // Keep track of max and min x and y coords.
+    QList<ShapeObj*> shapes;
+    QMap<ShapeObj*,ShapeObj*> nbrs;
+    double xmin = DBL_MAX , xmax = DBL_MIN, ymin = DBL_MAX, ymax = DBL_MIN;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        {
+            shapes.append(shape);
+            QPointF p = shape->centrePos();
+            xmin = p.x() < xmin ? p.x() : xmin;
+            xmax = p.x() > xmax ? p.x() : xmax;
+            ymin = p.y() < ymin ? p.y() : ymin;
+            ymax = p.y() > ymax ? p.y() : ymax;
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
+            nbrs.insertMulti(endpts.first,endpts.second);
+            nbrs.insertMulti(endpts.second,endpts.first);
+        }
+    }
+    //qDebug() << "xmin" << xmin << "xmax" << xmax << "ymin" << ymin << "ymax" << ymax;
+    // Now work out which grid locations are occupied.
+    double W = m_opt_snap_grid_width, H = m_opt_snap_grid_height;
+    int j0 = (int)(floor(xmin/W))-1, j1 = (int)(floor(xmax/W))+1;
+    int i0 = (int)(floor(ymin/H))-1, i1 = (int)(floor(ymax/H))+1;
+    int cols = j1 - j0 + 1, rows = i1 - i0 + 1;
+    bool occupied[rows][cols];
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            occupied[i][j] = false;
+        }
+    }
+    double tolerance = 0.25;
+    foreach (ShapeObj *shape, shapes) {
+        QPointF p = shape->centrePos();
+        double j = p.x()/W, i = p.y()/H;
+        double qj, rj, qi, ri;
+        rj = modf(j,&qj);
+        ri = modf(i,&qi);
+        if (rj < -0.5) {
+            qj -= 1; rj += 1;
+        } else if (rj > 0.5) {
+            qj += 1; rj -= 1;
+        }
+        if (ri < -0.5) {
+            qi -= 1; ri += 1;
+        } else if (ri > 0.5) {
+            qi += 1; ri -= 1;
+        }
+        //qDebug() << "rj" << rj << "ri" << ri;
+        if (fabs(rj) < tolerance && fabs(ri) < tolerance) {
+            // E.g. if tolerance = 0.25 then we get here iff shape lies within
+            // a quarter of a grid length in each dimension.
+            int jz = (int)(qj), iz = (int)(qi);
+            int ja = jz-j0, ia = iz-i0;
+            occupied[ia][ja] = true;
+        }
+    }
+
+    // check
+    QString a = "\n";
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            a += occupied[i][j] ? "1 " : "0 ";
+        }
+        a += "\n";
+    }
+    qDebug() << a;
+
+    // Now try to reposition each pendant node.
+    foreach (ShapeObj *shape, shapes) {
+        // Is it a pendant?
+        QList<ShapeObj*> nbhd = nbrs.values(shape);
+        if (nbhd.size() > 1 || nbhd.size() < 1) continue;
+        // Get the owning shape.
+        ShapeObj *owner = nbhd.at(0);
+        // Get actual coords of p (pendant) and o (owner).
+        double px = shape->centrePos().x(), py = shape->centrePos().y();
+        double ox = owner->centrePos().x(), oy = owner->centrePos().y();
+        // Get nearest grid point [pi][pj] to p.
+        double qpx, rpx, qpy, rpy;
+        int pj, pi;
+        rpx = modf(px/W,&qpx); rpy = modf(py/H,&qpy);
+        pj = fabs(rpx) < 0.5 ? (int)(qpx) : ( rpx > 0 ? (int)(qpx)+1 : (int)(qpx)-1 );
+        pj -= j0;
+        pi = fabs(rpy) < 0.5 ? (int)(qpy) : ( rpy > 0 ? (int)(qpy)+1 : (int)(qpy)-1 );
+        pi -= i0;
+        // Get nearest grid point [oi][oj] to o.
+        double qox, rox, qoy, roy;
+        int oj, oi;
+        rox = modf(ox/W,&qox); roy = modf(oy/H,&qoy);
+        oj = fabs(rox) < 0.5 ? (int)(qox) : ( rox > 0 ? (int)(qox)+1 : (int)(qox)-1 );
+        oj -= j0;
+        oi = fabs(roy) < 0.5 ? (int)(qoy) : ( roy > 0 ? (int)(qoy)+1 : (int)(qoy)-1 );
+        oi -= i0;
+        // If already ortho adjacent, skip.
+        //DEBUG
+        if (shape->idString()=="46") {
+            qDebug() << "box 46";
+        }
+        //END DEBUG
+        if ( ( pi==oi && (pj==oj-1 || pj==oj+1) ) ||
+             ( pj==oj && (pi==oi-1 || pi==oi+1) )
+                ) continue;
+        // First consider whether any orthogonally adjacent position is available.
+        QList<int> open;
+        if (!occupied[oi  ][oj+1]) open.append(0);
+        if (!occupied[oi-1][oj  ]) open.append(1);
+        if (!occupied[oi  ][oj-1]) open.append(2);
+        if (!occupied[oi+1][oj  ]) open.append(3);
+        if (open.size()==0) {
+            // There were no ortho. adj. positions open. Try diagonal.
+            open.clear();
+            if (!occupied[oi-1][oj+1]) open.append(4);
+            if (!occupied[oi-1][oj-1]) open.append(5);
+            if (!occupied[oi+1][oj-1]) open.append(6);
+            if (!occupied[oi+1][oj+1]) open.append(7);
+        }
+        if (open.size()>0) {
+            // At least one position is open. We will take one that is closest to (px,py).
+            double bestX = px, bestY = py;
+            double minDistSq = DBL_MAX;
+            foreach (int pos, open) {
+                double x=0, y=0;
+                switch (pos) {
+                case 0:
+                    y = oy  ; x = ox+W;
+                    break;
+                case 1:
+                    y = oy-H; x = ox  ;
+                    break;
+                case 2:
+                    y = oy  ; x = ox-W;
+                    break;
+                case 3:
+                    y = oy+H; x = ox  ;
+                    break;
+                case 4:
+                    y = oy-H; x = ox+W;
+                    break;
+                case 5:
+                    y = oy-H; x = ox-W;
+                    break;
+                case 6:
+                    y = oy+H; x = ox-W;
+                    break;
+                case 7:
+                    y = oy+H; x = ox+W;
+                    break;
+                }
+                double distSq = (x-px)*(x-px) + (y-py)*(y-py);
+                if (distSq < minDistSq) {
+                    bestX = x; bestY = y;
+                    minDistSq = distSq;
+                }
+            }
+            shape->setCentrePos(QPointF(bestX,bestY));
+        }
+    }
+    this->update(combinedViewsRect());
 }
 
 void Canvas::applyFM3()

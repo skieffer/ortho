@@ -73,6 +73,7 @@ void CreateAlignmentDialog::changeCanvas(Canvas *canvas)
 
     connect(inferAlignButton, SIGNAL(clicked()), m_canvas, SLOT(inferAndApplyAlignments()));
     connect(tryAlignButton, SIGNAL(clicked()), m_canvas, SLOT(tryAlignments()));
+    connect(pendantsButton, SIGNAL(clicked()), m_canvas, SLOT(arrangePendants()));
 }
 
 }

@@ -282,6 +282,7 @@ class Canvas : public QGraphicsScene
         void improveOrthogonalTopology(void);
         void inferAndApplyAlignments(void);
         void tryAlignments(void);
+        void arrangePendants(void);
         void applyFM3(void);
         void layoutBCTrees(void);
         void BCWithFM3(void);
@@ -440,6 +441,7 @@ class Canvas : public QGraphicsScene
         bool m_batch_diagram_layout;
         bool m_force_orthogonal_connectors;
         bool m_infer_tentative_alignments;
+        bool m_wtf;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
