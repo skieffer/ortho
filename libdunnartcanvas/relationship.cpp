@@ -179,6 +179,7 @@ Relationship::Relationship(Guideline *g1, Guideline *g2, bool no_undo)
     assert(g2);
     shape = NULL;
     distro = NULL;
+    separation = NULL;
     guide = g1;
     guide2 = g2;
     
