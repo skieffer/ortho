@@ -3769,8 +3769,10 @@ void Canvas::arrangePendants()
 
     // Build list of shapes, and map from each shape to list of all of its neighbours.
     // Keep track of max and min x and y coords.
+    // Also record all connectors.
     QList<ShapeObj*> shapes;
     QMap<ShapeObj*,ShapeObj*> nbrs;
+    QList<Connector*> conns;
     double xmin = DBL_MAX , xmax = DBL_MIN, ymin = DBL_MAX, ymax = DBL_MIN;
     foreach (CanvasItem *item, items())
     {
@@ -3785,6 +3787,7 @@ void Canvas::arrangePendants()
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
+            conns.append(conn);
             QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
             nbrs.insertMulti(endpts.first,endpts.second);
             nbrs.insertMulti(endpts.second,endpts.first);
@@ -3830,7 +3833,97 @@ void Canvas::arrangePendants()
     }
 
     // check
-    QString a = "\n";
+    QString a = "Just nodes:\n";
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            a += occupied[i][j] ? "1 " : "0 ";
+        }
+        a += "\n";
+    }
+    qDebug() << a;
+
+    // Also mark locations as occupied if an edge runs through.
+    foreach (Connector *conn, conns) {
+        ShapeObj *s = conn->getAttachedShapes().first;
+        ShapeObj *t = conn->getAttachedShapes().second;
+        double sx=s->centrePos().x(), sy=s->centrePos().y();
+        double tx=t->centrePos().x(), ty=t->centrePos().y();
+        double dy=sy-ty, dx=tx-sx;
+        int a = (int)(ceil(atan2(dy,dx)*180/3.1415927));
+        a = a < 0 ? a + 360 : a; // direction from s to t, from 0 to 360
+        int eps = 5;
+        if (eps < a%45 && a%45 < 45-eps) continue; // not within eps of a multiple of 45 deg
+
+        // Get nearest grid point [si][sj] to s.
+        double qsx, rsx, qsy, rsy;
+        int sj, si;
+        rsx = modf(sx/W,&qsx); rsy = modf(sy/H,&qsy);
+        sj = fabs(rsx) < 0.5 ? (int)(qsx) : ( rsx > 0 ? (int)(qsx)+1 : (int)(qsx)-1 );
+        sj -= j0;
+        si = fabs(rsy) < 0.5 ? (int)(qsy) : ( rsy > 0 ? (int)(qsy)+1 : (int)(qsy)-1 );
+        si -= i0;
+        // Get nearest grid point [ti][tj] to t.
+        double qtx, rtx, qty, rty;
+        int tj, ti;
+        rtx = modf(tx/W,&qtx); rty = modf(ty/H,&qty);
+        tj = fabs(rtx) < 0.5 ? (int)(qtx) : ( rtx > 0 ? (int)(qtx)+1 : (int)(qtx)-1 );
+        tj -= j0;
+        ti = fabs(rty) < 0.5 ? (int)(qty) : ( rty > 0 ? (int)(qty)+1 : (int)(qty)-1 );
+        ti -= i0;
+
+        if (a < eps || a > 360-eps) {
+            //
+            //   s t
+            //
+            occupied[si  ][sj+1] = true;
+            occupied[ti  ][tj-1] = true;
+        } else if (a < 45+eps) {
+            //     t
+            //   s
+            //
+            occupied[si-1][sj+1] = true;
+            occupied[ti+1][tj-1] = true;
+        } else if (a < 90+eps) {
+            //   t
+            //   s
+            //
+            occupied[si-1][sj  ] = true;
+            occupied[ti+1][tj  ] = true;
+        } else if (a < 135+eps) {
+            // t
+            //   s
+            //
+            occupied[si-1][sj-1] = true;
+            occupied[ti+1][tj+1] = true;
+        } else if (a < 180+eps) {
+            //
+            // t s
+            //
+            occupied[si  ][sj-1] = true;
+            occupied[ti  ][tj+1] = true;
+        } else if (a < 225+eps) {
+            //
+            //   s
+            // t
+            occupied[si+1][sj-1] = true;
+            occupied[ti-1][tj+1] = true;
+        } else if (a < 270+eps) {
+            //
+            //   s
+            //   t
+            occupied[si+1][sj  ] = true;
+            occupied[ti-1][tj  ] = true;
+        } else if (a < 315+eps) {
+            //
+            //   s
+            //     t
+            occupied[si+1][sj+1] = true;
+            occupied[ti-1][tj-1] = true;
+        }
+    }
+
+    // check again
+    a = "Wtih edges:\n";
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             a += occupied[i][j] ? "1 " : "0 ";
