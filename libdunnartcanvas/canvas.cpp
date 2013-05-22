@@ -3791,9 +3791,11 @@ void Canvas::tryAlignments()
     if (m_trying_alignments) {
         fully_restart_graph_layout();
     } else {
-        if (sig < 250) m_opt_snap_distance_modifier *= 2; // experimental!
-        qDebug() << "Doubling snap distance, and trying alignments again.";
-        tryAlignments();
+        if (sig < 250) {
+            m_opt_snap_distance_modifier *= 2; // experimental!
+            qDebug() << "Doubling snap distance, and trying alignments again.";
+            tryAlignments();
+        }
     }
 }
 
