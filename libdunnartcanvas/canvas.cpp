@@ -194,7 +194,8 @@ Canvas::Canvas()
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
       m_animation_group(NULL),
       m_bclayout(NULL),
-      m_wtf(true)
+      m_why_is_it_triggered_twice(true),
+      m_trying_alignments(false)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -925,6 +926,7 @@ void Canvas::customEvent(QEvent *event)
     else if (dynamic_cast<LayoutFinishedEvent *> (event))
     {
         //qDebug() << "Finish " << (long long) this;
+        qDebug() << "Layout finished.";
         this->startLayoutFinishTimer();
     }
     else if (dynamic_cast<RoutingRequiredEvent *> (event))
@@ -2415,6 +2417,10 @@ void Canvas::processLayoutFinishedEvent(void)
         //QT saveDiagramAsSVG(this, filename());
         exit(EXIT_SUCCESS);
     }
+
+    if (m_trying_alignments) {
+        tryAlignments();
+    }
 }
 
 
@@ -3755,6 +3761,7 @@ void Canvas::inferAndApplyAlignments()
 
 void Canvas::tryAlignments()
 {
+    m_trying_alignments = false;
     double eps = 1;
     double sig = m_opt_snap_distance_modifier;
     // For now, try simply aligning neighbours which are not already aligned.
@@ -3768,23 +3775,36 @@ void Canvas::tryAlignments()
             double tx=t->centrePos().x(), ty=t->centrePos().y();
             double ady=fabs(ty-sy), adx=fabs(tx-sx);
             if (adx < eps || ady < eps) continue; // already aligned
-            if (adx < ady && adx <= sig) {
-                // Apply a vertical alignment
-            } else if (ady <= sig) {
-                // Apply a horizontal alignment
+            if (adx <= sig || ady <= sig) {
+                // Will try an alignment.
+                CanvasItemList items;
+                items.append(s); items.append(t);
+                atypes a = adx < ady ? ALIGN_CENTER : ALIGN_MIDDLE;
+                Guideline *gdln = createAlignment(a,items);
+                gdln->setTentative(true);
+                m_trying_alignments = true;
+                //fully_restart_graph_layout();
+                break;
             }
         }
+    }
+    if (m_trying_alignments) {
+        fully_restart_graph_layout();
+    } else {
+        if (sig < 250) m_opt_snap_distance_modifier *= 2; // experimental!
+        qDebug() << "Doubling snap distance, and trying alignments again.";
+        tryAlignments();
     }
 }
 
 void Canvas::arrangePendants()
 {
     // Why does this method get called twice when we press the button?
-    if (!m_wtf) {
-        m_wtf = true;
+    if (!m_why_is_it_triggered_twice) {
+        m_why_is_it_triggered_twice = true;
         return;
     }
-    m_wtf = false;
+    m_why_is_it_triggered_twice = false;
 
     // Build list of shapes, and map from each shape to list of all of its neighbours.
     // Keep track of max and min x and y coords.

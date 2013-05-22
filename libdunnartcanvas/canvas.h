@@ -441,7 +441,8 @@ class Canvas : public QGraphicsScene
         bool m_batch_diagram_layout;
         bool m_force_orthogonal_connectors;
         bool m_infer_tentative_alignments;
-        bool m_wtf;
+        bool m_why_is_it_triggered_twice;
+        bool m_trying_alignments;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
