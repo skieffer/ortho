@@ -183,6 +183,9 @@ public:
     //! whether the layout thread is currently active.
     bool isRunning(void) const;
 
+    ShapePosInfo *makeShapePosInfo(ShapeObj *shape, double x, double y);
+    void processShapePosInfos(QList<ShapePosInfo*> posinfos);
+
 private:
     Canvas *m_canvas;
 

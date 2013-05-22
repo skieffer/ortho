@@ -172,7 +172,7 @@ Canvas::Canvas()
       m_use_gml_clusters(true),
       m_connector_nudge_distance(0),
       m_opt_ideal_edge_length_modifier(1.0),
-      m_opt_snap_distance_modifier(10),
+      m_opt_snap_distance_modifier(50),
       m_opt_snap_strength_modifier(20),
       m_opt_snap_grid_width(100.0),
       m_opt_snap_grid_height(100.0),
@@ -3840,6 +3840,7 @@ void Canvas::arrangePendants()
     qDebug() << a;
 
     // Now try to reposition each pendant node.
+    QList<ShapePosInfo*> posinfos;
     foreach (ShapeObj *shape, shapes) {
         // Is it a pendant?
         QList<ShapeObj*> nbhd = nbrs.values(shape);
@@ -3866,11 +3867,6 @@ void Canvas::arrangePendants()
         oi = fabs(roy) < 0.5 ? (int)(qoy) : ( roy > 0 ? (int)(qoy)+1 : (int)(qoy)-1 );
         oi -= i0;
         // If already ortho adjacent, skip.
-        //DEBUG
-        if (shape->idString()=="46") {
-            qDebug() << "box 46";
-        }
-        //END DEBUG
         if ( ( pi==oi && (pj==oj-1 || pj==oj+1) ) ||
              ( pj==oj && (pi==oi-1 || pi==oi+1) )
                 ) continue;
@@ -3891,45 +3887,70 @@ void Canvas::arrangePendants()
         if (open.size()>0) {
             // At least one position is open. We will take one that is closest to (px,py).
             double bestX = px, bestY = py;
+            int bestI = pi, bestJ = pj;
             double minDistSq = DBL_MAX;
             foreach (int pos, open) {
                 double x=0, y=0;
+                int i=0, j=0;
                 switch (pos) {
                 case 0:
                     y = oy  ; x = ox+W;
+                    i = oi  ; j = oj+1;
                     break;
                 case 1:
                     y = oy-H; x = ox  ;
+                    i = oi-1; j = oj  ;
                     break;
                 case 2:
                     y = oy  ; x = ox-W;
+                    i = oi  ; j = oj-1;
                     break;
                 case 3:
                     y = oy+H; x = ox  ;
+                    i = oi+1; j = oj  ;
                     break;
                 case 4:
                     y = oy-H; x = ox+W;
+                    i = oi-1; j = oj+1;
                     break;
                 case 5:
                     y = oy-H; x = ox-W;
+                    i = oi-1; j = oj-1;
                     break;
                 case 6:
                     y = oy+H; x = ox-W;
+                    i = oi+1; j = oj-1;
                     break;
                 case 7:
                     y = oy+H; x = ox+W;
+                    i = oi+1; j = oj+1;
                     break;
                 }
                 double distSq = (x-px)*(x-px) + (y-py)*(y-py);
                 if (distSq < minDistSq) {
                     bestX = x; bestY = y;
+                    bestI = i; bestJ = j;
                     minDistSq = distSq;
                 }
             }
-            shape->setCentrePos(QPointF(bestX,bestY));
+            if (bestI != pi || bestJ != pj) {
+                shape->setCentrePos(QPointF(bestX,bestY));
+                //posinfos.append(m_graphlayout->makeShapePosInfo(shape,bestX,bestY));
+                occupied[pi][pj] = 0;
+                occupied[bestI][bestJ] = 1;
+            }
         }
     }
-    this->update(combinedViewsRect());
+    //m_graphlayout->processShapePosInfos(posinfos);
+    fully_restart_graph_layout();
+
+    //redraw_connectors(this);
+    //reroute_all_connectors(this);
+    //QCoreApplication::postEvent(this, new LayoutUpdateEvent(), Qt::LowEventPriority);
+
+
+    //reroute_connectors(this);
+
 }
 
 void Canvas::applyFM3()

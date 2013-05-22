@@ -1383,6 +1383,20 @@ void GraphLayout::showUnsatisfiable(cola::UnsatisfiableConstraintInfo* i)
     retPositions.push_back(new ConflictPosInfo(s1, s2));
 }
 
+ShapePosInfo *GraphLayout::makeShapePosInfo(ShapeObj *shape, double x, double y) {
+    return new ShapePosInfo(shape,x,y);
+}
+
+void GraphLayout::processShapePosInfos(QList<ShapePosInfo *> posinfos) {
+    foreach (ShapePosInfo *pos, posinfos) {
+        pos->process(m_canvas);
+    }
+    ObjectsRepositionedAnimation *animation =
+            new ObjectsRepositionedAnimation(m_canvas);
+    m_canvas->m_animation_group->addAnimation(animation);
+    m_canvas->m_animation_group->start();
+}
+
 }
 // vim: filetype=cpp ts=4 sw=4 et tw=0 wm=0 cindent
 
