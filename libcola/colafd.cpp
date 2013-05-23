@@ -1093,8 +1093,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
             //qDebug() << "HAVE max_abs_lm";
             // If its LM is large enough (in abs. val.), then mark the
             // compound constraint to which it belongs as to-be-rejected.
-            qDebug() << "Max lm in abs val: " << fabs(max_abs_lm->lm);
-            qDebug() << "Threshold: " << m_tentative_constraint_threshold;
+            //qDebug() << "Max lm in abs val: " << fabs(max_abs_lm->lm);
+            //qDebug() << "Threshold: " << m_tentative_constraint_threshold;
             if (fabs(max_abs_lm->lm) >= m_tentative_constraint_threshold) {
                 m_constraintToReject = max_abs_lm->compoundOwner;
             }

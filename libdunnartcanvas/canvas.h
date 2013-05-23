@@ -443,6 +443,8 @@ class Canvas : public QGraphicsScene
         bool m_infer_tentative_alignments;
         bool m_why_is_it_triggered_twice;
         bool m_trying_alignments;
+        int m_max_align_tries;
+        int m_num_align_tries;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

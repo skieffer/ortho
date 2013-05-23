@@ -195,7 +195,9 @@ Canvas::Canvas()
       m_animation_group(NULL),
       m_bclayout(NULL),
       m_why_is_it_triggered_twice(true),
-      m_trying_alignments(false)
+      m_trying_alignments(false),
+      m_max_align_tries(180),
+      m_num_align_tries(0)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -3762,8 +3764,11 @@ void Canvas::inferAndApplyAlignments()
 void Canvas::tryAlignments()
 {
     m_trying_alignments = false;
-    double eps = 1;
+    qDebug() << "Num align tries:" << m_num_align_tries;
+    if (m_num_align_tries >= m_max_align_tries) return;
+    double eps = 3;
     double sig = m_opt_snap_distance_modifier;
+    qDebug() << "snap distance:" << sig;
     // For now, try simply aligning neighbours which are not already aligned.
     foreach (CanvasItem *item, items())
     {
@@ -3780,10 +3785,11 @@ void Canvas::tryAlignments()
                 CanvasItemList items;
                 items.append(s); items.append(t);
                 atypes a = adx < ady ? ALIGN_CENTER : ALIGN_MIDDLE;
+                qDebug() << "Trying alignment" << a << "adx=" << adx << "ady=" << ady << "s:" << s->idString() << "t:" << t->idString();
                 Guideline *gdln = createAlignment(a,items);
                 gdln->setTentative(true);
                 m_trying_alignments = true;
-                //fully_restart_graph_layout();
+                m_num_align_tries++;
                 break;
             }
         }

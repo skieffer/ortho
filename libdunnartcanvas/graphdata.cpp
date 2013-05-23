@@ -681,8 +681,7 @@ GraphData::GraphData(Canvas *canvas, bool ignoreEdges,
            (int) topologyRoutes.size());
 #endif
 
-    qDebug("GraphData ctor done: ccs=%d, rs=%d",
-           (int) ccs.size(), (int) rs.size());
+    //qDebug("GraphData ctor done: ccs=%d, rs=%d", (int) ccs.size(), (int) rs.size());
 }
 
 
@@ -971,9 +970,11 @@ size_t GraphData::shapeToNode(ShapeObj* shape) {
     }
     Rectangle *r = new Rectangle(rect.left(), rect.right(),
             rect.top(), rect.bottom(), allowOverlap);
+    /*
     qWarning("Node id=%d, (x,y)=(%f,%f), (w,h)=%f,%f",
             shape->internalId(),r->getCentreX(), r->getCentreY(),
             r->width(), r->height());
+    */
 
     rs.push_back(r);
 
@@ -1195,7 +1196,7 @@ void GraphData::guideToAlignmentConstraint(Guideline* guide) {
             new cola::AlignmentConstraint(dim, guide->position());
     ac->setTentative(guide->isTentative());
     ac->m_guidelineID = guide->idString().toInt();
-    qDebug() << "Guide" << guide->idString() << (guide->isTentative()?"is":"is NOT") << "tentative.";
+    //qDebug() << "Guide" << guide->idString() << (guide->isTentative()?"is":"is NOT") << "tentative.";
     ccMap[guide]=ac;
     ac->indicator=(void*)guide;
     ccs.push_back(ac);

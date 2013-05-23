@@ -1,193 +1,2330 @@
-<svg xmlns:dunnart="http://www.csse.monash.edu.au/~mwybrow/dunnart.dtd">
-<rect id="1" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="409.850249" dunnart:yPos="311.495320" dunnart:type="rect" />
-<rect id="2" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="488.363010" dunnart:yPos="316.495320" dunnart:type="rect" />
-<rect id="3" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="356.905731" dunnart:yPos="470.334694" dunnart:type="rect" />
-<rect id="4" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="623.620928" dunnart:yPos="321.495320" dunnart:type="rect" />
-<rect id="5" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="518.363030" dunnart:yPos="321.495320" dunnart:type="rect" />
-<rect id="6" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="336.316960" dunnart:yPos="531.750124" dunnart:type="rect" />
-<rect id="7" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="729.342986" dunnart:yPos="353.506482" dunnart:type="rect" />
-<rect id="8" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="502.254388" dunnart:yPos="378.161016" dunnart:type="rect" />
-<rect id="9" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="548.363050" dunnart:yPos="326.495320" dunnart:type="rect" />
-<rect id="10" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="371.920186" dunnart:yPos="588.379732" dunnart:type="rect" />
-<rect id="11" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="844.337444" dunnart:yPos="358.506482" dunnart:type="rect" />
-<rect id="12" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="702.730690" dunnart:yPos="382.835527" dunnart:type="rect" />
-<rect id="13" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="762.991877" dunnart:yPos="426.022352" dunnart:type="rect" />
-<rect id="14" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="449.645597" dunnart:yPos="383.161016" dunnart:type="rect" />
-<rect id="15" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="397.242293" dunnart:yPos="383.161016" dunnart:type="rect" />
-<rect id="16" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="618.825244" dunnart:yPos="480.778762" dunnart:type="rect" />
-<rect id="17" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="506.180322" dunnart:yPos="418.896779" dunnart:type="rect" />
-<rect id="18" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="548.194307" dunnart:yPos="361.573457" dunnart:type="rect" />
-<rect id="19" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="483.373538" dunnart:yPos="331.495320" dunnart:type="rect" />
-<rect id="20" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="251.500150" dunnart:yPos="697.974949" dunnart:type="rect" />
-<rect id="21" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="311.920146" dunnart:yPos="593.379732" dunnart:type="rect" />
-<rect id="22" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="448.760887" dunnart:yPos="671.329312" dunnart:type="rect" />
-<rect id="23" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="904.337484" dunnart:yPos="363.506482" dunnart:type="rect" />
-<rect id="24" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="934.337504" dunnart:yPos="363.506482" dunnart:type="rect" />
-<rect id="25" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="814.337424" dunnart:yPos="363.506482" dunnart:type="rect" />
-<rect id="26" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="666.530338" dunnart:yPos="403.702204" dunnart:type="rect" />
-<rect id="27" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="803.575160" dunnart:yPos="490.073658" dunnart:type="rect" />
-<rect id="28" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="800.550819" dunnart:yPos="440.539511" dunnart:type="rect" />
-<rect id="29" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="340.855374" dunnart:yPos="388.161016" dunnart:type="rect" />
-<rect id="30" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="333.867778" dunnart:yPos="420.772884" dunnart:type="rect" />
-<rect id="31" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="695.977372" dunnart:yPos="485.778762" dunnart:type="rect" />
-<rect id="32" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="620.077937" dunnart:yPos="600.428786" dunnart:type="rect" />
-<rect id="33" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="680.441204" dunnart:yPos="565.455352" dunnart:type="rect" />
-<rect id="34" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="476.180302" dunnart:yPos="423.896779" dunnart:type="rect" />
-<rect id="35" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="483.975418" dunnart:yPos="491.028737" dunnart:type="rect" />
-<rect id="36" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="566.180362" dunnart:yPos="423.896779" dunnart:type="rect" />
-<rect id="37" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="586.619874" dunnart:yPos="366.573457" dunnart:type="rect" />
-<rect id="38" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="222.038443" dunnart:yPos="731.775323" dunnart:type="rect" />
-<rect id="39" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="238.615905" dunnart:yPos="780.897139" dunnart:type="rect" />
-<rect id="40" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="175.797423" dunnart:yPos="732.328144" dunnart:type="rect" />
-<rect id="41" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="341.920166" dunnart:yPos="598.379732" dunnart:type="rect" />
-<rect id="42" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="221.920086" dunnart:yPos="598.379732" dunnart:type="rect" />
-<rect id="43" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="344.988105" dunnart:yPos="655.936988" dunnart:type="rect" />
-<rect id="44" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="529.800059" dunnart:yPos="676.329312" dunnart:type="rect" />
-<rect id="45" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="471.035875" dunnart:yPos="756.099115" dunnart:type="rect" />
-<rect id="46" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="935.099174" dunnart:yPos="404.235448" dunnart:type="rect" />
-<rect id="47" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="998.393066" dunnart:yPos="368.506482" dunnart:type="rect" />
-<rect id="48" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="968.393046" dunnart:yPos="368.506482" dunnart:type="rect" />
-<rect id="49" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="784.337404" dunnart:yPos="368.506482" dunnart:type="rect" />
-<rect id="50" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="847.114093" dunnart:yPos="405.908109" dunnart:type="rect" />
-<rect id="51" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="874.337464" dunnart:yPos="368.506482" dunnart:type="rect" />
-<rect id="52" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="626.180402" dunnart:yPos="428.896779" dunnart:type="rect" />
-<rect id="53" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="817.762118" dunnart:yPos="535.786058" dunnart:type="rect" />
-<rect id="54" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="851.342662" dunnart:yPos="524.288534" dunnart:type="rect" />
-<rect id="55" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="845.750144" dunnart:yPos="445.539511" dunnart:type="rect" />
-<rect id="56" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="286.489133" dunnart:yPos="393.161016" dunnart:type="rect" />
-<rect id="57" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="277.554764" dunnart:yPos="425.772884" dunnart:type="rect" />
-<rect id="58" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="315.270931" dunnart:yPos="475.334694" dunnart:type="rect" />
-<rect id="59" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="728.412248" dunnart:yPos="518.178350" dunnart:type="rect" />
-<rect id="60" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="682.277965" dunnart:yPos="520.358457" dunnart:type="rect" />
-<rect id="61" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="651.562346" dunnart:yPos="632.069802" dunnart:type="rect" />
-<rect id="62" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="590.183408" dunnart:yPos="681.329312" dunnart:type="rect" />
-<rect id="63" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="644.388387" dunnart:yPos="658.073264" dunnart:type="rect" />
-<rect id="64" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="602.108960" dunnart:yPos="626.194101" dunnart:type="rect" />
-<rect id="65" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="714.920859" dunnart:yPos="622.869945" dunnart:type="rect" />
-<rect id="66" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="734.257052" dunnart:yPos="599.248972" dunnart:type="rect" />
-<rect id="67" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="536.180342" dunnart:yPos="428.896779" dunnart:type="rect" />
-<rect id="68" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="446.180282" dunnart:yPos="428.896779" dunnart:type="rect" />
-<rect id="69" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="505.845033" dunnart:yPos="523.976042" dunnart:type="rect" />
-<rect id="70" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="455.019379" dunnart:yPos="505.727094" dunnart:type="rect" />
-<rect id="71" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="441.228946" dunnart:yPos="548.504982" dunnart:type="rect" />
-<rect id="72" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="596.180382" dunnart:yPos="433.896779" dunnart:type="rect" />
-<rect id="73" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="619.572525" dunnart:yPos="371.573457" dunnart:type="rect" />
-<rect id="74" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="257.184200" dunnart:yPos="830.542303" dunnart:type="rect" />
-<rect id="75" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="211.631651" dunnart:yPos="829.127153" dunnart:type="rect" />
-<rect id="76" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="122.339766" dunnart:yPos="737.328144" dunnart:type="rect" />
-<rect id="77" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="140.361957" dunnart:yPos="774.958045" dunnart:type="rect" />
-<rect id="78" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="251.920106" dunnart:yPos="603.379732" dunnart:type="rect" />
-<rect id="79" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="398.433196" dunnart:yPos="603.379732" dunnart:type="rect" />
-<rect id="80" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="314.988085" dunnart:yPos="660.936988" dunnart:type="rect" />
-<rect id="81" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="281.920126" dunnart:yPos="603.379732" dunnart:type="rect" />
-<rect id="82" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="190.791139" dunnart:yPos="603.379732" dunnart:type="rect" />
-<rect id="83" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="160.791119" dunnart:yPos="603.379732" dunnart:type="rect" />
-<rect id="84" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="339.326603" dunnart:yPos="719.294576" dunnart:type="rect" />
-<rect id="85" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="377.154579" dunnart:yPos="680.847162" dunnart:type="rect" />
-<rect id="86" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="314.645338" dunnart:yPos="697.386726" dunnart:type="rect" />
-<rect id="87" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="369.326623" dunnart:yPos="709.419237" dunnart:type="rect" />
-<rect id="88" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="534.165170" dunnart:yPos="720.587588" dunnart:type="rect" />
-<rect id="89" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="566.627528" dunnart:yPos="729.464160" dunnart:type="rect" />
-<rect id="90" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="502.571744" dunnart:yPos="805.538806" dunnart:type="rect" />
-<rect id="91" dunnart:label="" dunnart:width="20" dunnart:height="20" dunnart:xPos="460.920229" dunnart:yPos="810.436432" dunnart:type="rect" />
-<path id="92" dunnart:srcID="1" dunnart:srcFlags="544" dunnart:dstID="2" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="93" dunnart:srcID="1" dunnart:srcFlags="544" dunnart:dstID="3" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="94" dunnart:srcID="2" dunnart:srcFlags="544" dunnart:dstID="4" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="95" dunnart:srcID="2" dunnart:srcFlags="544" dunnart:dstID="5" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="96" dunnart:srcID="3" dunnart:srcFlags="544" dunnart:dstID="6" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="97" dunnart:srcID="4" dunnart:srcFlags="544" dunnart:dstID="7" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="98" dunnart:srcID="5" dunnart:srcFlags="544" dunnart:dstID="8" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="99" dunnart:srcID="5" dunnart:srcFlags="544" dunnart:dstID="9" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="100" dunnart:srcID="6" dunnart:srcFlags="544" dunnart:dstID="10" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="101" dunnart:srcID="7" dunnart:srcFlags="544" dunnart:dstID="11" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="102" dunnart:srcID="7" dunnart:srcFlags="544" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="103" dunnart:srcID="7" dunnart:srcFlags="544" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="104" dunnart:srcID="8" dunnart:srcFlags="544" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="105" dunnart:srcID="8" dunnart:srcFlags="544" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="106" dunnart:srcID="8" dunnart:srcFlags="544" dunnart:dstID="16" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="107" dunnart:srcID="8" dunnart:srcFlags="544" dunnart:dstID="17" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="108" dunnart:srcID="9" dunnart:srcFlags="544" dunnart:dstID="18" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="109" dunnart:srcID="9" dunnart:srcFlags="544" dunnart:dstID="19" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="110" dunnart:srcID="10" dunnart:srcFlags="544" dunnart:dstID="20" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="111" dunnart:srcID="10" dunnart:srcFlags="544" dunnart:dstID="21" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="112" dunnart:srcID="10" dunnart:srcFlags="544" dunnart:dstID="22" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="113" dunnart:srcID="11" dunnart:srcFlags="544" dunnart:dstID="23" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="114" dunnart:srcID="11" dunnart:srcFlags="544" dunnart:dstID="24" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="115" dunnart:srcID="11" dunnart:srcFlags="544" dunnart:dstID="25" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="116" dunnart:srcID="12" dunnart:srcFlags="544" dunnart:dstID="26" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="117" dunnart:srcID="13" dunnart:srcFlags="544" dunnart:dstID="27" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="118" dunnart:srcID="13" dunnart:srcFlags="544" dunnart:dstID="28" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="119" dunnart:srcID="15" dunnart:srcFlags="544" dunnart:dstID="29" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="120" dunnart:srcID="15" dunnart:srcFlags="544" dunnart:dstID="30" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="121" dunnart:srcID="16" dunnart:srcFlags="544" dunnart:dstID="31" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="122" dunnart:srcID="16" dunnart:srcFlags="544" dunnart:dstID="32" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="123" dunnart:srcID="16" dunnart:srcFlags="544" dunnart:dstID="33" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="124" dunnart:srcID="17" dunnart:srcFlags="544" dunnart:dstID="34" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="125" dunnart:srcID="17" dunnart:srcFlags="544" dunnart:dstID="35" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="126" dunnart:srcID="17" dunnart:srcFlags="544" dunnart:dstID="36" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="127" dunnart:srcID="18" dunnart:srcFlags="544" dunnart:dstID="37" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="128" dunnart:srcID="20" dunnart:srcFlags="544" dunnart:dstID="38" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="129" dunnart:srcID="20" dunnart:srcFlags="544" dunnart:dstID="39" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="130" dunnart:srcID="20" dunnart:srcFlags="544" dunnart:dstID="40" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="131" dunnart:srcID="21" dunnart:srcFlags="544" dunnart:dstID="41" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="132" dunnart:srcID="21" dunnart:srcFlags="544" dunnart:dstID="42" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="133" dunnart:srcID="21" dunnart:srcFlags="544" dunnart:dstID="43" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="134" dunnart:srcID="22" dunnart:srcFlags="544" dunnart:dstID="44" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="135" dunnart:srcID="22" dunnart:srcFlags="544" dunnart:dstID="45" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="136" dunnart:srcID="23" dunnart:srcFlags="544" dunnart:dstID="46" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="137" dunnart:srcID="24" dunnart:srcFlags="544" dunnart:dstID="47" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="138" dunnart:srcID="24" dunnart:srcFlags="544" dunnart:dstID="48" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="139" dunnart:srcID="25" dunnart:srcFlags="544" dunnart:dstID="49" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="140" dunnart:srcID="25" dunnart:srcFlags="544" dunnart:dstID="50" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="141" dunnart:srcID="25" dunnart:srcFlags="544" dunnart:dstID="51" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="142" dunnart:srcID="26" dunnart:srcFlags="544" dunnart:dstID="52" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="143" dunnart:srcID="27" dunnart:srcFlags="544" dunnart:dstID="53" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="144" dunnart:srcID="27" dunnart:srcFlags="544" dunnart:dstID="54" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="145" dunnart:srcID="28" dunnart:srcFlags="544" dunnart:dstID="55" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="146" dunnart:srcID="29" dunnart:srcFlags="544" dunnart:dstID="56" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="147" dunnart:srcID="30" dunnart:srcFlags="544" dunnart:dstID="57" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="148" dunnart:srcID="30" dunnart:srcFlags="544" dunnart:dstID="58" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="149" dunnart:srcID="31" dunnart:srcFlags="544" dunnart:dstID="59" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="150" dunnart:srcID="31" dunnart:srcFlags="544" dunnart:dstID="60" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="151" dunnart:srcID="32" dunnart:srcFlags="544" dunnart:dstID="61" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="152" dunnart:srcID="32" dunnart:srcFlags="544" dunnart:dstID="62" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="153" dunnart:srcID="32" dunnart:srcFlags="544" dunnart:dstID="63" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="154" dunnart:srcID="32" dunnart:srcFlags="544" dunnart:dstID="64" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="155" dunnart:srcID="33" dunnart:srcFlags="544" dunnart:dstID="65" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="156" dunnart:srcID="33" dunnart:srcFlags="544" dunnart:dstID="66" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="157" dunnart:srcID="34" dunnart:srcFlags="544" dunnart:dstID="67" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="158" dunnart:srcID="34" dunnart:srcFlags="544" dunnart:dstID="68" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="159" dunnart:srcID="35" dunnart:srcFlags="544" dunnart:dstID="69" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="160" dunnart:srcID="35" dunnart:srcFlags="544" dunnart:dstID="70" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="161" dunnart:srcID="35" dunnart:srcFlags="544" dunnart:dstID="71" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="162" dunnart:srcID="37" dunnart:srcFlags="544" dunnart:dstID="72" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="163" dunnart:srcID="37" dunnart:srcFlags="544" dunnart:dstID="73" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="164" dunnart:srcID="39" dunnart:srcFlags="544" dunnart:dstID="74" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="165" dunnart:srcID="39" dunnart:srcFlags="544" dunnart:dstID="75" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="166" dunnart:srcID="40" dunnart:srcFlags="544" dunnart:dstID="76" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="167" dunnart:srcID="40" dunnart:srcFlags="544" dunnart:dstID="77" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="168" dunnart:srcID="41" dunnart:srcFlags="544" dunnart:dstID="78" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="169" dunnart:srcID="41" dunnart:srcFlags="544" dunnart:dstID="79" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="170" dunnart:srcID="41" dunnart:srcFlags="544" dunnart:dstID="80" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="171" dunnart:srcID="41" dunnart:srcFlags="544" dunnart:dstID="81" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="172" dunnart:srcID="42" dunnart:srcFlags="544" dunnart:dstID="82" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="173" dunnart:srcID="42" dunnart:srcFlags="544" dunnart:dstID="83" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="174" dunnart:srcID="43" dunnart:srcFlags="544" dunnart:dstID="84" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="175" dunnart:srcID="43" dunnart:srcFlags="544" dunnart:dstID="85" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="176" dunnart:srcID="43" dunnart:srcFlags="544" dunnart:dstID="86" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="177" dunnart:srcID="43" dunnart:srcFlags="544" dunnart:dstID="87" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="178" dunnart:srcID="44" dunnart:srcFlags="544" dunnart:dstID="88" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="179" dunnart:srcID="44" dunnart:srcFlags="544" dunnart:dstID="89" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="180" dunnart:srcID="45" dunnart:srcFlags="544" dunnart:dstID="90" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="181" dunnart:srcID="45" dunnart:srcFlags="544" dunnart:dstID="91" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="182" dunnart:srcID="3" dunnart:srcFlags="544" dunnart:dstID="41" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="183" dunnart:srcID="3" dunnart:srcFlags="544" dunnart:dstID="58" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="184" dunnart:srcID="7" dunnart:srcFlags="544" dunnart:dstID="31" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="185" dunnart:srcID="18" dunnart:srcFlags="544" dunnart:dstID="67" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="186" dunnart:srcID="36" dunnart:srcFlags="544" dunnart:dstID="52" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="187" dunnart:srcID="43" dunnart:srcFlags="544" dunnart:dstID="80" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="188" dunnart:srcID="44" dunnart:srcFlags="544" dunnart:dstID="62" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="189" dunnart:srcID="50" dunnart:srcFlags="544" dunnart:dstID="55" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="190" dunnart:srcID="52" dunnart:srcFlags="544" dunnart:dstID="72" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
-<path id="191" dunnart:srcID="71" dunnart:srcFlags="544" dunnart:dstID="79" dunnart:dstFlags="544" dunnart:directed="1" dunnart:type="connAvoidPoly" />
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="0mm" height="0mm"
+ xmlns:dunnart="http://www.dunnart.org/ns/dunnart"
+ xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
+<title>v91e100.svg</title>
+<desc>This SVG file was saved from Dunnart.  http://www.dunnart.org/</desc>
+<defs>
+</defs>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-490.386,112.523)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-34.26,-157.227 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-490.386,112.523)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32.081,-147.227 L-27.8724,-142.003 L-32.5019,-147.618 L-33.7348,-140.726 L-32.081,-147.227"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,114.851,467.148)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-33.205,117.986 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,114.851,467.148)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-30.3907,107.986 L-31.6531,101.398 L-30.2645,108.372 L-25.8775,103.024 L-30.3907,107.986"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,685.807,127.249)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-38.9224,103.994 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,685.807,127.249)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35.1796,93.9937 L-35.8861,87.3228 L-35.109,94.3683 L-30.2668,89.426 L-35.1796,93.9937"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L125.204,102.075 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M115.204,93.9219 L108.658,92.4558 L115.859,94.1746 L112.449,87.8054 L115.204,93.9219"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L111.711,51.1307 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M101.711,46.5537 L95.0068,46.7844 L102.381,46.7202 L97.5039,41.3287 L101.711,46.5537"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-43.01,377.596)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L157.861,89.5529 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-43.01,377.596)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M147.861,83.88 L141.162,83.5289 L148.531,84.0774 L144.123,78.3101 L147.861,83.88"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.1399,483.607)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-114.863,19.6396 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.1399,483.607)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-104.863,17.9298 L-99.454,13.9615 L-105.403,17.9972 L-98.4427,19.8756 L-104.863,17.9298"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-123.49,-161.05 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-115.822,-151.05 L-109.791,-148.115 L-116.425,-151.368 L-114.552,-144.464 L-115.822,-151.05"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L29.2666,86.5561 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M25.8854,76.5561 L21.1216,71.8332 L26.3618,76.935 L26.8055,69.9113 L25.8854,76.5561"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-182.985,9.34383 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-172.985,8.8332 L-167.146,5.53112 L-173.569,8.8536 L-166.84,11.5233 L-172.985,8.8332"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.087,-739.797)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L103.637,-84.8691 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.087,-739.797)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M93.6372,-76.68 L90.8959,-70.5575 L93.9114,-76.9335 L87.0944,-75.1996 L93.6372,-76.68"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.087,-739.797)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L6.62773,-116.437 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.087,-739.797)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M6.05852,-106.437 L8.71269,-100.276 L5.7931,-106.836 L2.72239,-100.617 L6.05852,-106.437"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L14.3727,-87.7541 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M12.7349,-77.7541 L14.7256,-71.3481 L12.5358,-78.1488 L8.80454,-72.3179 L12.7349,-77.7541"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L111.802,-66.2731 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M101.802,-60.3453 L98.1701,-54.7051 L102.165,-60.5493 L95.1106,-59.8665 L101.802,-60.3453"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-38.1718,110.024 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-34.7024,100.024 L-35.57,93.3718 L-34.6157,100.402 L-29.9015,95.3384 L-34.7024,100.024"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-86.732,-66.651 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-76.732,-58.9663 L-70.1466,-57.689 L-77.3906,-59.21 L-73.8025,-52.9315 L-76.732,-58.9663"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-113.849,86.3956 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-103.849,78.807 L-100.883,72.7902 L-104.145,79.0488 L-97.2557,77.5697 L-103.849,78.807"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-148.029,-1.03421 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-138.029,-0.964346 L-132.008,-3.92235 L-138.631,-0.967141 L-132.05,2.0775 L-138.029,-0.964346"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-698.046,-463.499)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-118.885,-61.3124 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-698.046,-463.499)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-108.885,-56.1551 L-102.177,-56.0712 L-109.556,-56.3384 L-104.927,-50.7386 L-108.885,-56.1551"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-698.046,-463.499)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-5.2116,-90.7057 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-698.046,-463.499)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-4.63704,-80.7057 L-1.29781,-74.8876 L-4.97096,-81.105 L-7.28793,-74.5435 L-4.63704,-80.7057"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-52.5151,76.0312 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-45.608,66.0312 L-44.6666,59.3894 L-45.7022,66.3604 L-39.7297,62.7993 L-45.608,66.0312"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-135.851,-11.1523 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-125.851,-10.3314 L-119.625,-12.8304 L-126.473,-10.3641 L-120.116,-6.85051 L-125.851,-10.3314"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-12.3034,179.745 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-11.6189,169.745 L-14.2022,163.554 L-11.3606,170.144 L-8.21617,163.964 L-11.6189,169.745"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L19.3752,-83.4708 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M17.054,-73.4708 L18.6196,-66.9479 L16.8974,-73.8604 L12.775,-68.3045 L17.054,-73.4708"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-469.981,-902.496)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-37.0416,-126.523 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-469.981,-902.496)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-34.114,-116.523 L-29.549,-111.608 L-34.5705,-116.907 L-35.3073,-109.922 L-34.114,-116.523"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-469.981,-902.496)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L72.6772,-91.5304 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-469.981,-902.496)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M64.737,-81.5304 L63.3554,-74.966 L64.8751,-81.8437 L58.6565,-78.6971 L64.737,-81.5304"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-623.377,-838.37)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-69.8387,-110.179 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-623.377,-838.37)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-63.5,-100.179 L-57.7539,-96.7173 L-64.0746,-100.517 L-62.8216,-93.505 L-63.5,-100.179"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-623.377,-838.37)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-121.35,-8.60845 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-623.377,-838.37)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-111.35,-7.89906 L-105.153,-10.467 L-111.97,-7.92737 L-105.577,-4.48202 L-111.35,-7.89906"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-26.1981,613.273)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-10.8281,118.894 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-26.1981,613.273)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-9.91735,108.894 L-12.3608,102.647 L-9.673,109.293 L-6.38553,103.191 L-9.91735,108.894"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-26.1981,613.273)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L107.844,-28.1377 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-26.1981,613.273)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M97.8441,-25.5286 L92.7958,-21.111 L98.3489,-25.6295 L91.2811,-26.9166 L97.8441,-25.5286"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-98.6043,-134.582 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-91.2776,-124.582 L-85.3115,-121.515 L-91.8742,-124.905 L-90.1515,-117.969 L-91.2776,-124.582"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-90.7718,96.9106 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-81.4052,86.9106 L-79.4931,80.4807 L-81.5965,87.2025 L-75.114,84.5823 L-81.4052,86.9106"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-131.073,16.2567 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-121.073,15.0165 L-115.488,11.3008 L-121.632,15.0657 L-114.75,17.2551 L-121.073,15.0165"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-241.432,402.224)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-90.0008,96.6286 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-241.432,402.224)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-80.6867,86.6286 L-78.7926,80.1934 L-80.8762,86.9213 L-74.4021,84.2828 L-80.6867,86.6286"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-241.432,402.224)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L56.4294,101.023 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-241.432,402.224)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M50.8436,91.0229 L45.2986,87.2477 L51.3981,91.3721 L50.5368,84.3217 L50.8436,91.0229"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,318.745,-201.705)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L115.861,-24.7389 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,318.745,-201.705)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M105.861,-22.6037 L100.62,-18.417 L106.385,-22.6873 L99.3672,-24.2847 L105.861,-22.6037"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,318.745,-201.705)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L85.9085,-110.964 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,318.745,-201.705)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M78.1665,-100.964 L76.8656,-94.3828 L78.2966,-101.28 L72.1213,-98.0558 L78.1665,-100.964"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-77.3577,-3.38641 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-67.3577,-2.94865 L-61.2322,-5.68337 L-67.9702,-2.96614 L-61.4946,0.310886 L-67.3577,-2.94865"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L88.048,-77.2751 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M78.048,-68.4986 L75.5174,-62.2861 L78.3011,-68.7625 L71.5596,-66.7956 L78.048,-68.4986"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-117.246,-138.775 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-108.797,-128.775 L-102.633,-126.127 L-109.414,-129.08 L-107.217,-122.255 L-108.797,-128.775"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L28.5427,-128.126 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M26.315,-118.126 L27.9386,-111.617 L26.1526,-118.516 L22.0821,-112.922 L26.315,-118.126"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.801,43.8399)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L98.2285,0.713151 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.801,43.8399)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M88.2285,0.64055 L82.2069,3.59691 L88.8307,0.643454 L82.2504,-2.40293 L88.2285,0.64055"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.801,43.8399)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L30.0571,-89.9786 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.801,43.8399)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M26.7166,-79.9786 L27.661,-73.3372 L26.6222,-80.358 L21.9702,-75.2382 L26.7166,-79.9786"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-216.89,-70.4301)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-83.2004,-76.8065 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-216.89,-70.4301)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-73.2004,-67.575 L-66.7568,-65.7094 L-73.8448,-67.8463 L-70.8267,-61.3008 L-73.2004,-67.575"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-216.89,-70.4301)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L52.236,-85.5752 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-216.89,-70.4301)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M46.1319,-75.5752 L45.5664,-68.8908 L46.1884,-75.9166 L40.4452,-72.0169 L46.1319,-75.5752"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-192.414,80.0397)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-87.7268,44.0018 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-192.414,80.0397)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-77.7268,38.986 L-73.7087,33.6144 L-78.1287,39.1653 L-71.0186,38.9775 L-77.7268,38.986"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,603.17,323.514)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L43.7141,-92.2721 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,603.17,323.514)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M38.9765,-82.2721 L39.1189,-75.5654 L38.9623,-82.6336 L33.6966,-78.1342 L38.9765,-82.2721"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,587.034,498.762)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L94.2117,80.5348 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,587.034,498.762)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M84.2117,71.9865 L77.7017,70.3682 L84.8627,72.2464 L81.6003,65.8075 L84.2117,71.9865"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,587.034,498.762)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-8.82238,120.633 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,587.034,498.762)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-8.09104,110.633 L-10.6454,104.43 L-7.8356,111.032 L-4.66139,104.868 L-8.09104,110.633"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,256.035,418.309)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-141.184,48.839 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,256.035,418.309)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-131.184,45.3797 L-126.495,40.5831 L-131.653,45.5105 L-124.533,46.2534 L-131.184,45.3797"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-14.509,-113.137 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-13.2266,-103.137 L-9.48776,-97.5676 L-13.6005,-103.534 L-15.439,-96.8044 L-13.2266,-103.137"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-87.9679,48.5092 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-77.9679,42.9948 L-74.1625,37.4704 L-78.3485,43.1879 L-71.2652,42.7245 L-77.9679,42.9948"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L90.5326,-78.6053 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M80.5326,-69.9227 L77.9689,-63.7238 L80.789,-70.185 L74.0352,-68.2543 L80.5326,-69.9227"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,894.994,302.806)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L132.859,14.9419 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,894.994,302.806)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M122.859,13.8172 L116.561,16.1279 L123.488,13.8619 L117.232,10.1655 L122.859,13.8172"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,894.994,302.806)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L62.5684,110.166 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,894.994,302.806)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M56.889,100.166 L51.3172,96.4304 L57.4461,100.514 L56.5345,93.4673 L56.889,100.166"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,905.442,158.741)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L126.041,-52.8048 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,905.442,158.741)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M116.041,-48.6153 L111.666,-43.5299 L116.478,-48.7699 L109.348,-49.0639 L116.041,-48.6153"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-239.641,-602.871)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L64.5534,-136.927 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-239.641,-602.871)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M59.839,-126.927 L59.994,-120.22 L59.8235,-127.288 L54.5668,-122.779 L59.839,-126.927"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-239.641,-602.871)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L169.209,54.4405 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-239.641,-602.871)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M159.209,51.2232 L152.578,52.2413 L159.872,51.3457 L154.416,46.5297 L159.209,51.2232"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-170.744,103.19 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-160.744,97.1465 L-157.161,91.4755 L-161.102,97.3534 L-154.057,96.6106 L-160.744,97.1465"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-108.886,-73.5769 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-98.8859,-66.8196 L-92.2348,-65.946 L-99.551,-67.0436 L-95.5942,-60.9746 L-98.8859,-66.8196"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L76.8178,165.473 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M72.1755,155.473 L66.928,151.294 L72.7002,155.836 L72.3701,148.768 L72.1755,155.473"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L16.7797,-151.781 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M15.6742,-141.781 L17.9967,-135.488 L15.4419,-142.179 L12.0331,-136.147 L15.6742,-141.781"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-136.617,-87.6547 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-126.617,-81.2386 L-119.947,-80.5235 L-127.284,-81.4546 L-123.187,-75.4736 L-126.617,-81.2386"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-44.3925,61.2848 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-37.1488,51.2848 L-36.0586,44.6658 L-37.2578,51.6087 L-31.1995,48.1855 L-37.1488,51.2848"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.1399,483.607)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L43.9418,129.666 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.1399,483.607)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M40.5529,119.666 L35.7859,114.946 L41.0296,120.044 L41.4685,113.02 L40.5529,119.666"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L132.081,118.413 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M122.081,109.448 L115.611,107.676 L122.728,109.715 L119.616,103.209 L122.081,109.448"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-216.691,-12.077 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-206.691,-11.5196 L-200.533,-14.1811 L-207.306,-11.5419 L-200.867,-8.19041 L-206.691,-11.5196"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-66.3409,143.041 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-61.703,133.041 L-61.9001,126.336 L-61.6833,133.404 L-56.457,128.86 L-61.703,133.041"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L125.214,-107.102 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M115.214,-98.5488 L112.605,-92.369 L115.475,-98.8088 L108.705,-96.9285 L115.214,-98.5488"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-21.5128,-212.978 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-20.5027,-202.978 L-16.9149,-197.31 L-20.8615,-203.376 L-22.8845,-196.707 L-20.5027,-202.978"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L143.27,138.442 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M133.27,128.779 L126.871,126.767 L133.91,129.057 L131.04,122.453 L133.27,128.779"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-122.225,22.5598)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-94.6653,-92.9899 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-122.225,22.5598)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-84.6653,-83.1669 L-78.2826,-81.1024 L-85.3035,-83.4472 L-82.4872,-76.8221 L-84.6653,-83.1669"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-122.225,22.5598)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-70.1885,57.48 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-122.225,22.5598)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-60.1885,49.2906 L-57.4473,43.1681 L-60.4627,49.544 L-53.6457,47.8101 L-60.1885,49.2906"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.189,358.346)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L81.9807,-34.8312 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.189,358.346)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M71.9807,-30.5825 L67.6316,-25.4751 L72.4156,-30.7389 L65.2854,-30.9973 L71.9807,-30.5825"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.189,358.346)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L65.845,140.416 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.189,358.346)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M61.1557,130.416 L55.8921,126.257 L61.6821,130.778 L61.3245,123.71 L61.1557,130.416"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,359.136,315.845)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-103.101,102.464 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,359.136,315.845)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-93.1005,92.5261 L-90.9595,86.1687 L-93.3146,92.808 L-86.7301,90.4245 L-93.1005,92.5261"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L29.0135,-126.688 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M26.7234,-116.688 L28.3082,-110.17 L26.5649,-117.078 L22.4597,-111.509 L26.7234,-116.688"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L150.233,97.3779 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M140.233,90.8961 L133.566,90.15 L140.9,91.1137 L136.83,85.1152 L140.233,90.8961"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L160.681,-46.6865 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M150.681,-43.7809 L145.757,-39.226 L151.174,-43.8925 L144.082,-44.9877 L150.681,-43.7809"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L188.039,-57.333 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M178.039,-54.284 L173.175,-49.6646 L178.526,-54.4007 L171.425,-55.4037 L178.039,-54.284"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-161.48,155.616 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-151.48,145.979 L-149.242,139.655 L-151.704,146.256 L-145.078,143.976 L-151.48,145.979"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-59.0806,-205.177 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-56.2011,-195.177 L-51.658,-190.242 L-56.6554,-195.562 L-57.4238,-188.581 L-56.2011,-195.177"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-17.3028,316.343)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L79.8794,36.9917 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-17.3028,316.343)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M69.8794,32.3607 L63.1742,32.5617 L70.5499,32.5288 L65.6955,27.1171 L69.8794,32.3607"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-17.3028,316.343)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-52.8371,167.264 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-17.3028,316.343)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-49.6782,157.264 L-50.7315,150.639 L-49.5729,157.646 L-45.0102,152.447 L-49.6782,157.264"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-165.863,183.751 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-156.836,173.751 L-155.043,167.287 L-157.015,174.048 L-150.589,171.307 L-156.836,173.751"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L202.759,-170.034 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M192.759,-161.648 L190.089,-155.494 L193.026,-161.905 L186.234,-160.091 L192.759,-161.648"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-112.997,-52.8719 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-102.997,-48.1928 L-96.2908,-48.3673 L-103.667,-48.3624 L-98.8336,-42.9327 L-102.997,-48.1928"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L62.1126,-92.9919 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M55.4332,-82.9919 L54.5953,-76.3363 L55.517,-83.3246 L49.6059,-79.6689 L55.4332,-82.9919"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L60.8985,153.455 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M56.93,143.455 L51.9284,138.985 L57.4302,143.827 L57.5053,136.772 L56.93,143.455"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-101.155,110.955 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-92.0385,100.955 L-90.2131,94.4997 L-92.221,101.25 L-85.7792,98.542 L-92.0385,100.955"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L284.47,0.53743 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M274.47,0.518537 L268.464,3.5072 L275.071,0.519293 L268.476,-2.49279 L274.47,0.518537"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-368.492,-399.803)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-59.1877,-145.735 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-368.492,-399.803)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-55.1264,-135.735 L-50.0892,-131.305 L-55.6301,-136.105 L-55.6482,-129.047 L-55.1264,-135.735"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,26.49,175.971)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-43.7928,140.372 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,26.49,175.971)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-40.673,130.372 L-41.7499,123.751 L-40.5653,130.754 L-36.0222,125.538 L-40.673,130.372"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,26.49,175.971)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-35.7184,-100.539 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,26.49,175.971)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32.1657,-90.5389 L-27.3301,-85.8894 L-32.6492,-90.9158 L-32.9839,-83.8807 L-32.1657,-90.5389"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,268.182,158.821)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L192.109,46.0697 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,268.182,158.821)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M182.109,43.6716 L175.575,45.1897 L182.763,43.7649 L176.974,39.3551 L182.109,43.6716"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-39.1348,-166.01 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-36.7775,-156.01 L-32.4808,-150.858 L-37.2071,-156.399 L-38.3207,-149.482 L-36.7775,-156.01"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,85.4601,69.485)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-58.9701,106.486 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,85.4601,69.485)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-53.4323,96.4855 L-53.1499,89.7832 L-53.4605,96.8354 L-47.9011,92.69 L-53.4323,96.4855"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,85.4601,69.485)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L182.722,89.3356 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,85.4601,69.485)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M172.722,84.4464 L166.014,84.5062 L173.393,84.6221 L168.649,79.1159 L172.722,84.4464"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-116.485,-97.7522)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-212.872,-136.041 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-116.485,-97.7522)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-202.872,-129.65 L-196.201,-128.947 L-203.54,-129.865 L-199.432,-123.891 L-202.872,-129.65"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-116.485,-97.7522)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L201.945,167.237 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-116.485,-97.7522)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M191.945,158.956 L185.41,157.44 L192.599,159.211 L189.237,152.818 L191.945,158.956"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-71.45,-824.666)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-168.46,-856.234)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-56.0594,-636.184)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,41.3696,-614.703)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-798.076,-176.708)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-846.636,-353.383)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-873.753,-200.336)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-907.933,-287.766)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-816.931,-524.811)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-703.258,-554.204)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-564.857,-148.418)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-648.193,-235.601)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-524.646,-44.704)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-492.967,-307.92)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-507.023,-1029.02)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-397.304,-994.027)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-693.216,-948.548)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-744.727,-846.978)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-37.0262,732.167)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,81.646,585.135)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-490.386,112.523)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-482.553,344.016)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-522.855,263.362)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-331.433,498.852)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-185.002,503.247)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,434.606,-226.444)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,404.654,-312.668)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,94.6603,-310.967)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,260.066,-384.856)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,54.772,-446.355)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200.561,-435.707)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,435.029,44.553)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,366.858,-46.1387)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-300.091,-147.237)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-164.654,-156.005)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-280.14,124.042)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,646.884,231.242)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,681.246,579.296)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,578.212,619.395)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,114.851,467.148)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,759.266,-34.3978)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,685.807,127.249)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,864.307,0.134197)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,1027.85,317.747)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,957.562,412.972)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,1031.48,105.936)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.087,-739.797)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.4321,-548.43)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-759.904,-286.732)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-698.046,-463.499)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-512.342,-224.449)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-469.981,-902.496)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-623.377,-838.37)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-531.153,-689.43)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-26.1981,613.273)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-43.01,377.596)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-391.781,247.105)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-241.432,402.224)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,318.745,-201.705)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,172.018,-307.581)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.801,43.8399)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-216.89,-70.4301)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-192.414,80.0397)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,603.17,323.514)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,587.034,498.762)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,256.035,418.309)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,773.775,78.7395)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,894.994,302.806)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,905.442,158.741)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-239.641,-602.871)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-589.16,-389.922)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-486.761,-750.715)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,62.5766,353.334)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-70.1399,483.607)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-175.091,259.182)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,193.531,-94.6025)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-122.225,22.5598)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,52.8842,-17.5603)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.189,358.346)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,359.136,315.845)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,744.761,205.428)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-427.68,-545.538)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-17.3028,316.343)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-9.22838,75.4317)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,460.291,204.89)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-368.492,-399.803)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,26.49,175.971)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,268.182,158.821)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-329.357,-233.793)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,85.4601,69.485)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-116.485,-97.7522)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10,-10 L10,-10 L10,10 L-10,10 L-10,-10"/>
+</g>
+</g>
+<!-- Dunnart description -->
+    <dunnart:options flowSeparation="0.5" automaticGraphLayout="1" routingBuffer="4" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="1" defaultIdealConnectorLength="1" segmentPenalty="50" layoutMethod="0" avoidBuffer="5.35492e-315" pageBoundaryConstraints="0"/>
+    <dunnart:node width="20" cx="-116.485" cy="-97.7522" height="20" type="rect" id="1"/>
+    <dunnart:node width="20" cx="85.4601" cy="69.485" height="20" type="rect" id="2"/>
+    <dunnart:node width="20" cx="-329.357" cy="-233.793" height="20" type="rect" id="3"/>
+    <dunnart:node width="20" cx="268.182" cy="158.821" height="20" type="rect" id="4"/>
+    <dunnart:node width="20" cx="26.49" cy="175.971" height="20" type="rect" id="5"/>
+    <dunnart:node width="20" cx="-368.492" cy="-399.803" height="20" type="rect" id="6"/>
+    <dunnart:node width="20" cx="460.291" cy="204.89" height="20" type="rect" id="7"/>
+    <dunnart:node width="20" cx="-9.22838" cy="75.4317" height="20" type="rect" id="8"/>
+    <dunnart:node width="20" cx="-17.3028" cy="316.343" height="20" type="rect" id="9"/>
+    <dunnart:node width="20" cx="-427.68" cy="-545.538" height="20" type="rect" id="10"/>
+    <dunnart:node width="20" cx="744.761" cy="205.428" height="20" type="rect" id="11"/>
+    <dunnart:node width="20" cx="359.136" cy="315.845" height="20" type="rect" id="12"/>
+    <dunnart:node width="20" cx="521.189" cy="358.346" height="20" type="rect" id="13"/>
+    <dunnart:node width="20" cx="52.8842" cy="-17.5603" height="20" type="rect" id="14"/>
+    <dunnart:node width="20" cx="-122.225" cy="22.5598" height="20" type="rect" id="15"/>
+    <dunnart:node width="20" cx="193.531" cy="-94.6025" height="20" type="rect" id="16"/>
+    <dunnart:node width="20" cx="-175.091" cy="259.182" height="20" type="rect" id="17"/>
+    <dunnart:node width="20" cx="-70.1399" cy="483.607" height="20" type="rect" id="18"/>
+    <dunnart:node width="20" cx="62.5766" cy="353.334" height="20" type="rect" id="19"/>
+    <dunnart:node width="20" cx="-486.761" cy="-750.715" height="20" type="rect" id="20"/>
+    <dunnart:node width="20" cx="-589.16" cy="-389.922" height="20" type="rect" id="21"/>
+    <dunnart:node width="20" cx="-239.641" cy="-602.871" height="20" type="rect" id="22"/>
+    <dunnart:node width="20" cx="905.442" cy="158.741" height="20" type="rect" id="23"/>
+    <dunnart:node width="20" cx="894.994" cy="302.806" height="20" type="rect" id="24"/>
+    <dunnart:node width="20" cx="773.775" cy="78.7395" height="20" type="rect" id="25"/>
+    <dunnart:node width="20" cx="256.035" cy="418.309" height="20" type="rect" id="26"/>
+    <dunnart:node width="20" cx="587.034" cy="498.762" height="20" type="rect" id="27"/>
+    <dunnart:node width="20" cx="603.17" cy="323.514" height="20" type="rect" id="28"/>
+    <dunnart:node width="20" cx="-192.414" cy="80.0397" height="20" type="rect" id="29"/>
+    <dunnart:node width="20" cx="-216.89" cy="-70.4301" height="20" type="rect" id="30"/>
+    <dunnart:node width="20" cx="336.801" cy="43.8399" height="20" type="rect" id="31"/>
+    <dunnart:node width="20" cx="172.018" cy="-307.581" height="20" type="rect" id="32"/>
+    <dunnart:node width="20" cx="318.745" cy="-201.705" height="20" type="rect" id="33"/>
+    <dunnart:node width="20" cx="-241.432" cy="402.224" height="20" type="rect" id="34"/>
+    <dunnart:node width="20" cx="-391.781" cy="247.105" height="20" type="rect" id="35"/>
+    <dunnart:node width="20" cx="-43.01" cy="377.596" height="20" type="rect" id="36"/>
+    <dunnart:node width="20" cx="-26.1981" cy="613.273" height="20" type="rect" id="37"/>
+    <dunnart:node width="20" cx="-531.153" cy="-689.43" height="20" type="rect" id="38"/>
+    <dunnart:node width="20" cx="-623.377" cy="-838.37" height="20" type="rect" id="39"/>
+    <dunnart:node width="20" cx="-469.981" cy="-902.496" height="20" type="rect" id="40"/>
+    <dunnart:node width="20" cx="-512.342" cy="-224.449" height="20" type="rect" id="41"/>
+    <dunnart:node width="20" cx="-698.046" cy="-463.499" height="20" type="rect" id="42"/>
+    <dunnart:node width="20" cx="-759.904" cy="-286.732" height="20" type="rect" id="43"/>
+    <dunnart:node width="20" cx="-70.4321" cy="-548.43" height="20" type="rect" id="44"/>
+    <dunnart:node width="20" cx="-175.087" cy="-739.797" height="20" type="rect" id="45"/>
+    <dunnart:node width="20" cx="1031.48" cy="105.936" height="20" type="rect" id="46"/>
+    <dunnart:node width="20" cx="957.562" cy="412.972" height="20" type="rect" id="47"/>
+    <dunnart:node width="20" cx="1027.85" cy="317.747" height="20" type="rect" id="48"/>
+    <dunnart:node width="20" cx="864.307" cy="0.134197" height="20" type="rect" id="49"/>
+    <dunnart:node width="20" cx="685.807" cy="127.249" height="20" type="rect" id="50"/>
+    <dunnart:node width="20" cx="759.266" cy="-34.3978" height="20" type="rect" id="51"/>
+    <dunnart:node width="20" cx="114.851" cy="467.148" height="20" type="rect" id="52"/>
+    <dunnart:node width="20" cx="578.212" cy="619.395" height="20" type="rect" id="53"/>
+    <dunnart:node width="20" cx="681.246" cy="579.296" height="20" type="rect" id="54"/>
+    <dunnart:node width="20" cx="646.884" cy="231.242" height="20" type="rect" id="55"/>
+    <dunnart:node width="20" cx="-280.14" cy="124.042" height="20" type="rect" id="56"/>
+    <dunnart:node width="20" cx="-164.654" cy="-156.005" height="20" type="rect" id="57"/>
+    <dunnart:node width="20" cx="-300.091" cy="-147.237" height="20" type="rect" id="58"/>
+    <dunnart:node width="20" cx="366.858" cy="-46.1387" height="20" type="rect" id="59"/>
+    <dunnart:node width="20" cx="435.029" cy="44.553" height="20" type="rect" id="60"/>
+    <dunnart:node width="20" cx="200.561" cy="-435.707" height="20" type="rect" id="61"/>
+    <dunnart:node width="20" cx="54.772" cy="-446.355" height="20" type="rect" id="62"/>
+    <dunnart:node width="20" cx="260.066" cy="-384.856" height="20" type="rect" id="63"/>
+    <dunnart:node width="20" cx="94.6603" cy="-310.967" height="20" type="rect" id="64"/>
+    <dunnart:node width="20" cx="404.654" cy="-312.668" height="20" type="rect" id="65"/>
+    <dunnart:node width="20" cx="434.606" cy="-226.444" height="20" type="rect" id="66"/>
+    <dunnart:node width="20" cx="-185.002" cy="503.247" height="20" type="rect" id="67"/>
+    <dunnart:node width="20" cx="-331.433" cy="498.852" height="20" type="rect" id="68"/>
+    <dunnart:node width="20" cx="-522.855" cy="263.362" height="20" type="rect" id="69"/>
+    <dunnart:node width="20" cx="-482.553" cy="344.016" height="20" type="rect" id="70"/>
+    <dunnart:node width="20" cx="-490.386" cy="112.523" height="20" type="rect" id="71"/>
+    <dunnart:node width="20" cx="81.646" cy="585.135" height="20" type="rect" id="72"/>
+    <dunnart:node width="20" cx="-37.0262" cy="732.167" height="20" type="rect" id="73"/>
+    <dunnart:node width="20" cx="-744.727" cy="-846.978" height="20" type="rect" id="74"/>
+    <dunnart:node width="20" cx="-693.216" cy="-948.548" height="20" type="rect" id="75"/>
+    <dunnart:node width="20" cx="-397.304" cy="-994.027" height="20" type="rect" id="76"/>
+    <dunnart:node width="20" cx="-507.023" cy="-1029.02" height="20" type="rect" id="77"/>
+    <dunnart:node width="20" cx="-492.967" cy="-307.92" height="20" type="rect" id="78"/>
+    <dunnart:node width="20" cx="-524.646" cy="-44.704" height="20" type="rect" id="79"/>
+    <dunnart:node width="20" cx="-648.193" cy="-235.601" height="20" type="rect" id="80"/>
+    <dunnart:node width="20" cx="-564.857" cy="-148.418" height="20" type="rect" id="81"/>
+    <dunnart:node width="20" cx="-703.258" cy="-554.204" height="20" type="rect" id="82"/>
+    <dunnart:node width="20" cx="-816.931" cy="-524.811" height="20" type="rect" id="83"/>
+    <dunnart:node width="20" cx="-907.933" cy="-287.766" height="20" type="rect" id="84"/>
+    <dunnart:node width="20" cx="-873.753" cy="-200.336" height="20" type="rect" id="85"/>
+    <dunnart:node width="20" cx="-846.636" cy="-353.383" height="20" type="rect" id="86"/>
+    <dunnart:node width="20" cx="-798.076" cy="-176.708" height="20" type="rect" id="87"/>
+    <dunnart:node width="20" cx="41.3696" cy="-614.703" height="20" type="rect" id="88"/>
+    <dunnart:node width="20" cx="-56.0594" cy="-636.184" height="20" type="rect" id="89"/>
+    <dunnart:node width="20" cx="-168.46" cy="-856.234" height="20" type="rect" id="90"/>
+    <dunnart:node width="20" cx="-71.45" cy="-824.666" height="20" type="rect" id="91"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483556 8 0 0 92 8 " dstX="85.4601" srcX="-116.485" dstY="69.485" srcY="-97.7522" path="-116.485,-97.7522 85.4601,69.485 " directed="1" srcID="1" type="connector" dstID="2" id="92"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483555 8 0 0 93 8 " dstX="-329.357" srcX="-116.485" dstY="-233.793" srcY="-97.7522" path="-116.485,-97.7522 -329.357,-233.793 " directed="1" srcID="1" type="connector" dstID="3" id="93"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483554 8 0 0 94 8 " dstX="268.182" srcX="85.4601" dstY="158.821" srcY="69.485" path="85.4601,69.485 268.182,158.821 " directed="1" srcID="2" type="connector" dstID="4" id="94"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483553 8 0 0 95 8 " dstX="26.49" srcX="85.4601" dstY="175.971" srcY="69.485" path="85.4601,69.485 26.49,175.971 " directed="1" srcID="2" type="connector" dstID="5" id="95"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483552 8 0 0 96 8 " dstX="-368.492" srcX="-329.357" dstY="-399.803" srcY="-233.793" path="-329.357,-233.793 -368.492,-399.803 " directed="1" srcID="3" type="connector" dstID="6" id="96"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483551 8 0 0 97 8 " dstX="460.291" srcX="268.182" dstY="204.89" srcY="158.821" path="268.182,158.821 460.291,204.89 " directed="1" srcID="4" type="connector" dstID="7" id="97"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483550 8 0 0 98 8 " dstX="-9.22838" srcX="26.49" dstY="75.4317" srcY="175.971" path="26.49,175.971 -9.22838,75.4317 " directed="1" srcID="5" type="connector" dstID="8" id="98"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483549 8 0 0 99 8 " dstX="-17.3028" srcX="26.49" dstY="316.343" srcY="175.971" path="26.49,175.971 -17.3028,316.343 " directed="1" srcID="5" type="connector" dstID="9" id="99"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483548 8 0 0 100 8 " dstX="-427.68" srcX="-368.492" dstY="-545.538" srcY="-399.803" path="-368.492,-399.803 -427.68,-545.538 " directed="1" srcID="6" type="connector" dstID="10" id="100"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483547 8 0 0 101 8 " dstX="744.761" srcX="460.291" dstY="205.428" srcY="204.89" path="460.291,204.89 744.761,205.428 " directed="1" srcID="7" type="connector" dstID="11" id="101"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483546 8 0 0 102 8 " dstX="359.136" srcX="460.291" dstY="315.845" srcY="204.89" path="460.291,204.89 359.136,315.845 " directed="1" srcID="7" type="connector" dstID="12" id="102"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483545 8 0 0 103 8 " dstX="521.189" srcX="460.291" dstY="358.346" srcY="204.89" path="460.291,204.89 521.189,358.346 " directed="1" srcID="7" type="connector" dstID="13" id="103"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483544 8 0 0 104 8 " dstX="52.8842" srcX="-9.22838" dstY="-17.5603" srcY="75.4317" path="-9.22838,75.4317 52.8842,-17.5603 " directed="1" srcID="8" type="connector" dstID="14" id="104"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483543 8 0 0 105 8 " dstX="-122.225" srcX="-9.22838" dstY="22.5598" srcY="75.4317" path="-9.22838,75.4317 -122.225,22.5598 " directed="1" srcID="8" type="connector" dstID="15" id="105"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483542 8 0 0 106 8 " dstX="193.531" srcX="-9.22838" dstY="-94.6025" srcY="75.4317" path="-9.22838,75.4317 193.531,-94.6025 " directed="1" srcID="8" type="connector" dstID="16" id="106"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483541 8 0 0 107 8 " dstX="-175.091" srcX="-9.22838" dstY="259.182" srcY="75.4317" path="-9.22838,75.4317 -175.091,259.182 " directed="1" srcID="8" type="connector" dstID="17" id="107"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483540 8 0 0 108 8 " dstX="-70.1399" srcX="-17.3028" dstY="483.607" srcY="316.343" path="-17.3028,316.343 -70.1399,483.607 " directed="1" srcID="9" type="connector" dstID="18" id="108"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483539 8 0 0 109 8 " dstX="62.5766" srcX="-17.3028" dstY="353.334" srcY="316.343" path="-17.3028,316.343 62.5766,353.334 " directed="1" srcID="9" type="connector" dstID="19" id="109"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483538 8 0 0 110 8 " dstX="-486.761" srcX="-427.68" dstY="-750.715" srcY="-545.538" path="-427.68,-545.538 -486.761,-750.715 " directed="1" srcID="10" type="connector" dstID="20" id="110"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483537 8 0 0 111 8 " dstX="-589.16" srcX="-427.68" dstY="-389.922" srcY="-545.538" path="-427.68,-545.538 -589.16,-389.922 " directed="1" srcID="10" type="connector" dstID="21" id="111"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483536 8 0 0 112 8 " dstX="-239.641" srcX="-427.68" dstY="-602.871" srcY="-545.538" path="-427.68,-545.538 -239.641,-602.871 " directed="1" srcID="10" type="connector" dstID="22" id="112"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483535 8 0 0 113 8 " dstX="905.442" srcX="744.761" dstY="158.741" srcY="205.428" path="744.761,205.428 905.442,158.741 " directed="1" srcID="11" type="connector" dstID="23" id="113"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483534 8 0 0 114 8 " dstX="894.994" srcX="744.761" dstY="302.806" srcY="205.428" path="744.761,205.428 894.994,302.806 " directed="1" srcID="11" type="connector" dstID="24" id="114"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483533 8 0 0 115 8 " dstX="773.775" srcX="744.761" dstY="78.7395" srcY="205.428" path="744.761,205.428 773.775,78.7395 " directed="1" srcID="11" type="connector" dstID="25" id="115"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483532 8 0 0 116 8 " dstX="256.035" srcX="359.136" dstY="418.309" srcY="315.845" path="359.136,315.845 256.035,418.309 " directed="1" srcID="12" type="connector" dstID="26" id="116"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483531 8 0 0 117 8 " dstX="587.034" srcX="521.189" dstY="498.762" srcY="358.346" path="521.189,358.346 587.034,498.762 " directed="1" srcID="13" type="connector" dstID="27" id="117"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483530 8 0 0 118 8 " dstX="603.17" srcX="521.189" dstY="323.514" srcY="358.346" path="521.189,358.346 603.17,323.514 " directed="1" srcID="13" type="connector" dstID="28" id="118"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483529 8 0 0 119 8 " dstX="-192.414" srcX="-122.225" dstY="80.0397" srcY="22.5598" path="-122.225,22.5598 -192.414,80.0397 " directed="1" srcID="15" type="connector" dstID="29" id="119"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483528 8 0 0 120 8 " dstX="-216.89" srcX="-122.225" dstY="-70.4301" srcY="22.5598" path="-122.225,22.5598 -216.89,-70.4301 " directed="1" srcID="15" type="connector" dstID="30" id="120"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483527 8 0 0 121 8 " dstX="336.801" srcX="193.531" dstY="43.8399" srcY="-94.6025" path="193.531,-94.6025 336.801,43.8399 " directed="1" srcID="16" type="connector" dstID="31" id="121"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483526 8 0 0 122 8 " dstX="172.018" srcX="193.531" dstY="-307.581" srcY="-94.6025" path="193.531,-94.6025 172.018,-307.581 " directed="1" srcID="16" type="connector" dstID="32" id="122"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483525 8 0 0 123 8 " dstX="318.745" srcX="193.531" dstY="-201.705" srcY="-94.6025" path="193.531,-94.6025 318.745,-201.705 " directed="1" srcID="16" type="connector" dstID="33" id="123"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483524 8 0 0 124 8 " dstX="-241.432" srcX="-175.091" dstY="402.224" srcY="259.182" path="-175.091,259.182 -241.432,402.224 " directed="1" srcID="17" type="connector" dstID="34" id="124"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483523 8 0 0 125 8 " dstX="-391.781" srcX="-175.091" dstY="247.105" srcY="259.182" path="-175.091,259.182 -391.781,247.105 " directed="1" srcID="17" type="connector" dstID="35" id="125"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483522 8 0 0 126 8 " dstX="-43.01" srcX="-175.091" dstY="377.596" srcY="259.182" path="-175.091,259.182 -43.01,377.596 " directed="1" srcID="17" type="connector" dstID="36" id="126"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483521 8 0 0 127 8 " dstX="-26.1981" srcX="-70.1399" dstY="613.273" srcY="483.607" path="-70.1399,483.607 -26.1981,613.273 " directed="1" srcID="18" type="connector" dstID="37" id="127"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483520 8 0 0 128 8 " dstX="-531.153" srcX="-486.761" dstY="-689.43" srcY="-750.715" path="-486.761,-750.715 -531.153,-689.43 " directed="1" srcID="20" type="connector" dstID="38" id="128"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483519 8 0 0 129 8 " dstX="-623.377" srcX="-486.761" dstY="-838.37" srcY="-750.715" path="-486.761,-750.715 -623.377,-838.37 " directed="1" srcID="20" type="connector" dstID="39" id="129"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483518 8 0 0 130 8 " dstX="-469.981" srcX="-486.761" dstY="-902.496" srcY="-750.715" path="-486.761,-750.715 -469.981,-902.496 " directed="1" srcID="20" type="connector" dstID="40" id="130"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483517 8 0 0 131 8 " dstX="-512.342" srcX="-589.16" dstY="-224.449" srcY="-389.922" path="-589.16,-389.922 -512.342,-224.449 " directed="1" srcID="21" type="connector" dstID="41" id="131"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483516 8 0 0 132 8 " dstX="-698.046" srcX="-589.16" dstY="-463.499" srcY="-389.922" path="-589.16,-389.922 -698.046,-463.499 " directed="1" srcID="21" type="connector" dstID="42" id="132"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483515 8 0 0 133 8 " dstX="-759.904" srcX="-589.16" dstY="-286.732" srcY="-389.922" path="-589.16,-389.922 -759.904,-286.732 " directed="1" srcID="21" type="connector" dstID="43" id="133"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483514 8 0 0 134 8 " dstX="-70.4321" srcX="-239.641" dstY="-548.43" srcY="-602.871" path="-239.641,-602.871 -70.4321,-548.43 " directed="1" srcID="22" type="connector" dstID="44" id="134"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483513 8 0 0 135 8 " dstX="-175.087" srcX="-239.641" dstY="-739.797" srcY="-602.871" path="-239.641,-602.871 -175.087,-739.797 " directed="1" srcID="22" type="connector" dstID="45" id="135"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483512 8 0 0 136 8 " dstX="1031.48" srcX="905.442" dstY="105.936" srcY="158.741" path="905.442,158.741 1031.48,105.936 " directed="1" srcID="23" type="connector" dstID="46" id="136"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483511 8 0 0 137 8 " dstX="957.562" srcX="894.994" dstY="412.972" srcY="302.806" path="894.994,302.806 957.562,412.972 " directed="1" srcID="24" type="connector" dstID="47" id="137"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483510 8 0 0 138 8 " dstX="1027.85" srcX="894.994" dstY="317.747" srcY="302.806" path="894.994,302.806 1027.85,317.747 " directed="1" srcID="24" type="connector" dstID="48" id="138"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483509 8 0 0 139 8 " dstX="864.307" srcX="773.775" dstY="0.134197" srcY="78.7395" path="773.775,78.7395 864.307,0.134197 " directed="1" srcID="25" type="connector" dstID="49" id="139"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483508 8 0 0 140 8 " dstX="685.807" srcX="773.775" dstY="127.249" srcY="78.7395" path="773.775,78.7395 685.807,127.249 " directed="1" srcID="25" type="connector" dstID="50" id="140"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483507 8 0 0 141 8 " dstX="759.266" srcX="773.775" dstY="-34.3978" srcY="78.7395" path="773.775,78.7395 759.266,-34.3978 " directed="1" srcID="25" type="connector" dstID="51" id="141"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483506 8 0 0 142 8 " dstX="114.851" srcX="256.035" dstY="467.148" srcY="418.309" path="256.035,418.309 114.851,467.148 " directed="1" srcID="26" type="connector" dstID="52" id="142"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483505 8 0 0 143 8 " dstX="578.212" srcX="587.034" dstY="619.395" srcY="498.762" path="587.034,498.762 578.212,619.395 " directed="1" srcID="27" type="connector" dstID="53" id="143"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483504 8 0 0 144 8 " dstX="681.246" srcX="587.034" dstY="579.296" srcY="498.762" path="587.034,498.762 681.246,579.296 " directed="1" srcID="27" type="connector" dstID="54" id="144"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483503 8 0 0 145 8 " dstX="646.884" srcX="603.17" dstY="231.242" srcY="323.514" path="603.17,323.514 646.884,231.242 " directed="1" srcID="28" type="connector" dstID="55" id="145"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483502 8 0 0 146 8 " dstX="-280.14" srcX="-192.414" dstY="124.042" srcY="80.0397" path="-192.414,80.0397 -280.14,124.042 " directed="1" srcID="29" type="connector" dstID="56" id="146"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483501 8 0 0 147 8 " dstX="-164.654" srcX="-216.89" dstY="-156.005" srcY="-70.4301" path="-216.89,-70.4301 -164.654,-156.005 " directed="1" srcID="30" type="connector" dstID="57" id="147"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483500 8 0 0 148 8 " dstX="-300.091" srcX="-216.89" dstY="-147.237" srcY="-70.4301" path="-216.89,-70.4301 -300.091,-147.237 " directed="1" srcID="30" type="connector" dstID="58" id="148"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483499 8 0 0 149 8 " dstX="366.858" srcX="336.801" dstY="-46.1387" srcY="43.8399" path="336.801,43.8399 366.858,-46.1387 " directed="1" srcID="31" type="connector" dstID="59" id="149"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483498 8 0 0 150 8 " dstX="435.029" srcX="336.801" dstY="44.553" srcY="43.8399" path="336.801,43.8399 435.029,44.553 " directed="1" srcID="31" type="connector" dstID="60" id="150"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483497 8 0 0 151 8 " dstX="200.561" srcX="172.018" dstY="-435.707" srcY="-307.581" path="172.018,-307.581 200.561,-435.707 " directed="1" srcID="32" type="connector" dstID="61" id="151"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483496 8 0 0 152 8 " dstX="54.772" srcX="172.018" dstY="-446.355" srcY="-307.581" path="172.018,-307.581 54.772,-446.355 " directed="1" srcID="32" type="connector" dstID="62" id="152"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483495 8 0 0 153 8 " dstX="260.066" srcX="172.018" dstY="-384.856" srcY="-307.581" path="172.018,-307.581 260.066,-384.856 " directed="1" srcID="32" type="connector" dstID="63" id="153"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483494 8 0 0 154 8 " dstX="94.6603" srcX="172.018" dstY="-310.967" srcY="-307.581" path="172.018,-307.581 94.6603,-310.967 " directed="1" srcID="32" type="connector" dstID="64" id="154"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483493 8 0 0 155 8 " dstX="404.654" srcX="318.745" dstY="-312.668" srcY="-201.705" path="318.745,-201.705 404.654,-312.668 " directed="1" srcID="33" type="connector" dstID="65" id="155"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483492 8 0 0 156 8 " dstX="434.606" srcX="318.745" dstY="-226.444" srcY="-201.705" path="318.745,-201.705 434.606,-226.444 " directed="1" srcID="33" type="connector" dstID="66" id="156"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483491 8 0 0 157 8 " dstX="-185.002" srcX="-241.432" dstY="503.247" srcY="402.224" path="-241.432,402.224 -185.002,503.247 " directed="1" srcID="34" type="connector" dstID="67" id="157"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483490 8 0 0 158 8 " dstX="-331.433" srcX="-241.432" dstY="498.852" srcY="402.224" path="-241.432,402.224 -331.433,498.852 " directed="1" srcID="34" type="connector" dstID="68" id="158"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483489 8 0 0 159 8 " dstX="-522.855" srcX="-391.781" dstY="263.362" srcY="247.105" path="-391.781,247.105 -522.855,263.362 " directed="1" srcID="35" type="connector" dstID="69" id="159"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483488 8 0 0 160 8 " dstX="-482.553" srcX="-391.781" dstY="344.016" srcY="247.105" path="-391.781,247.105 -482.553,344.016 " directed="1" srcID="35" type="connector" dstID="70" id="160"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483487 8 0 0 161 8 " dstX="-490.386" srcX="-391.781" dstY="112.523" srcY="247.105" path="-391.781,247.105 -490.386,112.523 " directed="1" srcID="35" type="connector" dstID="71" id="161"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483486 8 0 0 162 8 " dstX="81.646" srcX="-26.1981" dstY="585.135" srcY="613.273" path="-26.1981,613.273 81.646,585.135 " directed="1" srcID="37" type="connector" dstID="72" id="162"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483485 8 0 0 163 8 " dstX="-37.0262" srcX="-26.1981" dstY="732.167" srcY="613.273" path="-26.1981,613.273 -37.0262,732.167 " directed="1" srcID="37" type="connector" dstID="73" id="163"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483484 8 0 0 164 8 " dstX="-744.727" srcX="-623.377" dstY="-846.978" srcY="-838.37" path="-623.377,-838.37 -744.727,-846.978 " directed="1" srcID="39" type="connector" dstID="74" id="164"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483483 8 0 0 165 8 " dstX="-693.216" srcX="-623.377" dstY="-948.548" srcY="-838.37" path="-623.377,-838.37 -693.216,-948.548 " directed="1" srcID="39" type="connector" dstID="75" id="165"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483482 8 0 0 166 8 " dstX="-397.304" srcX="-469.981" dstY="-994.027" srcY="-902.496" path="-469.981,-902.496 -397.304,-994.027 " directed="1" srcID="40" type="connector" dstID="76" id="166"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483481 8 0 0 167 8 " dstX="-507.023" srcX="-469.981" dstY="-1029.02" srcY="-902.496" path="-469.981,-902.496 -507.023,-1029.02 " directed="1" srcID="40" type="connector" dstID="77" id="167"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483480 8 0 0 168 8 " dstX="-492.967" srcX="-512.342" dstY="-307.92" srcY="-224.449" path="-512.342,-224.449 -492.967,-307.92 " directed="1" srcID="41" type="connector" dstID="78" id="168"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483479 8 0 0 169 8 " dstX="-524.646" srcX="-512.342" dstY="-44.704" srcY="-224.449" path="-512.342,-224.449 -524.646,-44.704 " directed="1" srcID="41" type="connector" dstID="79" id="169"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483478 8 0 0 170 8 " dstX="-648.193" srcX="-512.342" dstY="-235.601" srcY="-224.449" path="-512.342,-224.449 -648.193,-235.601 " directed="1" srcID="41" type="connector" dstID="80" id="170"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483477 8 0 0 171 8 " dstX="-564.857" srcX="-512.342" dstY="-148.418" srcY="-224.449" path="-512.342,-224.449 -564.857,-148.418 " directed="1" srcID="41" type="connector" dstID="81" id="171"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483476 8 0 0 172 8 " dstX="-703.258" srcX="-698.046" dstY="-554.204" srcY="-463.499" path="-698.046,-463.499 -703.258,-554.204 " directed="1" srcID="42" type="connector" dstID="82" id="172"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483475 8 0 0 173 8 " dstX="-816.931" srcX="-698.046" dstY="-524.811" srcY="-463.499" path="-698.046,-463.499 -816.931,-524.811 " directed="1" srcID="42" type="connector" dstID="83" id="173"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483474 8 0 0 174 8 " dstX="-907.933" srcX="-759.904" dstY="-287.766" srcY="-286.732" path="-759.904,-286.732 -907.933,-287.766 " directed="1" srcID="43" type="connector" dstID="84" id="174"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483473 8 0 0 175 8 " dstX="-873.753" srcX="-759.904" dstY="-200.336" srcY="-286.732" path="-759.904,-286.732 -873.753,-200.336 " directed="1" srcID="43" type="connector" dstID="85" id="175"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483472 8 0 0 176 8 " dstX="-846.636" srcX="-759.904" dstY="-353.383" srcY="-286.732" path="-759.904,-286.732 -846.636,-353.383 " directed="1" srcID="43" type="connector" dstID="86" id="176"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483471 8 0 0 177 8 " dstX="-798.076" srcX="-759.904" dstY="-176.708" srcY="-286.732" path="-759.904,-286.732 -798.076,-176.708 " directed="1" srcID="43" type="connector" dstID="87" id="177"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483470 8 0 0 178 8 " dstX="41.3696" srcX="-70.4321" dstY="-614.703" srcY="-548.43" path="-70.4321,-548.43 41.3696,-614.703 " directed="1" srcID="44" type="connector" dstID="88" id="178"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483469 8 0 0 179 8 " dstX="-56.0594" srcX="-70.4321" dstY="-636.184" srcY="-548.43" path="-70.4321,-548.43 -56.0594,-636.184 " directed="1" srcID="44" type="connector" dstID="89" id="179"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483468 8 0 0 180 8 " dstX="-168.46" srcX="-175.087" dstY="-856.234" srcY="-739.797" path="-175.087,-739.797 -168.46,-856.234 " directed="1" srcID="45" type="connector" dstID="90" id="180"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483467 8 0 0 181 8 " dstX="-71.45" srcX="-175.087" dstY="-824.666" srcY="-739.797" path="-175.087,-739.797 -71.45,-824.666 " directed="1" srcID="45" type="connector" dstID="91" id="181"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483466 8 0 0 182 8 " dstX="-512.342" srcX="-329.357" dstY="-224.449" srcY="-233.793" path="-329.357,-233.793 -512.342,-224.449 " directed="1" srcID="3" type="connector" dstID="41" id="182"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483465 8 0 0 183 8 " dstX="-300.091" srcX="-329.357" dstY="-147.237" srcY="-233.793" path="-329.357,-233.793 -300.091,-147.237 " directed="1" srcID="3" type="connector" dstID="58" id="183"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483464 8 0 0 184 8 " dstX="336.801" srcX="460.291" dstY="43.8399" srcY="204.89" path="460.291,204.89 336.801,43.8399 " directed="1" srcID="7" type="connector" dstID="31" id="184"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483463 8 0 0 185 8 " dstX="-185.002" srcX="-70.1399" dstY="503.247" srcY="483.607" path="-70.1399,483.607 -185.002,503.247 " directed="1" srcID="18" type="connector" dstID="67" id="185"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483462 8 0 0 186 8 " dstX="114.851" srcX="-43.01" dstY="467.148" srcY="377.596" path="-43.01,377.596 114.851,467.148 " directed="1" srcID="36" type="connector" dstID="52" id="186"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483461 8 0 0 187 8 " dstX="-648.193" srcX="-759.904" dstY="-235.601" srcY="-286.732" path="-759.904,-286.732 -648.193,-235.601 " directed="1" srcID="43" type="connector" dstID="80" id="187"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483460 8 0 0 188 8 " dstX="54.772" srcX="-70.4321" dstY="-446.355" srcY="-548.43" path="-70.4321,-548.43 54.772,-446.355 " directed="1" srcID="44" type="connector" dstID="62" id="188"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483459 8 0 0 189 8 " dstX="646.884" srcX="685.807" dstY="231.242" srcY="127.249" path="685.807,127.249 646.884,231.242 " directed="1" srcID="50" type="connector" dstID="55" id="189"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483458 8 0 0 190 8 " dstX="81.646" srcX="114.851" dstY="585.135" srcY="467.148" path="114.851,467.148 81.646,585.135 " directed="1" srcID="52" type="connector" dstID="72" id="190"/>
+    <dunnart:node libavoidPath="2 0 0 -2147483457 8 0 0 191 8 " dstX="-524.646" srcX="-490.386" dstY="-44.704" srcY="112.523" path="-490.386,112.523 -524.646,-44.704 " directed="1" srcID="71" type="connector" dstID="79" id="191"/>
 </svg>
