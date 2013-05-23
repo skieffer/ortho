@@ -448,6 +448,8 @@ class Canvas : public QGraphicsScene
         int m_num_align_tries;
         int m_max_shape_id;
         bool * m_align_pairs_tried;
+        QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
+        bool sideIsClear(ShapeObj* s, int side, double tolerance);
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

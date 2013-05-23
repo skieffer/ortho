@@ -3765,13 +3765,21 @@ void Canvas::inferAndApplyAlignments()
 void Canvas::initTryAlignments()
 {
     // Determine the range of IDs of shapes.
+    // Also build neighbour sets.
     int maxID = 0;
+    m_align_nbrs.clear();
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
         {
             int id = shape->idString().toInt();
             maxID = id > maxID ? id : maxID;
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
+            m_align_nbrs.insertMulti(endpts.first,endpts.second);
+            m_align_nbrs.insertMulti(endpts.second,endpts.first);
         }
     }
     maxID++; // increment, so IDs themselves can be used as indices into array
@@ -3788,6 +3796,35 @@ void Canvas::initTryAlignments()
 
     m_num_align_tries = 0;
     tryAlignments();
+}
+
+/// Say whether named side of shape is "clear", meaning that there is not
+/// currently a neighbour of this shape which is on that side and roughly
+/// aligned, up to the named tolerance.
+///
+/// Should make 'side' into an enum. For now:
+/// 0 = right, 1 = top, 2 = left, 3 = bottom.
+bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance) {
+    bool clear = true;
+    QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
+    double sx = s->centrePos().x(), sy = s->centrePos().y();
+    foreach (ShapeObj *nbr, nbrs) {
+        double nx = nbr->centrePos().x(), ny = nbr->centrePos().y();
+        if (side==0) {
+            // right side
+            if (nx > sx && fabs(ny-sy) < tolerance) { clear = false; break; }
+        } else if (side==1) {
+            // top side
+            if (ny < sy && fabs(nx-sx) < tolerance) { clear = false; break; }
+        } else if (side==2) {
+            // left side
+            if (nx < sx && fabs(ny-sy) < tolerance) { clear = false; break; }
+        } else { // side == 3
+            // bottom side
+            if (ny > sy && fabs(nx-sx) < tolerance) { clear = false; break; }
+        }
+    }
+    return clear;
 }
 
 void Canvas::tryAlignments()
@@ -3817,11 +3854,39 @@ void Canvas::tryAlignments()
             double tx=t->centrePos().x(), ty=t->centrePos().y();
             double ady=fabs(ty-sy), adx=fabs(tx-sx);
             if (adx < eps || ady < eps) continue; // already aligned
-            if (adx <= sig || ady <= sig) {
+
+
+            int plan = 0; // 0 = plan no alignment; 1 = horizontal; 2 = vertical
+
+            // Would a horizontal alignment be suitable?
+            if (ady <= sig) {
+                // Check whether the appropriate sides of the shapes are open.
+                ShapeObj *left  = sx < tx ? s : t;
+                ShapeObj *right = sx < tx ? t : s;
+                if ( sideIsClear(left,0,eps) && sideIsClear(right,2,eps) ) plan = 1;
+            }
+            // Would a vertical alignment be suitable?
+            if (adx <= sig) {
+                ShapeObj *above = sy < ty ? s : t;
+                ShapeObj *below = sy < ty ? t : s;
+                if ( sideIsClear(above,3,eps) && sideIsClear(below,1,eps) ) {
+                    plan = plan==0 ? 2 : ( adx < ady ? 2 : 1 );
+                }
+            }
+
+            bool doOverlapPrevention = true;
+            if (!doOverlapPrevention) {
+                plan = 0;
+                if (adx <= sig || ady <= sig) {
+                    plan = adx < ady ? 2 : 1;
+                }
+            }
+
+            if (plan > 0) {
                 // Will try an alignment.
                 CanvasItemList items;
                 items.append(s); items.append(t);
-                atypes a = adx < ady ? ALIGN_CENTER : ALIGN_MIDDLE;
+                atypes a = plan==2 ? ALIGN_CENTER : ALIGN_MIDDLE;
                 qDebug() << "Trying alignment" << a << "adx=" << adx << "ady=" << ady << "s:" << s->idString() << "t:" << t->idString();
                 Guideline *gdln = createAlignment(a,items);
                 gdln->setTentative(true);
