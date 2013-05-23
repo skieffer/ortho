@@ -63,6 +63,10 @@ class NonOverlapConstraints : public CompoundConstraint {
                 vpsc::Variables& vars, vpsc::Constraints& gcs,
                 std::vector<vpsc::Rectangle*>& boundingBoxes);
 
+        void setGridMode(bool b, double w = 0, double h = 0) {
+            gridMode = b; gridWidth = w; gridHeight = h;
+        }
+
     private:
         void computeOverlapForShapePairInfo(ShapePairInfo& info,
                 vpsc::Variables vs[]);
@@ -71,6 +75,10 @@ class NonOverlapConstraints : public CompoundConstraint {
         std::map<unsigned, OverlapShapeOffsets> shapeOffsets;
         bool pairInfoListSorted;
         bool initialSortCompleted;
+
+        bool gridMode;
+        double gridWidth;
+        double gridHeight;
 
         // Cluster variables
         size_t clusterVarStartIndex;

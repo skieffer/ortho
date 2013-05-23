@@ -125,7 +125,8 @@ class ShapePairInfo
 NonOverlapConstraints::NonOverlapConstraints(unsigned int priority)
     : CompoundConstraint(vpsc::HORIZONTAL, priority),
       pairInfoListSorted(false),
-      initialSortCompleted(false)
+      initialSortCompleted(false),
+      gridMode(false)
 {
     // All work is done by repeated addShape() calls.
 }
@@ -540,17 +541,24 @@ void NonOverlapConstraints::generateSeparationConstraints(
             varLeft2 = varRight2 = vs[info->varIndex2];
         }
 
+        double gap = half1 + half2;
+        if (gridMode) {
+            double size = dim == vpsc::HORIZONTAL ? gridWidth : gridHeight;
+            // Set gap to smallest multiple of grid size which is <= half1+half2.
+            gap = size * ceil(gap/size);
+        }
+
         if (rect1.overlapD(!dim, &rect2) > 0.0005)
         {
             if (pos1 < pos2)
             {
                 cs.push_back(new vpsc::Constraint(varRight1, varLeft2, 
-                             half1 + half2));
+                             gap));
             }
             else
             {
                 cs.push_back(new vpsc::Constraint(varRight2, varLeft1, 
-                        half1 + half2));
+                        gap));
             }
         }
     }

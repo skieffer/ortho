@@ -527,6 +527,9 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
             priority--;
             cola::NonOverlapConstraints *noc = 
                     new cola::NonOverlapConstraints(priority);
+            if (m_addGridSnapStress) {
+                noc->setGridMode(true,m_snapGridX,m_snapGridY);
+            }
             recGenerateClusterVariablesAndConstraints(vs, priority, 
                     noc, clusterHierarchy, extraConstraints);
             extraConstraints.push_back(noc);
@@ -538,6 +541,9 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         // nodes.
         cola::NonOverlapConstraints *noc = 
                 new cola::NonOverlapConstraints();
+        if (m_addGridSnapStress) {
+            noc->setGridMode(true,m_snapGridX,m_snapGridY);
+        }
         for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
         {
             noc->addShape(i, boundingBoxes[i]->width() / 2,
