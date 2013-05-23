@@ -281,6 +281,7 @@ class Canvas : public QGraphicsScene
 
         void improveOrthogonalTopology(void);
         void inferAndApplyAlignments(void);
+        void initTryAlignments(void);
         void tryAlignments(void);
         void arrangePendants(void);
         void applyFM3(void);
@@ -445,6 +446,8 @@ class Canvas : public QGraphicsScene
         bool m_trying_alignments;
         int m_max_align_tries;
         int m_num_align_tries;
+        int m_max_shape_id;
+        bool * m_align_pairs_tried;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

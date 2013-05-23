@@ -197,7 +197,8 @@ Canvas::Canvas()
       m_why_is_it_triggered_twice(true),
       m_trying_alignments(false),
       m_max_align_tries(180),
-      m_num_align_tries(0)
+      m_num_align_tries(0),
+      m_align_pairs_tried(NULL)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -3761,6 +3762,34 @@ void Canvas::inferAndApplyAlignments()
     restart_graph_layout();
 }
 
+void Canvas::initTryAlignments()
+{
+    // Determine the range of IDs of shapes.
+    int maxID = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        {
+            int id = shape->idString().toInt();
+            maxID = id > maxID ? id : maxID;
+        }
+    }
+    maxID++; // increment, so IDs themselves can be used as indices into array
+    m_max_shape_id = maxID;
+    int size = maxID*maxID;
+
+    if (m_align_pairs_tried) {
+        delete[] m_align_pairs_tried;
+    }
+    m_align_pairs_tried = new bool[size];
+    for (int i = 0; i < size; i++) {
+        m_align_pairs_tried[i] = false;
+    }
+
+    m_num_align_tries = 0;
+    tryAlignments();
+}
+
 void Canvas::tryAlignments()
 {
     m_trying_alignments = false;
@@ -3776,6 +3805,14 @@ void Canvas::tryAlignments()
         {
             ShapeObj *s = conn->getAttachedShapes().first;
             ShapeObj *t = conn->getAttachedShapes().second;
+
+            // Have we tried this pair before?
+            int sid = s->idString().toInt(), tid = t->idString().toInt();
+            int i = sid <= tid ? sid : tid;
+            int j = sid <= tid ? tid : sid;
+            int pairIndex = i*m_max_shape_id + j;
+            if (m_align_pairs_tried[pairIndex]) continue; // do not try a second time
+
             double sx=s->centrePos().x(), sy=s->centrePos().y();
             double tx=t->centrePos().x(), ty=t->centrePos().y();
             double ady=fabs(ty-sy), adx=fabs(tx-sx);
@@ -3790,6 +3827,7 @@ void Canvas::tryAlignments()
                 gdln->setTentative(true);
                 m_trying_alignments = true;
                 m_num_align_tries++;
+                m_align_pairs_tried[pairIndex] = true; // Mark this pair of shapes as "tried".
                 break;
             }
         }
