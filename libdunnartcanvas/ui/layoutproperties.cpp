@@ -234,8 +234,9 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
             this, SIGNAL(optChangedShapeNonoverlapPadding(int)));
 
     // Set initial control values.
-    idealLengthSlider->setSliderPosition(
-            m_canvas->optIdealEdgeLengthModifier() * 100);
+    double ideal_edge_length = m_canvas->optIdealEdgeLengthModifier() * 100;
+    idealLengthSlider->setSliderPosition(ideal_edge_length);
+
 
     double snap_distance = m_canvas->optSnapDistanceModifier();
     snapDistanceSlider->setSliderPosition(snap_distance);
@@ -345,6 +346,7 @@ void LayoutPropertiesDialog::changeDirectedEdgeSeparationModifier(double value)
 void LayoutPropertiesDialog::changeIdealEdgeLength(double value)
 {
     idealLengthSlider->setSliderPosition(value * 100);
+    idealLengthLabel->setText(QString("Ideal connector length: %1").arg(value * 100));
 }
 
 void LayoutPropertiesDialog::changeSnapDistance(double value)

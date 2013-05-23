@@ -1494,6 +1494,7 @@ void Canvas::setOptSnapTo(const bool value)
 void Canvas::setOptGridSnap(const bool value)
 {
     m_opt_grid_snap = value;
+    setOptIdealEdgeLengthModifier(m_opt_snap_grid_width/100.0);
     emit optChangedGridSnap(m_opt_grid_snap);
     fully_restart_graph_layout();
     this->update(combinedViewsRect());
@@ -3832,7 +3833,7 @@ void Canvas::tryAlignments()
     m_trying_alignments = false;
     qDebug() << "Num align tries:" << m_num_align_tries;
     if (m_num_align_tries >= m_max_align_tries) return;
-    double eps = 3;
+    double eps = 10;
     double sig = m_opt_snap_distance_modifier;
     qDebug() << "snap distance:" << sig;
     // For now, try simply aligning neighbours which are not already aligned.
