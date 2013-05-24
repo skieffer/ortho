@@ -4029,11 +4029,13 @@ bool LineSegment::coincidesWith(LineSegment *other, double angleTolerance, doubl
 
 double LineSegment::obliquityScore()
 {
-    // If orthogonal, then zero obliquity.
-    if (angle==0 || angle==90) return 0;
-    // Else put in range from 1 to 89.
+    // Put angle in range from 1 to 89.
     int a = angle > 90 ? angle - 90 : angle;
-    double d = fabs(a-45); // 0 <= d <= 44
+    // If close enough to orthogonal, then zero obliquity.
+    int t = 3;
+    if (angle<=t || angle>=90-t) return 0;
+    // Else base score on distance from 45 deg.
+    double d = fabs(a-45); // 0 <= d <= 45-t
     return 1 + d;
 
 }
