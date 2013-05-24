@@ -198,7 +198,8 @@ Canvas::Canvas()
       m_trying_alignments(false),
       m_max_align_tries(180),
       m_num_align_tries(0),
-      m_align_pairs_tried(NULL)
+      m_align_pairs_tried(NULL),
+      m_most_recent_stress(0)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -3947,41 +3948,41 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
     }
 }
 
-bool LineSegment::intersects(LineSegment other)
+bool LineSegment::intersects(LineSegment *other)
 {
     // If angles are equal, then the segments are not said to intersect.
     // (They may be coincident, but that is another matter.)
-    if (angle==other.angle) return false;
+    if (angle==other->angle) return false;
     // Otherwise the /lines/ intersect at a unique point, and we must say whether
     // that point happens to lie on both /segments/.
-    if (angle==0 || other.angle==0) {
+    if (angle==0 || other->angle==0) {
         // Precisely one of the angles is zero.
         LineSegment *zseg, *nzseg;
         if (angle==0) {
-            zseg = this; nzseg = &other;
+            zseg = this; nzseg = other;
         } else {
-            zseg = &other; nzseg = this;
+            zseg = other; nzseg = this;
         }
         double a = nzseg->intercept, b = zseg->intercept;
         double t = b/nzseg->m_sin, x = a + t*nzseg->m_cos;
         return nzseg->t0<=t && t<=nzseg->t1 && zseg->t0<=x && x<=zseg->t1;
     } else {
         // Neither angle is zero.
-        double a1 = angle, a2 = other.angle;
-        double s1 = m_sin, s2 = other.m_sin;
-        double x1 = intercept, x2 = other.intercept;
+        double a1 = angle, a2 = other->angle;
+        double s1 = m_sin, s2 = other->m_sin;
+        double x1 = intercept, x2 = other->intercept;
         double k = (x1-x2)/sin(a1-a2);
         double u1 = k*s2, u2 = k*s1;
-        return t0<=u1 && u1<=t1 && other.t0<=u2 && u2<=other.t1;
+        return t0<=u1 && u1<=t1 && other->t0<=u2 && u2<=other->t1;
     }
 }
 
-bool LineSegment::coincidesWith(LineSegment other, double angleTolerance, double interceptTolerance)
+bool LineSegment::coincidesWith(LineSegment *other, double angleTolerance, double interceptTolerance)
 {
-    if ( fabs(angle-other.angle) < angleTolerance && fabs(intercept-other.intercept) < interceptTolerance ) {
+    if ( fabs(angle-other->angle) < angleTolerance && fabs(intercept-other->intercept) < interceptTolerance ) {
         // In this case, we consider the /lines/ to be the same, so we must say
         // whether the line /segments/ overlap.
-        double u0 = other.t0, u1 = other.t1;
+        double u0 = other->t0, u1 = other->t1;
         // The question is whether the intervals [t0,t1] and [u0,u1] intersect.
         return (t1>=u0 && u1>=t0);
     } else {
@@ -4019,12 +4020,16 @@ double Canvas::computeOrthoObjective()
     // For now we do the naive quadratic run-time approach. Improve later if needed.
     int m = segs.size();
     int crossings = 0, coincidences = 0;
+
+    double angleTolerance = 3;
+    double interceptTolerance = 3;
+
     for (int i = 0; i+1 < m; i++) {
         LineSegment *s1 = segs.at(i);
         for (int j = i+1; j < m; j++) {
             LineSegment *s2 = segs.at(j);
             if (s1->intersects(s2)) crossings++;
-            if (s1->coincidesWith(s2)) coincidences++;
+            if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
         }
     }
 
@@ -4036,7 +4041,8 @@ double Canvas::computeOrthoObjective()
     double wcr = 1.0;
     double wco = 1.0;
     double wob = 1.0;
-    double score = wcr*crossings + wco*coincidences + wob*obliquity;
+    double wst = 1.0;
+    double score = wcr*crossings + wco*coincidences + wob*obliquity + wst*m_most_recent_stress;
     return score;
 }
 

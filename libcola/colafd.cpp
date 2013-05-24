@@ -124,7 +124,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       //  7: linear V-stress
       //  8: quadraic U-stress
       m_snapStressFunction(8),
-      m_debugLineNo(0)
+      m_debugLineNo(0),
+      m_final_stress(0)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -372,6 +373,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     FILE_LOG(logDEBUG) << *r;
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
+    m_final_stress = stress;
 }
 /**
  * Same as run, but only applies one iteration.  This may be useful

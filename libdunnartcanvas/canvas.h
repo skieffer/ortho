@@ -431,6 +431,7 @@ class Canvas : public QGraphicsScene
         gml::Graph *m_gml_graph;
         bool m_use_gml_clusters;
 
+        double m_most_recent_stress;
         double m_connector_nudge_distance;
         double m_ideal_connector_length;
         double m_flow_separation_modifier;
@@ -585,8 +586,8 @@ class Connector;
 struct LineSegment {
     LineSegment() : connector(NULL) {}
     LineSegment(Connector *conn);
-    bool intersects(LineSegment other);
-    bool coincidesWith(LineSegment other, double angleTolerance, double interceptTolerance);
+    bool intersects(LineSegment *other);
+    bool coincidesWith(LineSegment *other, double angleTolerance, double interceptTolerance);
     double obliquityScore(void);
     Connector *connector;
     // Angles are integers from 0 to 179 inclusive.

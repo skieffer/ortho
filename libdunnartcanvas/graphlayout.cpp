@@ -1328,6 +1328,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     }
     alg.setUnsatisfiableConstraintInfo(&unsatisfiableX,&unsatisfiableY);
     alg.run(true,true);
+    m_canvas->m_most_recent_stress = alg.getFinalStress();
     //alg.outputInstanceToSVG();
 
     //This is creating a segfault:

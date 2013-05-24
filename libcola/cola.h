@@ -577,6 +577,7 @@ public:
     void setSnapStrength(double s) { m_snap_strength = s; }
     void setSnapGridWidth(double w) { m_snapGridX = w; }
     void setSnapGridHeight(double h) { m_snapGridY = h; }
+    double getFinalStress(void) { return m_final_stress; }
 
 private:
     unsigned n; // number of nodes
@@ -632,13 +633,10 @@ private:
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
 
-    // Lagrangian relaxation
+    double m_final_stress;
     vpsc::IncSolver *m_solver;
     double m_tentative_constraint_threshold;
     CompoundConstraint *m_constraintToReject;
-    //
-
-    // Snap Stress
     bool m_addSnapStress;
     bool m_addGridSnapStress;
     double m_snapGridX;
@@ -674,7 +672,7 @@ private:
     //QString writeVADVect(std::valarray<double> v) const;
     //QString writeSparseMatrix(SparseMatrix M, bool linear=false) const;
     int m_debugLineNo;
-    // end Snap Stress
+
 
     friend class topology::ColaTopologyAddon;
 };
