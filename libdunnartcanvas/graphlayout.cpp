@@ -724,6 +724,7 @@ public:
     bool operator()(const double new_stress,
                 valarray<double> & X, valarray<double> & Y)
     {
+        gl.m_canvas->updateStress(new_stress);
         bool ready = false;
         
         while (!ready)
@@ -1328,7 +1329,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     }
     alg.setUnsatisfiableConstraintInfo(&unsatisfiableX,&unsatisfiableY);
     alg.run(true,true);
-    m_canvas->m_most_recent_stress = alg.getFinalStress();
+    //m_canvas->updateStress(alg.getFinalStress());
     //alg.outputInstanceToSVG();
 
     //This is creating a segfault:

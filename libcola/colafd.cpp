@@ -373,7 +373,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     FILE_LOG(logDEBUG) << *r;
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
-    m_final_stress = stress;
+    //m_final_stress = stress;
 }
 /**
  * Same as run, but only applies one iteration.  This may be useful

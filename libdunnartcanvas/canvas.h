@@ -224,6 +224,8 @@ class Canvas : public QGraphicsScene
         double optFlowSeparationModifier(void) const;
         int optShapeNonoverlapPadding(void) const;
         LayeredAlignment optLayeredAlignmentPosition(void) const;
+        double optStressBarMaximum(void) const;
+        double optObliquityBarMaximum(void) const;
 
         bool overlayRouterRawRoutes(void) const;
         bool overlayRouterDisplayRoutes(void) const;
@@ -308,6 +310,7 @@ class Canvas : public QGraphicsScene
         void setOptGridHeightModifier(double modifier);
         void setOptRelaxThresholdModifierFromSlider(int int_modifier);
         void setOptRelaxThresholdModifier(double modifier);
+        void updateStress(double stress);
 
         void setDebugCOLAOutput(const bool value);
         void setOptAutomaticGraphLayout(const bool value);
@@ -376,6 +379,11 @@ class Canvas : public QGraphicsScene
         void optChangedRoutingShapePadding(int padding);
         void optChangedShapeNonoverlapPadding(int padding);
         void optChangedLayeredAlignmentPosition(LayeredAlignment pos);
+        void newStressBarValue(int value);
+        void newCrossingCount(int value);
+        void newCoincidenceCount(int value);
+        void newObliquityBarValue(int value);
+        void newOrthoGoalBarValue(int value);
 
     private slots:
         void processLayoutUpdateEvent(void);
@@ -432,6 +440,9 @@ class Canvas : public QGraphicsScene
         bool m_use_gml_clusters;
 
         double m_most_recent_stress;
+        double m_stress_bar_maximum;
+        double m_obliquity_bar_maximum;
+
         double m_connector_nudge_distance;
         double m_ideal_connector_length;
         double m_flow_separation_modifier;

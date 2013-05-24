@@ -199,7 +199,9 @@ Canvas::Canvas()
       m_max_align_tries(180),
       m_num_align_tries(0),
       m_align_pairs_tried(NULL),
-      m_most_recent_stress(0)
+      m_most_recent_stress(0),
+      m_stress_bar_maximum(500),
+      m_obliquity_bar_maximum(5000)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -1790,6 +1792,16 @@ double Canvas::optRelaxThresholdModifier(void) const
 int Canvas::optConnectorRoundingDistance(void) const
 {
     return m_opt_connector_rounding_distance;
+}
+
+double Canvas::optStressBarMaximum(void) const
+{
+    return m_stress_bar_maximum;
+}
+
+double Canvas::optObliquityBarMaximum(void) const
+{
+    return m_obliquity_bar_maximum;
 }
 
 
@@ -3834,6 +3846,8 @@ void Canvas::tryAlignments()
     m_trying_alignments = false;
     qDebug() << "Num align tries:" << m_num_align_tries;
     if (m_num_align_tries >= m_max_align_tries) return;
+    double score = computeOrthoObjective();
+    qDebug() << "Objective function:" << score;
     double eps = 10;
     double sig = m_opt_snap_distance_modifier;
     qDebug() << "snap distance:" << sig;
@@ -3997,8 +4011,14 @@ double LineSegment::obliquityScore()
     // Else put in range from 1 to 89.
     int a = angle > 90 ? angle - 90 : angle;
     double d = fabs(a-45); // 0 <= d <= 44
-    return 5 + d;
+    return 1 + d;
 
+}
+
+void Canvas::updateStress(double stress) {
+    m_most_recent_stress = stress;
+    int stressBarValue = (int)(round(stress));
+    emit newStressBarValue(stressBarValue);
 }
 
 double Canvas::computeOrthoObjective()
@@ -4015,6 +4035,7 @@ double Canvas::computeOrthoObjective()
             obliquity += s->obliquityScore();
         }
     }
+    emit newObliquityBarValue( (int)(round(obliquity)) );
 
     // Compare each pair of edges to see whether they cross and/or are coincident.
     // For now we do the naive quadratic run-time approach. Improve later if needed.
@@ -4032,17 +4053,21 @@ double Canvas::computeOrthoObjective()
             if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
         }
     }
+    emit newCrossingCount(crossings);
+    emit newCoincidenceCount(coincidences);
 
     // Clean up
     foreach (LineSegment *s, segs) delete s;
     segs.clear();
 
     // Compute the score.
-    double wcr = 1.0;
-    double wco = 1.0;
+    double wcr = 22.0;
+    double wco = 45.0;
     double wob = 1.0;
     double wst = 1.0;
+    qDebug() << "Stress:" << m_most_recent_stress;
     double score = wcr*crossings + wco*coincidences + wob*obliquity + wst*m_most_recent_stress;
+    emit newOrthoGoalBarValue( (int)(round(score)) );
     return score;
 }
 

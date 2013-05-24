@@ -140,6 +140,11 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
         disconnect(relaxThresholdSlider, 0, m_canvas, 0);
         disconnect(flowSeparationSlider, 0, m_canvas, 0);
         disconnect(flowDirectionDial, 0, m_canvas, 0);
+        disconnect(stressBar, 0, m_canvas, 0);
+        disconnect(obliquityBar, 0, m_canvas, 0);
+        disconnect(crossingsBar, 0, m_canvas, 0);
+        disconnect(coincidencesBar, 0, m_canvas, 0);
+        disconnect(orthoGoalBar, 0, m_canvas, 0);
     }
     m_canvas = canvas;
 
@@ -233,10 +238,30 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     connect(m_canvas, SIGNAL(optChangedShapeNonoverlapPadding(int)),
             this, SIGNAL(optChangedShapeNonoverlapPadding(int)));
 
+    connect(m_canvas, SIGNAL(newStressBarValue(int)),
+            stressBar, SLOT(setValue(int)));
+
+    connect(m_canvas, SIGNAL(newObliquityBarValue(int)),
+            obliquityBar, SLOT(setValue(int)));
+
+    connect(m_canvas, SIGNAL(newCrossingCount(int)),
+            crossingsBar, SLOT(setValue(int)));
+
+    connect(m_canvas, SIGNAL(newCoincidenceCount(int)),
+            coincidencesBar, SLOT(setValue(int)));
+
+    connect(m_canvas, SIGNAL(newOrthoGoalBarValue(int)),
+            orthoGoalBar, SLOT(setValue(int)));
+
     // Set initial control values.
+    int max_stress = m_canvas->optStressBarMaximum();
+    stressBar->setMaximum(max_stress);
+
+    int max_obliquity = m_canvas->optObliquityBarMaximum();
+    obliquityBar->setMaximum(max_obliquity);
+
     double ideal_edge_length = m_canvas->optIdealEdgeLengthModifier() * 100;
     idealLengthSlider->setSliderPosition(ideal_edge_length);
-
 
     double snap_distance = m_canvas->optSnapDistanceModifier();
     snapDistanceSlider->setSliderPosition(snap_distance);
