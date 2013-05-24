@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>181</width>
-    <height>357</height>
+    <height>390</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -246,6 +246,13 @@
           <widget class="QPushButton" name="tryAlignButton">
            <property name="text">
             <string>Try Alignments</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="orthoGoalButton">
+           <property name="text">
+            <string>Eval Ortho Goal</string>
            </property>
           </widget>
          </item>

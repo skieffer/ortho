@@ -74,6 +74,7 @@ void CreateAlignmentDialog::changeCanvas(Canvas *canvas)
     connect(inferAlignButton, SIGNAL(clicked()), m_canvas, SLOT(inferAndApplyAlignments()));
     connect(tryAlignButton, SIGNAL(clicked()), m_canvas, SLOT(initTryAlignments()));
     connect(pendantsButton, SIGNAL(clicked()), m_canvas, SLOT(arrangePendants()));
+    connect(orthoGoalButton, SIGNAL(clicked()), m_canvas, SLOT(computeOrthoObjective()));
 }
 
 }

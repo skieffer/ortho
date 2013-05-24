@@ -196,6 +196,13 @@ class Connector : public CanvasItem
         unsigned m_multiedge_index;
         OrthogonalConstraint m_orthogonal_constraint;
 
+        QSet<Connector*> m_intersectors;
+        QSet<Connector*> m_coinciders;
+        void addIntersector(Connector *conn);
+        void removeIntersector(Connector *conn);
+        void addCoincider(Connector *conn);
+        void removeCoincider(Connector *conn);
+
     public slots:
         void swapDirection(void);
 

@@ -1528,6 +1528,16 @@ void Connector::paint(QPainter *painter,
         }
     }
 
+    if (!m_intersectors.empty()) {
+        m_colour = Qt::red;
+    } else {
+        if (!m_coinciders.empty()) {
+            m_colour = Qt::green;
+        } else {
+            m_colour = Qt::black;
+        }
+    }
+
     QPen pen(m_colour);
     if (m_is_dotted)
     {
@@ -1562,6 +1572,41 @@ void Connector::paint(QPainter *painter,
     }
 }
 
+void Connector::addIntersector(Connector *conn)
+{
+    m_intersectors.insert(conn);
+    update();
+    //setColour(Qt::red);
+}
+
+void Connector::removeIntersector(Connector *conn)
+{
+    m_intersectors.remove(conn);
+    update();
+    /*
+    if (m_intersectors.empty()) {
+        if (m_coinciders.empty()) {
+            setColour(Qt::black);
+        } else {
+            setColour(Qt::green);
+        }
+    }
+    */
+}
+
+void Connector::addCoincider(Connector *conn)
+{
+    m_coinciders.insert(conn);
+    update();
+    //if (m_intersectors.empty()) setColour(Qt::green);
+}
+
+void Connector::removeCoincider(Connector *conn)
+{
+    m_coinciders.remove(conn);
+    update();
+    //if (m_coinciders.empty() && m_intersectors.empty()) setColour(Qt::black);
+}
 
 QAction *Connector::buildAndExecContextMenu(QGraphicsSceneMouseEvent *event,
         QMenu& menu)

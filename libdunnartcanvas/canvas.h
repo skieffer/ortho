@@ -263,8 +263,6 @@ class Canvas : public QGraphicsScene
         void repositionAndShowSelectionResizeHandles(
                 const bool calculatePosition = false);
 
-        double computeOrthoObjective(void);
-
     public slots:
         void bringToFront(void);
         void sendToBack(void);
@@ -351,6 +349,8 @@ class Canvas : public QGraphicsScene
 
         bool inSelectionMode(void) const;
         void postRoutingRequiredEvent(void);
+
+        double computeOrthoObjective(void);
 
     signals:
         void diagramFilenameChanged(const QFileInfo& title);
@@ -597,7 +597,7 @@ class Connector;
 struct LineSegment {
     LineSegment() : connector(NULL) {}
     LineSegment(Connector *conn);
-    bool intersects(LineSegment *other);
+    bool intersects(LineSegment *other, double tolerance);
     bool coincidesWith(LineSegment *other, double angleTolerance, double interceptTolerance);
     double obliquityScore(void);
     Connector *connector;

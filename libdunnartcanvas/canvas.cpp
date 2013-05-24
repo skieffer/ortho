@@ -3890,7 +3890,7 @@ void Canvas::tryAlignments()
                 }
             }
 
-            bool doOverlapPrevention = true;
+            bool doOverlapPrevention = false;
             if (!doOverlapPrevention) {
                 plan = 0;
                 if (adx <= sig || ady <= sig) {
@@ -3962,14 +3962,18 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
     }
 }
 
-bool LineSegment::intersects(LineSegment *other)
+bool LineSegment::intersects(LineSegment *other, double tolerance)
 {
+    bool ans = false;
     // If angles are equal, then the segments are not said to intersect.
     // (They may be coincident, but that is another matter.)
-    if (angle==other->angle) return false;
+    if (angle==other->angle) {
+        ans = false;
+    }
     // Otherwise the /lines/ intersect at a unique point, and we must say whether
     // that point happens to lie on both /segments/.
-    if (angle==0 || other->angle==0) {
+    // (And it should lie sufficiently within each segment, according to passed tolerance.)
+    else if (angle==0 || other->angle==0) {
         // Precisely one of the angles is zero.
         LineSegment *zseg, *nzseg;
         if (angle==0) {
@@ -3979,7 +3983,8 @@ bool LineSegment::intersects(LineSegment *other)
         }
         double a = nzseg->intercept, b = zseg->intercept;
         double t = b/nzseg->m_sin, x = a + t*nzseg->m_cos;
-        return nzseg->t0<=t && t<=nzseg->t1 && zseg->t0<=x && x<=zseg->t1;
+        double c = 3*tolerance;
+        ans = nzseg->t0+c<=t && t+c<=nzseg->t1 && zseg->t0+c<=x && x+c<=zseg->t1;
     } else {
         // Neither angle is zero.
         double a1 = angle, a2 = other->angle;
@@ -3987,21 +3992,39 @@ bool LineSegment::intersects(LineSegment *other)
         double x1 = intercept, x2 = other->intercept;
         double k = (x1-x2)/sin(a1-a2);
         double u1 = k*s2, u2 = k*s1;
-        return t0<=u1 && u1<=t1 && other->t0<=u2 && u2<=other->t1;
+        double c = 3*tolerance;
+        ans = t0+c<=u1 && u1+c<=t1 && other->t0+c<=u2 && u2+c<=other->t1;
     }
+    if (ans) {
+        connector->addIntersector(other->connector);
+        other->connector->addIntersector(connector);
+    } else {
+        connector->removeIntersector(other->connector);
+        other->connector->removeIntersector(connector);
+    }
+    return ans;
 }
 
 bool LineSegment::coincidesWith(LineSegment *other, double angleTolerance, double interceptTolerance)
 {
+    bool ans = false;
     if ( fabs(angle-other->angle) < angleTolerance && fabs(intercept-other->intercept) < interceptTolerance ) {
         // In this case, we consider the /lines/ to be the same, so we must say
         // whether the line /segments/ overlap.
         double u0 = other->t0, u1 = other->t1;
-        // The question is whether the intervals [t0,t1] and [u0,u1] intersect.
-        return (t1>=u0 && u1>=t0);
-    } else {
-        return false;
+        // The question is whether the intervals (t0,t1) and (u0,u1) intersect.
+        // We should also ensure some fair bit of overlap.
+        //return (t1>u0 && u1>t0);
+        ans = u0 + 3*interceptTolerance < t1 && t0 + 3*interceptTolerance < u1;
     }
+    if (ans) {
+        connector->addCoincider(other->connector);
+        other->connector->addCoincider(connector);
+    } else {
+        connector->removeCoincider(other->connector);
+        other->connector->removeCoincider(connector);
+    }
+    return ans;
 }
 
 double LineSegment::obliquityScore()
@@ -4032,6 +4055,7 @@ double Canvas::computeOrthoObjective()
         if (Connector *conn = dynamic_cast<Connector*>(item))
         {
             LineSegment *s = new LineSegment(conn);
+            segs.append(s);
             obliquity += s->obliquityScore();
         }
     }
@@ -4049,7 +4073,9 @@ double Canvas::computeOrthoObjective()
         LineSegment *s1 = segs.at(i);
         for (int j = i+1; j < m; j++) {
             LineSegment *s2 = segs.at(j);
-            if (s1->intersects(s2)) crossings++;
+            if (s1->intersects(s2,interceptTolerance)) {
+                crossings++;
+            }
             if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
         }
     }
