@@ -3976,7 +3976,29 @@ bool LineSegment::intersects(LineSegment other)
     }
 }
 
+bool LineSegment::coincidesWith(LineSegment other, double angleTolerance, double interceptTolerance)
+{
+    if ( fabs(angle-other.angle) < angleTolerance && fabs(intercept-other.intercept) < interceptTolerance ) {
+        // In this case, we consider the /lines/ to be the same, so we must say
+        // whether the line /segments/ overlap.
+        double u0 = other.t0, u1 = other.t1;
+        // The question is whether the intervals [t0,t1] and [u0,u1] intersect.
+        return (t1>=u0 && u1>=t0);
+    } else {
+        return false;
+    }
+}
 
+double LineSegment::obliquityScore()
+{
+    // If orthogonal, then zero obliquity.
+    if (angle==0 || angle==90) return 0;
+    // Else put in range from 1 to 89.
+    int a = angle > 90 ? angle - 90 : angle;
+    double d = fabs(a-45); // 0 <= d <= 44
+    return 5 + d;
+
+}
 
 double Canvas::computeOrthoObjective()
 {

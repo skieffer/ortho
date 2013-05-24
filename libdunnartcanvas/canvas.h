@@ -586,7 +586,7 @@ struct LineSegment {
     LineSegment() : connector(NULL) {}
     LineSegment(Connector *conn);
     bool intersects(LineSegment other);
-    bool coincidesWith(LineSegment other, double tolerance);
+    bool coincidesWith(LineSegment other, double angleTolerance, double interceptTolerance);
     double obliquityScore(void);
     Connector *connector;
     // Angles are integers from 0 to 179 inclusive.
