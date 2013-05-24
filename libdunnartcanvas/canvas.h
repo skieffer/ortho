@@ -261,6 +261,8 @@ class Canvas : public QGraphicsScene
         void repositionAndShowSelectionResizeHandles(
                 const bool calculatePosition = false);
 
+        double computeOrthoObjective(void);
+
     public slots:
         void bringToFront(void);
         void sendToBack(void);
@@ -576,6 +578,30 @@ class ConstraintRejectedEvent : public QEvent
         {
         }
         Guideline *m_guideline;
+};
+
+class Connector;
+
+struct LineSegment {
+    LineSegment() : connector(NULL) {}
+    LineSegment(Connector *conn);
+    bool intersects(LineSegment other);
+    bool coincidesWith(LineSegment other, double tolerance);
+    double obliquityScore(void);
+    Connector *connector;
+    // Angles are integers from 0 to 179 inclusive.
+    int angle;
+    double m_cos;
+    double m_sin;
+    // Intercept is an x-intercept unless angle == 0,
+    // in which case it is a y-intercept.
+    double intercept;
+    // t0 and t1 are the parameters giving the
+    // start and end points of the line segment,
+    // if the line is parameterized by motion at
+    // unit speed in angle direction from intercept point.
+    double t0;
+    double t1;
 };
 
 extern QRectF diagramBoundingRect(const QList<CanvasItem *>& list);

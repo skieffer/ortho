@@ -3909,6 +3909,115 @@ void Canvas::tryAlignments()
     }
 }
 
+LineSegment::LineSegment(Connector *conn) : connector(conn)
+{
+    ShapeObj *s = conn->getAttachedShapes().first;
+    ShapeObj *t = conn->getAttachedShapes().second;
+    double sx=s->centrePos().x(), sy=s->centrePos().y();
+    double tx=t->centrePos().x(), ty=t->centrePos().y();
+    // If the points are coincident, set angle to -1 and quit.
+    if (sx==tx && sy==ty) { angle = -1; return; }
+    double a;
+    if (ty>sy) {
+        a = atan2(ty-sy,tx-sx);
+    } else if (ty<sy) {
+        a = atan2(sy-ty,sx-tx);
+    } else {
+        a = 0;
+    }
+    angle = (int)(round(a*180/3.1415927)) % 180;
+    double rad = angle*3.1415926/180;
+    m_cos = cos(rad);
+    m_sin = sin(rad);
+    if (angle==0) {
+        intercept = (sy+ty)/2.0;
+        t0 = sx < tx ? sx : tx;
+        t1 = sx < tx ? tx : sx;
+    } else if (angle==90) {
+        intercept = (sx+tx)/2.0;
+        t0 = sy < ty ? sy : ty;
+        t1 = sy < ty ? ty : sy;
+    } else {
+        intercept = sx - sy*(tx-sx)/(ty-sy);
+        a = intercept;
+        double st = sqrt((sx-a)*(sx-a)+sy*sy) * (sy < 0 ? -1 : 1);
+        double tt = sqrt((tx-a)*(tx-a)+ty*ty) * (ty < 0 ? -1 : 1);
+        t0 = st < tt ? st : tt;
+        t1 = st < tt ? tt : st;
+    }
+}
+
+bool LineSegment::intersects(LineSegment other)
+{
+    // If angles are equal, then the segments are not said to intersect.
+    // (They may be coincident, but that is another matter.)
+    if (angle==other.angle) return false;
+    // Otherwise the /lines/ intersect at a unique point, and we must say whether
+    // that point happens to lie on both /segments/.
+    if (angle==0 || other.angle==0) {
+        // Precisely one of the angles is zero.
+        LineSegment *zseg, *nzseg;
+        if (angle==0) {
+            zseg = this; nzseg = &other;
+        } else {
+            zseg = &other; nzseg = this;
+        }
+        double a = nzseg->intercept, b = zseg->intercept;
+        double t = b/nzseg->m_sin, x = a + t*nzseg->m_cos;
+        return nzseg->t0<=t && t<=nzseg->t1 && zseg->t0<=x && x<=zseg->t1;
+    } else {
+        // Neither angle is zero.
+        double a1 = angle, a2 = other.angle;
+        double s1 = m_sin, s2 = other.m_sin;
+        double x1 = intercept, x2 = other.intercept;
+        double k = (x1-x2)/sin(a1-a2);
+        double u1 = k*s2, u2 = k*s1;
+        return t0<=u1 && u1<=t1 && other.t0<=u2 && u2<=other.t1;
+    }
+}
+
+
+
+double Canvas::computeOrthoObjective()
+{
+    // Build lists of shapes and connectors, and map from each shape to list of all of its neighbours.
+    QList<ShapeObj*> shapes;
+    QMap<ShapeObj*,ShapeObj*> nbrs;
+    QList<Connector*> conns;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        {
+            shapes.append(shape);
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            conns.append(conn);
+            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
+            nbrs.insertMulti(endpts.first,endpts.second);
+            nbrs.insertMulti(endpts.second,endpts.first);
+        }
+    }
+
+    // Compare each pair of edges to see whether they cross and/or are coincident.
+    // Meanwhile, check their angles and penalize for obliquity.
+    // For now we do the naive quadratic run-time approach. Improve later if needed.
+    int m = conns.size();
+    for (int i = 0; i+1 < m; i++) {
+        Connector *e1 = conns.at(i);
+        ShapeObj *s1 = e1->getAttachedShapes().first, *t1 = e1->getAttachedShapes().second;
+        double s1x=s1->centrePos().x(), s1y=s1->centrePos().y(), t1x=t1->centrePos().x(), t1y=t1->centrePos().y();
+        for (int j = i+1; j < m; j++) {
+            Connector *e2 = conns.at(j);
+            ShapeObj *s2 = e2->getAttachedShapes().first, *t2 = e2->getAttachedShapes().second;
+            double s2x=s2->centrePos().x(), s2y=s2->centrePos().y(), t2x=t2->centrePos().x(), t2y=t2->centrePos().y();
+            //
+        }
+    }
+
+    return 0;
+}
+
 void Canvas::arrangePendants()
 {
     // Why does this method get called twice when we press the button?
