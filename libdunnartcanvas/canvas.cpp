@@ -4002,42 +4002,42 @@ double LineSegment::obliquityScore()
 
 double Canvas::computeOrthoObjective()
 {
-    // Build lists of shapes and connectors, and map from each shape to list of all of its neighbours.
-    QList<ShapeObj*> shapes;
-    QMap<ShapeObj*,ShapeObj*> nbrs;
-    QList<Connector*> conns;
+    // Build a LineSegment for each Connector.
+    // Sum obliquity now.
+    QList<LineSegment*> segs;
+    double obliquity = 0;
     foreach (CanvasItem *item, items())
     {
-        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        if (Connector *conn = dynamic_cast<Connector*>(item))
         {
-            shapes.append(shape);
-        }
-        else if (Connector *conn = dynamic_cast<Connector*>(item))
-        {
-            conns.append(conn);
-            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
-            nbrs.insertMulti(endpts.first,endpts.second);
-            nbrs.insertMulti(endpts.second,endpts.first);
+            LineSegment *s = new LineSegment(conn);
+            obliquity += s->obliquityScore();
         }
     }
 
     // Compare each pair of edges to see whether they cross and/or are coincident.
-    // Meanwhile, check their angles and penalize for obliquity.
     // For now we do the naive quadratic run-time approach. Improve later if needed.
-    int m = conns.size();
+    int m = segs.size();
+    int crossings = 0, coincidences = 0;
     for (int i = 0; i+1 < m; i++) {
-        Connector *e1 = conns.at(i);
-        ShapeObj *s1 = e1->getAttachedShapes().first, *t1 = e1->getAttachedShapes().second;
-        double s1x=s1->centrePos().x(), s1y=s1->centrePos().y(), t1x=t1->centrePos().x(), t1y=t1->centrePos().y();
+        LineSegment *s1 = segs.at(i);
         for (int j = i+1; j < m; j++) {
-            Connector *e2 = conns.at(j);
-            ShapeObj *s2 = e2->getAttachedShapes().first, *t2 = e2->getAttachedShapes().second;
-            double s2x=s2->centrePos().x(), s2y=s2->centrePos().y(), t2x=t2->centrePos().x(), t2y=t2->centrePos().y();
-            //
+            LineSegment *s2 = segs.at(j);
+            if (s1->intersects(s2)) crossings++;
+            if (s1->coincidesWith(s2)) coincidences++;
         }
     }
 
-    return 0;
+    // Clean up
+    foreach (LineSegment *s, segs) delete s;
+    segs.clear();
+
+    // Compute the score.
+    double wcr = 1.0;
+    double wco = 1.0;
+    double wob = 1.0;
+    double score = wcr*crossings + wco*coincidences + wob*obliquity;
+    return score;
 }
 
 void Canvas::arrangePendants()
