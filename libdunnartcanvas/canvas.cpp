@@ -3890,7 +3890,7 @@ void Canvas::tryAlignments()
                 }
             }
 
-            bool doOverlapPrevention = false;
+            bool doOverlapPrevention = true;
             if (!doOverlapPrevention) {
                 plan = 0;
                 if (adx <= sig || ady <= sig) {

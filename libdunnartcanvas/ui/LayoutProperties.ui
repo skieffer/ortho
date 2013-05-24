@@ -795,7 +795,7 @@ Manual layout</string>
          </sizepolicy>
         </property>
         <property name="maximum">
-         <number>20</number>
+         <number>50</number>
         </property>
         <property name="value">
          <number>0</number>
@@ -815,7 +815,7 @@ Manual layout</string>
       <item>
        <widget class="QProgressBar" name="coincidencesBar">
         <property name="maximum">
-         <number>20</number>
+         <number>30</number>
         </property>
         <property name="value">
          <number>0</number>

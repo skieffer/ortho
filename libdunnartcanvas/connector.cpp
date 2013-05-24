@@ -1528,14 +1528,22 @@ void Connector::paint(QPainter *painter,
         }
     }
 
+    int c = 0;
     if (!m_intersectors.empty()) {
-        m_colour = Qt::red;
-    } else {
-        if (!m_coinciders.empty()) {
-            m_colour = Qt::green;
-        } else {
-            m_colour = Qt::black;
-        }
+        c += 1;
+    }
+    if (!m_coinciders.empty()) {
+        c += 2;
+    }
+    switch (c) {
+    case 0:
+        m_colour = Qt::black; break;
+    case 1:
+        m_colour = Qt::red; break;
+    case 2:
+        m_colour = Qt::green; break;
+    case 3:
+        m_colour = Qt::blue; break;
     }
 
     QPen pen(m_colour);
