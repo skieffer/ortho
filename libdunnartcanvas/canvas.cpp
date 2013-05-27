@@ -3987,13 +3987,25 @@ bool LineSegment::intersects(LineSegment *other, double tolerance)
         ans = nzseg->t0+c<=t && t+c<=nzseg->t1 && zseg->t0+c<=x && x+c<=zseg->t1;
     } else {
         // Neither angle is zero.
-        double a1 = angle, a2 = other->angle;
-        double s1 = m_sin, s2 = other->m_sin;
+        // Compute the parameters u1 and u2 for the intersection point.
+        double u1, u2;
+        // Compare x-intercepts.
         double x1 = intercept, x2 = other->intercept;
-        double k = (x1-x2)/sin(a1-a2);
-        double u1 = k*s2, u2 = k*s1;
+        LineSegment *left, *right;
+        double delta;
+        if (x1 <= x2) {
+            left = this; right = other;
+            delta = x2-x1;
+        } else {
+            right = this; left = other;
+            delta = x1-x2;
+        }
+        double a1 = left->angle, a2 = right->angle;
+        double s1 = left->m_sin, s2 = right->m_sin;
+        double k = delta/sin(a2-a1);
+        u1 = k*s2; u2 = k*s1;
         double c = 3*tolerance;
-        ans = t0+c<=u1 && u1+c<=t1 && other->t0+c<=u2 && u2+c<=other->t1;
+        ans = left->t0+c<=u1 && u1+c<=left->t1 && right->t0+c<=u2 && u2+c<=right->t1;
     }
     if (ans) {
         connector->addIntersector(other->connector);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>237</width>
-    <height>942</height>
+    <height>975</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>237</width>
-    <height>933</height>
+    <height>975</height>
    </size>
   </property>
   <property name="allowedAreas">
@@ -396,7 +396,7 @@ Manual layout</string>
                <number>5</number>
               </property>
               <property name="maximum">
-               <number>50</number>
+               <number>100</number>
               </property>
               <property name="singleStep">
                <number>1</number>
@@ -405,7 +405,7 @@ Manual layout</string>
                <number>10</number>
               </property>
               <property name="value">
-               <number>10</number>
+               <number>50</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -430,6 +430,9 @@ Manual layout</string>
               </property>
               <property name="maximum">
                <number>100</number>
+              </property>
+              <property name="value">
+               <number>20</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -469,7 +472,7 @@ Manual layout</string>
                <number>50</number>
               </property>
               <property name="value">
-               <number>50</number>
+               <number>100</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -502,7 +505,7 @@ Manual layout</string>
                <number>50</number>
               </property>
               <property name="value">
-               <number>50</number>
+               <number>100</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
