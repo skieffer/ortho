@@ -4006,6 +4006,13 @@ bool LineSegment::intersects(LineSegment *other, double tolerance)
         u1 = k*s2; u2 = k*s1;
         double c = 3*tolerance;
         ans = left->t0+c<=u1 && u1+c<=left->t1 && right->t0+c<=u2 && u2+c<=right->t1;
+
+        bool DEBUG = true;
+        if (ans && DEBUG) {
+            ShapeObj *sh = this->connector->getAttachedShapes().first;
+            qDebug() << "intersection!";
+        }
+
     }
     if (ans) {
         connector->addIntersector(other->connector);
