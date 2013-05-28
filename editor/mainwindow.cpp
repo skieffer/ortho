@@ -204,6 +204,10 @@ MainWindow::MainWindow(Application *app)
     CanvasView *canvasview = m_tab_widget->currentCanvasView();
     Canvas *canvas = m_tab_widget->currentCanvas();
 
+    m_action_auto_align_selection = new QAction(tr("Auto-align Selection"), this);
+    connect(m_action_auto_align_selection, SIGNAL(triggered()),
+            m_tab_widget, SLOT(alignSelection()));
+
     // Create statusBar, and assign it to the canvas.
     canvas->setStatusBar(statusBar());
 
@@ -261,6 +265,7 @@ MainWindow::MainWindow(Application *app)
 
     m_layout_menu = menuBar()->addMenu("Layout");
     m_tab_widget->addLayoutMenuActions(m_layout_menu);
+    m_layout_menu->addAction(m_action_auto_align_selection);
     
     m_edit_toolbar = addToolBar(tr("Edit toolbar"));
     m_edit_toolbar->setIconSize(QSize(24, 24));

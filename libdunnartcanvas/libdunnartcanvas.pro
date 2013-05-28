@@ -15,11 +15,11 @@ include(../common_options.qmake)
 
 include(qtpropertybrowser/qtpropertybrowser.pri)
 
-graphviz {
-	PKGCONFIG += libgvc
+packagesExist(libgvc) {
+        PKGCONFIG += libgvc libcgraph
 }
-!graphviz {
-	DEFINES += NOGRAPHVIZ
+!packagesExist(libgvc) {
+        DEFINES += NOGRAPHVIZ
 }
 
 win32 {

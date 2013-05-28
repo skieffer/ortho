@@ -39,6 +39,7 @@
 #include "libdunnartcanvas/canvas.h"
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/pluginfileiofactory.h"
+#include "libdunnartcanvas/align3.h"
 
 namespace dunnart {
 
@@ -543,6 +544,11 @@ bool CanvasTabWidget::tabCloseRequested(int index)
     setTabsClosable(count() > 1);
 
     return true;
+}
+
+void CanvasTabWidget::alignSelection(void)
+{
+    autoAlignSelection(this->currentCanvas());
 }
 
 void CanvasTabWidget::addDebugOverlayMenuActions(QMenu *overlay_menu)

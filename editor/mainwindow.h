@@ -117,6 +117,7 @@ class MainWindow : public QMainWindow
         QAction *m_action_open_recent_file[MAX_RECENT_FILES];
         QAction *m_action_recent_file_separator;
         QAction *m_action_clear_recent_files;
+        QAction *m_action_auto_align_selection;
 
         QAction *m_about_action;
         QAction *m_homepage_action;

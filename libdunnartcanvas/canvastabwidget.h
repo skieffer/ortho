@@ -72,6 +72,7 @@ public slots:
     bool closeAllRequest(void);
     void hideEditingControls(const bool hidden);
     void currentCanvasEditModeChanged(const int mode);
+    void alignSelection(void);
 
 private slots:
     void setCanvasEditModeFromAction(QAction *action);
