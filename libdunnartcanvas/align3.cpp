@@ -36,6 +36,7 @@
 #include <queue>
 #include <deque>
 
+#include <cgraph.h>
 #include <gvc.h>
 
 #include "libdunnartcanvas/align3.h"
@@ -117,10 +118,10 @@ bool on_both_segments(double xs, double ys, int p[2][2][2])
 bool on_both_segments2(double xs, double ys, int p[2][2][2])
 {
     return on_both_segments(xs, ys, p) &&
-               ((   xs > std::min(p[0][0][0], p[0][1][0]) && xs < std::max(p[0][0][0], p[0][1][0])
-               || ys > std::min(p[0][0][1], p[0][1][1]) && ys < std::max(p[0][0][1], p[0][1][1]))
-               || (xs > std::min(p[1][0][0], p[1][1][0]) && xs < std::max(p[1][0][0], p[1][1][0])
-               || ys > std::min(p[1][0][1], p[1][1][1]) && ys < std::max(p[1][0][1], p[1][1][1]))
+               ((   (xs > std::min(p[0][0][0], p[0][1][0]) && xs < std::max(p[0][0][0], p[0][1][0]))
+               || (ys > std::min(p[0][0][1], p[0][1][1]) && ys < std::max(p[0][0][1], p[0][1][1])))
+               || ((xs > std::min(p[1][0][0], p[1][1][0]) && xs < std::max(p[1][0][0], p[1][1][0]))
+               || (ys > std::min(p[1][0][1], p[1][1][1]) && ys < std::max(p[1][0][1], p[1][1][1])))
                    );
 
 }
@@ -140,10 +141,10 @@ bool intersection(int p[2][2][2], bool common_node)
 
     if (count == 3)
     {
-        printf("(%d, %d)->(%d,%d), (%d,%d)->(%d,%d): ", p[0][0][0], p[0][0][1], p[0][1][0], p[0][1][1], p[1][0][0], p[1][0][1], p[1][1][0], p[1][1][1]);
+        qDebug("(%d, %d)->(%d,%d), (%d,%d)->(%d,%d): ", p[0][0][0], p[0][0][1], p[0][1][0], p[0][1][1], p[1][0][0], p[1][0][1], p[1][1][0], p[1][1][1]);
         if (p[0][0][0] == 2 && p[0][0][1] == 6 && p[0][1][0] == 2 && p[0][1][1] == 5 && p[1][0][0] == 4 && p[1][0][1] == 8 && p[1][1][0] == 1 && p[1][1][1] == 6)
         {
-            printf("this is the one...\n");
+            qDebug("this is the one...\n");
         }
     }
     if (p[0][1][0] - p[0][0][0] == 0)
@@ -152,7 +153,7 @@ bool intersection(int p[2][2][2], bool common_node)
         {
 
             //intersection only if same line and segments overlap
-            bool result =  (p[0][0][0] == p[1][0][0]) && on_both_segments2(p[0][0][0], p[0][0][1], p)
+            bool result =  ((p[0][0][0] == p[1][0][0]) && on_both_segments2(p[0][0][0], p[0][0][1], p))
             || on_both_segments2(p[0][1][0], p[0][1][1], p)
             || on_both_segments2(p[1][0][0], p[1][0][1], p)
             || on_both_segments2(p[1][1][0], p[1][1][1], p);
@@ -162,7 +163,7 @@ bool intersection(int p[2][2][2], bool common_node)
                                                           ||(p[1][0][1] >= std::min(p[0][0][1], p[0][1][1]) && p[1][0][1] <= std::max(p[0][0][1], p[0][1][1]))
                                                           || (p[1][1][1] >= std::min(p[0][0][1], p[0][1][1]) && p[1][1][1] <= std::max(p[0][0][1], p[0][1][1])));*/
             if (count==3)
-                printf("%s(both vert)\n", result?"TRUE":"FALSE");
+                qDebug("%s(both vert)\n", result?"TRUE":"FALSE");
             return result;
         }
         else
@@ -193,22 +194,22 @@ bool intersection(int p[2][2][2], bool common_node)
         if (m1 == m2)    //parallel lines
         {
             if (count==3 && m1==0 && m2==0)
-                printf("...parallel horizontal lines...");
+                qDebug("...parallel horizontal lines...");
             if (c1==c2)
             {
                 if (count==3 && m1==0 && m2==0)
-                    printf("...same parallels horizontal lines...");
+                    qDebug("...same parallels horizontal lines...");
                 //parallel lines... intersect if any end of a segment lies on the other segment
                 bool result = on_both_segments2(p[0][0][0], p[0][0][1], p)
                               || on_both_segments2(p[0][1][0], p[0][1][1], p)
                               || on_both_segments2(p[1][0][0], p[1][0][1], p)
                               || on_both_segments2(p[1][1][0], p[1][1][1], p);
-                if (count==3) printf("%s(parallel same lines)\n", result?"TRUE":"FALSE");
+                if (count==3) qDebug("%s(parallel same lines)\n", result?"TRUE":"FALSE");
                 return result;
             }
             else
             {
-                if (count==3) printf("FALSE (different parallel lines)\n");
+                if (count==3) qDebug("FALSE (different parallel lines)\n");
                 return false;
             }
         }
@@ -219,7 +220,7 @@ bool intersection(int p[2][2][2], bool common_node)
     //if this point is reached, the two lines intersection, simply check whether the intersection is on both line segments
     bool result = on_both_segments(xs, ys, p) && !common_node;
     if (count==3)
-        printf("%s\n", (result ? "TRUE" : "FALSE"));
+        qDebug("%s\n", (result ? "TRUE" : "FALSE"));
     return result;
 }
 
@@ -228,7 +229,7 @@ bool intersection(int p[2][2][2], bool common_node)
 int edge_crossings(Canvas *canvas, Agnode_t *n, int i, int j, Agraph_t* gv, std::map<Agnode_t*, ShapeObj*> &dunnart_nodes, std::map<ShapeObj*, Agnode_t*> &gv_nodes, Grid &grid)
 {
     if (count == 3)
-        printf("%s!\n", dunnart_nodes[n]->getName());
+        qDebug("%s!\n", qPrintable(dunnart_nodes[n]->getLabel()));
 
     //outer/inner edge   start/end    i/j
     int p[2][2][2];
@@ -246,7 +247,7 @@ int edge_crossings(Canvas *canvas, Agnode_t *n, int i, int j, Agraph_t* gv, std:
                 Connector *conn = dynamic_cast<Connector *>(canvas_items.at(i));
         if (conn)
         {  
-            std::pair<ShapeObj *, ShapeObj *> attachees = 
+            QPair<ShapeObj *, ShapeObj *> attachees = 
                     conn->getAttachedShapes();
 
             //ignore connectors that come off n in the outer loop
@@ -261,7 +262,7 @@ int edge_crossings(Canvas *canvas, Agnode_t *n, int i, int j, Agraph_t* gv, std:
             Agedge_t *e;
             Agnode_t *next;
             for (e = agfstout(gv, n); e; e = agnxtout(gv, e)) {
-                next = (e->head == n ? e->tail : e->head);
+                next = (aghead(e) == n ? agtail(e) : aghead(e));
                 //grid points of the node connected to node n
                 grid.get_grid_coords(dunnart_nodes[next], &p[1][1][1], &p[1][1][0]);
 
@@ -273,7 +274,7 @@ int edge_crossings(Canvas *canvas, Agnode_t *n, int i, int j, Agraph_t* gv, std:
                 }
             }
             for (e = agfstin(gv, n); e; e = agnxtin(gv, e)) {
-                next = (e->head == n ? e->tail : e->head);
+                next = (aghead(e) == n ? agtail(e) : aghead(e));
                 //grid points of the node connected to node n
                 grid.get_grid_coords(dunnart_nodes[next], &p[1][1][1], &p[1][1][0]);
                 bool common_with_next = (gv_nodes[attachees.first] == next || gv_nodes[attachees.second] == next);
@@ -371,7 +372,7 @@ static void list_max_degree_nodes(std::vector<Agnode_t*> &nodes, int places, Agr
 
     //find the connected unmarked node with the highest degree
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-      next = (e->head == curr ? e->tail : e->head);
+      next = (aghead(e) == curr ? agtail(e) : aghead(e));
       if (!marked[next])
       {
           nodes.resize(nodes.size()+1);
@@ -380,7 +381,7 @@ static void list_max_degree_nodes(std::vector<Agnode_t*> &nodes, int places, Agr
       }
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-      next = (e->head == curr ? e->tail : e->head);
+      next = (aghead(e) == curr ? agtail(e) : aghead(e));
       if (!marked[next])
       {
           nodes.resize(nodes.size()+1);
@@ -432,7 +433,7 @@ static void list_unmarked_nodes(std::vector<Agnode_t*> &nodes, Agraph_t* gv, Agn
 
     //find the connected unmarked node with the highest degree
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             nodes.resize(nodes.size()+1);
@@ -441,7 +442,7 @@ static void list_unmarked_nodes(std::vector<Agnode_t*> &nodes, Agraph_t* gv, Agn
         }
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             nodes.resize(nodes.size()+1);
@@ -484,6 +485,7 @@ for (int i = 0; i<nodes.size(); i++)
 //need to rewrite it, but how?
 static double get_regret(Agnode_t *node, Direction dir, std::map<std::pair<Agnode_t*, Direction>, double> &scores, std::vector<Direction> &directions, std::vector<Agnode_t*> &nodes)
 {
+    Q_UNUSED (nodes)
     //for all directions whose best node is node, add the difference between the best and second best in that direction.
 
     //loops through scores...ignore any with direction == dir.
@@ -540,13 +542,13 @@ static double get_regret(Agnode_t *node, Direction dir, std::map<std::pair<Agnod
 
 
         double this_score = m->second;
-        printf("Score for %s (%s): %f", dunnart_nodes[m->first.first]->getName(),
+        qDebug("Score for %s (%s): %f", dunnart_nodes[m->first.first]->getName(),
                (m->first.second == DOWN ? "DOWN" : (m->first.second == UP ? "UP" : (m->first.second == RIGHT ? "RIGHT" : "LEFT"))), this_score);
         //don't do this if there is no choice or no other nodes
         //if (directions.size() > 1 && nodes.size() > 1)
         //{
         this_score += get_regret(m->first.first, m->first.second, scores, directions, nodes);
-            printf(", %f with regret\n", this_score);
+            qDebug(", %f with regret\n", this_score);
 
     for (unsigned int i = 0; i<directions.size(); i++)
     {
@@ -663,7 +665,7 @@ static double get_grid_dist(int si, int sj, Agnode_t* dst, std::map<Agnode_t*, S
 
     //undefined behaviour if there is a problem with finding them in the grid.
     if (!grid.find(&di, &dj, u))
-        printf("WARNING (align2.cpp): problem finding class in grid... overwritten?\n");
+        qDebug("WARNING (align2.cpp): problem finding class in grid... overwritten?\n");
 
     return sqrt(pow(di - si, 2) + pow(dj - sj, 2));
 }
@@ -677,18 +679,18 @@ static double sum_grid_dist(Agraph_t* gv, Agnode_t* curr, Agnode_t* next, int gr
     Agedge_t* e;
     double sum = 0;
     for (e = agfstout(gv, next); e; e = agnxtout(gv, e)) {
-        connected = (e->head == next ? e->tail : e->head);
+        connected = (aghead(e) == next ? agtail(e) : aghead(e));
         if (marked[connected] && connected != curr)
         {
-            //printf(dunnart_nodes[connected]->getName());
+            //qDebug(dunnart_nodes[connected]->getName());
             sum += get_grid_dist(gridi, gridj, connected, dunnart_nodes, grid);
         }
     }
     for (e = agfstin(gv, next); e; e = agnxtin(gv, e)) {
-        connected = (e->head == next ? e->tail : e->head);
+        connected = (aghead(e) == next ? agtail(e) : aghead(e));
         if (marked[connected] && connected != curr)
         {
-            //printf(dunnart_nodes[connected]->getName());
+            //qDebug(dunnart_nodes[connected]->getName());
             sum += get_grid_dist(gridi, gridj, connected, dunnart_nodes, grid);
         }
     }
@@ -699,6 +701,9 @@ static double sum_grid_dist(Agraph_t* gv, Agnode_t* curr, Agnode_t* next, int gr
 static double get_score(Agnode_t* curr, Agnode_t* next, std::map<Agnode_t*, ShapeObj*> &dunnart_nodes, Grid &grid,
                         Agraph_t* gv, std::map<Agnode_t*, bool> &marked, std::map<Agnode_t*, int> &degrees, Direction dir, int currentcrossings, int newcrossings)
 {
+    Q_UNUSED (gv)
+    Q_UNUSED (marked)
+
     //return
     /*
      double x = 100000.0/degrees[next]
@@ -729,10 +734,10 @@ static double get_score(Agnode_t* curr, Agnode_t* next, std::map<Agnode_t*, Shap
     //double t = get_dist(dunnart_nodes[curr], dunnart_nodes[next],nextP.i - nextP.previ, nextP.j - nextP.prevj);
     //if ((x + y + z + t) > 1e8)
     //{
-        //printf("!%s!", dunnart_nodes[curr]->getName());
+        //qDebug("!%s!", dunnart_nodes[curr]->getName());
         //fflush(stdout);
-        //printf(grid[nextP.i][nextP.j]->get_cl      ass_name());
-        //printf("!");
+        //qDebug(grid[nextP.i][nextP.j]->get_cl      ass_name());
+        //qDebug("!");
     //    sum_grid_dist(gv, curr, next, nextP.i, nextP.j, marked, dunnart_nodes, grid);
     //}
     //return x + y + z + t;
@@ -756,7 +761,7 @@ static Agnode_t* get_max_degree_node(
 
     //find the connected unmarked node with the highest degree
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             if (degrees[next]> max_degree)
@@ -767,7 +772,7 @@ static Agnode_t* get_max_degree_node(
         }
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             if (degrees[next]> max_degree)
@@ -842,6 +847,10 @@ bool horizontally_aligned(Grid &grid, int row, int col, int num_cols, std::map<A
 //dunnart_nodes no longer needs to be passed I think....
 void insert_in_order(Agnode_t* node, Grid &grid, std::deque<Agnode_t*> &Q, std::map<Agnode_t*, int> &degrees, std::map<ShapeObj*, Agnode_t*> &gv_nodes, std::map<Agnode_t*, ShapeObj*> &dunnart_nodes)
 {
+    Q_UNUSED (grid)
+    Q_UNUSED (gv_nodes)
+    Q_UNUSED (dunnart_nodes)
+
     int k;
     //grid.get_grid_coords(dunnart_nodes[node], &ni, &nj);
     for (k = Q.size(); k> 0; k--)
@@ -866,7 +875,7 @@ void get_alignment_directions(Grid &grid, std::vector<Direction> &directions, Ag
     bool rem_left = false;
 
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         grid.get_grid_coords(dunnart_nodes[next], &ni, &nj);
         if (ni == ci && nj > cj)
         {
@@ -906,7 +915,7 @@ void get_alignment_directions(Grid &grid, std::vector<Direction> &directions, Ag
         }
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         grid.get_grid_coords(dunnart_nodes[next], &ni, &nj);
         if (ni == ci && nj > cj)
         {
@@ -985,8 +994,8 @@ static void rec_align(
     //Agnode_t *curr = gv_nodes[grid.get(gridi, gridj)];
     int gridi, gridj;
     grid.get_grid_coords(dunnart_nodes[curr], &gridi, &gridj);
-    printf(">>Placing %s...\n", dunnart_nodes[curr]->getName());
-    //printf("Placing (%d, %d)\n", gridi, gridj);
+    qDebug(">>Placing %s...\n", qPrintable(dunnart_nodes[curr]->getLabel()));
+    //qDebug("Placing (%d, %d)\n", gridi, gridj);
 
     std::vector<Direction> directions;
     //get_alignment_directions(grid, directions, curr, gridi, gridj, gv, dunnart_nodes, marked, gv_nodes, degrees, Q);
@@ -996,7 +1005,7 @@ static void rec_align(
     directions[2] = DOWN;
     directions[3] = LEFT;
 
-    //printf("done..\n");
+    //qDebug("done..\n");
     //return;
 
     std::vector<Agnode_t*> nodes;
@@ -1023,13 +1032,13 @@ static void rec_align(
                 //grid.get_grid_coords(dunnart_nodes[nodes[i]], &ni, &nj);
                 //if (ni == -1 || nj == -1)
                 //{
-                //    printf("Error: couldn't get coords :/\n");
+                //    qDebug("Error: couldn't get coords :/\n");
                 //}
 
-                if(directions[j] == UP && ci <= gridi
-                   || directions[j] == RIGHT && cj >= gridj
-                   || directions[j] == DOWN && ci >= gridi
-                   || directions[j] == LEFT && cj <= gridj)
+                if((directions[j] == UP && ci <= gridi)
+                   || (directions[j] == RIGHT && cj >= gridj)
+                   || (directions[j] == DOWN && ci >= gridi)
+                   || (directions[j] == LEFT && cj <= gridj))
                 {
                     //work out placement that would result from new direction
                     int ni, nj;
@@ -1050,7 +1059,7 @@ static void rec_align(
 
 
                     newcrossings = edge_crossings(canvas, nodes[i], ni, nj, gv, dunnart_nodes, gv_nodes, grid);
-                    printf("%s [(x,y)] (%d, %d)->(%d, %d), crossings %d -> %d\n", dunnart_nodes[nodes[i]]->getName(), cj, ci, nj, ni, currentcrossings, newcrossings);
+                    qDebug("%s [(x,y)] (%d, %d)->(%d, %d), crossings %d -> %d\n", qPrintable(dunnart_nodes[nodes[i]]->getLabel()), cj, ci, nj, ni, currentcrossings, newcrossings);
                     if (newcrossings <= currentcrossings)
                         {
                         scores[std::make_pair<Agnode_t*, Direction>(nodes[i], directions[j])] =
@@ -1074,16 +1083,17 @@ static void rec_align(
         for (std::map<std::pair<Agnode_t*, Direction>, double>::iterator m = scores.begin(); m != scores.end(); ++m)
         {
             double this_score = m->second;
-            printf("Score for %s (%s): %f", dunnart_nodes[m->first.first]->getName(),
+            qDebug("Score for %s (%s): %f",  
+                   qPrintable(dunnart_nodes[m->first.first]->getLabel()),
                    (m->first.second == DOWN ? "DOWN" : (m->first.second == UP ? "UP" : (m->first.second == RIGHT ? "RIGHT" : "LEFT"))), this_score);
             //don't do this if there is no choice or no other nodes
             //if (directions.size() > 1 && nodes.size() > 1)
             //{
                 this_score += get_regret(m->first.first, m->first.second, scores, directions, nodes);
-                printf(", %f with regret\n", this_score);
+                qDebug(", %f with regret\n", this_score);
             //}
             //else
-            //    printf("\n");
+            //    qDebug("\n");
 
             if (this_score < best_score)
             {
@@ -1091,23 +1101,23 @@ static void rec_align(
                 best_placement = m->first;
             }
             //else
-            //    printf("<%f, %f>", this_score, best_score);
+            //    qDebug("<%f, %f>", this_score, best_score);
         }
 
-        //printf("done\n");
+        //qDebug("done\n");
         //return;
 
         //make placement...
         /*
-        printf("==%s placed at (%d, %d), (%d, %d) from %s\n", dunnart_nodes[best_placement.first]->getName(),
+        qDebug("==%s placed at (%d, %d), (%d, %d) from %s\n", dunnart_nodes[best_placement.first]->getName(),
                best_placement.second.i, best_placement.second.j,
                best_placement.second.i - best_placement.second.previ,
                best_placement.second.j - best_placement.second.prevj, dunnart_nodes[curr]->getName());
          */
-        printf("==Aligning %s %s from %s\n",
-               dunnart_nodes[best_placement.first]->getName(),
-               (best_placement.second == DOWN ? "DOWN" : (best_placement.second == UP ? "UP" : (best_placement.second == RIGHT ? "RIGHT" : "LEFT"))),
-               dunnart_nodes[curr]->getName());
+        //qDebug("==Aligning %s %s from %s\n",
+        //       dunnart_nodes[best_placement.first]->getLabel(),
+        //       (best_placement.second == DOWN ? "DOWN" : (best_placement.second == UP ? "UP" : (best_placement.second == RIGHT ? "RIGHT" : "LEFT"))),
+        //       dunnart_nodes[curr]->getLabel());
 
         //placement generally just involves translating in one grid dimension. For now, assume no other class is encountered.
         //look at direction (best_placement.second), and node (best_placement.first), get grid coords for node, make the coord same as that for curr, and change the other one if there is an overlap
@@ -1142,7 +1152,7 @@ static void rec_align(
         int nexti, nextj;
 
         for (e = agfstout(gv, best_placement.first); e; e = agnxtout(gv, e)) {
-            next = (e->head == best_placement.first ? e->tail : e->head);
+            next = (aghead(e) == best_placement.first ? agtail(e) : aghead(e));
             if (!marked[next])
             {
                 grid.get_grid_coords(dunnart_nodes[next], &nexti, &nextj);
@@ -1153,7 +1163,7 @@ static void rec_align(
             }
         }
         for (e = agfstin(gv, best_placement.first); e; e = agnxtin(gv, e)) {
-            next = (e->head == best_placement.first ? e->tail : e->head);
+            next = (aghead(e) == best_placement.first ? agtail(e) : aghead(e));
             if (!marked[next])
             {
                 grid.get_grid_coords(dunnart_nodes[next], &nexti, &nextj);
@@ -1170,7 +1180,7 @@ static void rec_align(
 
         if (marked[best_placement.first])
         {
-            printf("inserting marked node 1!\n");
+            qDebug("inserting marked node 1!\n");
         }
         marked[best_placement.first] = TRUE;
         insert_in_order(best_placement.first, grid, Q, degrees, gv_nodes, dunnart_nodes);
@@ -1251,14 +1261,14 @@ static void rec_align(
         Agnode_t* next;
         int ni, nj;
         for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-            next = (e->head == curr ? e->tail : e->head);
+            next = (aghead(e) == curr ? agtail(e) : aghead(e));
             grid.get_grid_coords(dunnart_nodes[next], &ni, &nj);
             if (!aligned[next])
             {
-                if (dirs[i] == UP && ni < gridi
-                    || dirs[i] == DOWN && ni > gridi
-                    || dirs[i] == RIGHT && nj > gridj
-                    || dirs[i] == LEFT && nj < gridj)
+                if ((dirs[i] == UP && ni < gridi)
+                    || (dirs[i] == DOWN && ni > gridi)
+                    || (dirs[i] == RIGHT && nj > gridj)
+                    || (dirs[i] == LEFT && nj < gridj))
                 {
                     nodes_in_dir.resize(nodes_in_dir.size()+1);
                     nodes_in_dir[nodes_in_dir.size()-1] = dunnart_nodes[next];
@@ -1266,14 +1276,14 @@ static void rec_align(
             }
         }
         for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-            next = (e->head == curr ? e->tail : e->head);
+            next = (aghead(e) == curr ? agtail(e) : aghead(e));
             grid.get_grid_coords(dunnart_nodes[next], &ni, &nj);
             if (!aligned[next])
             {
-                if (dirs[i] == UP && ni < gridi
-                    || dirs[i] == DOWN && ni > gridi
-                    || dirs[i] == RIGHT && nj > gridj
-                    || dirs[i] == LEFT && nj < gridj)
+                if ((dirs[i] == UP && ni < gridi)
+                    || (dirs[i] == DOWN && ni > gridi)
+                    || (dirs[i] == RIGHT && nj > gridj)
+                    || (dirs[i] == LEFT && nj < gridj))
                 {
                     nodes_in_dir.resize(nodes_in_dir.size()+1);
                     nodes_in_dir[nodes_in_dir.size()-1] = dunnart_nodes[next];
@@ -1390,7 +1400,7 @@ static void rec_align(
         //int ni, nj;
         if (marked[nodes[i]])
         {
-            printf("inserting marked node 2!\n");
+            qDebug("inserting marked node 2!\n");
         }
         marked[nodes[i]] = TRUE;
         //grid.get_grid_coords(dunnart_nodes[nodes[i]], &ni, &nj);
@@ -1402,11 +1412,11 @@ static void rec_align(
     Agedge_t*e;
     Agnode_t* next;
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         aligned[next] = TRUE;
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         aligned[next] = TRUE;
     }
 
@@ -1434,14 +1444,14 @@ procedure:
     unsigned int nodes_to_place = 0;
     //find the connected unmarked node with the highest degree
     for (e = agfstout(gv, curr); e; e = agnxtout(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             nodes_to_place++;
         }
     }
     for (e = agfstin(gv, curr); e; e = agnxtin(gv, e)) {
-        next = (e->head == curr ? e->tail : e->head);
+        next = (aghead(e) == curr ? agtail(e) : aghead(e));
         if (!marked[next])
         {
             nodes_to_place++;
@@ -1450,7 +1460,7 @@ procedure:
 
     if (nodes_to_place > 7 && (gridi != 0 || gridj != 0))
     {
-        printf("PROBLEM: NODE DEGREE TOO HIGH\n");
+        qDebug("PROBLEM: NODE DEGREE TOO HIGH\n");
     }
     if (nodes_to_place > places.size() && nodes_to_place <= 7 && false)    //simple expansion won't do any good if nodes to place is more than 7
     {
@@ -1461,7 +1471,7 @@ procedure:
         {
             if (grid.isEmpty(Q[i].i, Q[i].j))
             {
-                printf("problem: even before expansion empty grid position in queue\n");
+                qDebug("problem: even before expansion empty grid position in queue\n");
             }
         }
 
@@ -1471,7 +1481,7 @@ procedure:
         bool expandedj = false;
 
         grid.print();
-        printf("\n");
+        qDebug("\n");
         //insert a row/column/both so that a placement is possible
         if (gridi != previ)
         {
@@ -1527,7 +1537,7 @@ procedure:
 
             if (grid.isEmpty(Q[i].i, Q[i].j))
             {
-                printf("problem: empty grid position in queue\n");
+                qDebug("problem: empty grid position in queue\n");
             }
         }
 
@@ -1554,7 +1564,7 @@ procedure:
         {
             if (strcmp(dunnart_nodes[nodes[i]]->getName(), "Class C") == 0)
             {
-                printf("found it\n");
+                qDebug("found it\n");
             }
 
             for (unsigned int j = 0; j<places.size(); j++)
@@ -1573,16 +1583,16 @@ procedure:
         for (std::map<std::pair<Agnode_t*, GridPoint>, double>::iterator m = scores.begin(); m != scores.end(); ++m)
         {
             double this_score = m->second;
-            printf("Score for %s (%d, %d): %f", dunnart_nodes[m->first.first]->getName(),
+            qDebug("Score for %s (%d, %d): %f", dunnart_nodes[m->first.first]->getName(),
                    m->first.second.i - m->first.second.previ, m->first.second.j - m->first.second.prevj, this_score);
             //don't do this if there is no choice or no other nodes
             if (places.size() > 1 && nodes.size() > 1)
             {
                 this_score += get_regret(m->first.first, m->first.second, scores, places, nodes);
-                printf(", %f with regret\n", this_score);
+                qDebug(", %f with regret\n", this_score);
             }
             else
-                printf("\n");
+                qDebug("\n");
 
             if (this_score < best_score)
             {
@@ -1590,16 +1600,16 @@ procedure:
                 best_placement = m->first;
             }
             //else
-            //    printf("<%f, %f>", this_score, best_score);
+            //    qDebug("<%f, %f>", this_score, best_score);
         }
-        //printf("!");
+        //qDebug("!");
 
         //make placement
-        printf("==%s placed at (%d, %d), (%d, %d) from %s\n", dunnart_nodes[best_placement.first]->getName(),
+        qDebug("==%s placed at (%d, %d), (%d, %d) from %s\n", dunnart_nodes[best_placement.first]->getName(),
                best_placement.second.i, best_placement.second.j,
                best_placement.second.i - best_placement.second.previ,
                best_placement.second.j - best_placement.second.prevj, dunnart_nodes[curr]->getName());
-        //printf("==%s placed (%d, %d) from node\n", dunnart_nodes[best_placement.first]->getName(), best_placement.second.i - best_placement.second.previ,
+        //qDebug("==%s placed (%d, %d) from node\n", dunnart_nodes[best_placement.first]->getName(), best_placement.second.i - best_placement.second.previ,
         //       best_placement.second.j - best_placement.second.prevj);
 
         grid.insert(best_placement.second.i, best_placement.second.j, dunnart_nodes[best_placement.first]);
@@ -1889,29 +1899,29 @@ static bool no_edge_or_common_neighbour(Agraph_t* gv, std::map<ShapeObj*, Agnode
         Agnode_t *n1;
         Agnode_t* n2;
         for (e = agfstout(gv, gv_nodes[node1]); e; e = agnxtout(gv, e)) {
-            n1 = (e->head == gv_nodes[node1] ? e->tail : e->head);
+            n1 = (aghead(e) == gv_nodes[node1] ? agtail(e) : aghead(e));
 
             for (f = agfstout(gv, gv_nodes[node2]); f; f = agnxtout(gv, f)) {
-                n2 = (f->head == gv_nodes[node2] ? f->tail : f->head);
+                n2 = (aghead(f) == gv_nodes[node2] ? agtail(f) : aghead(f));
                 if (n1 == n2)
                     return false;
             }
             for (f = agfstin(gv, gv_nodes[node2]); f; f = agnxtin(gv, f)) {
-                n2 = (f->head == gv_nodes[node2] ? f->tail : f->head);
+                n2 = (aghead(f) == gv_nodes[node2] ? agtail(f) : aghead(f));
                 if (n1 == n2)
                     return false;
             }
         }
         for (e = agfstin(gv, gv_nodes[node1]); e; e = agnxtin(gv, e)) {
-            n1 = (e->head == gv_nodes[node1] ? e->tail : e->head);
+            n1 = (aghead(e) == gv_nodes[node1] ? agtail(e) : aghead(e));
 
             for (f = agfstout(gv, gv_nodes[node2]); f; f = agnxtout(gv, f)) {
-                n2 = (f->head == gv_nodes[node2] ? f->tail : f->head);
+                n2 = (aghead(f) == gv_nodes[node2] ? agtail(f) : aghead(f));
                 if (n1 == n2)
                     return false;
             }
             for (f = agfstin(gv, gv_nodes[node2]); f; f = agnxtin(gv, f)) {
-                n2 = (f->head == gv_nodes[node2] ? f->tail : f->head);
+                n2 = (aghead(f) == gv_nodes[node2] ? agtail(f) : aghead(f));
                 if (n1 == n2)
                     return false;
             }
@@ -1926,7 +1936,7 @@ static bool no_edge_or_common_neighbour(Agraph_t* gv, std::map<ShapeObj*, Agnode
 //assumes all classes are contracted for now. I could automatically contract them if necessary.
 void autoAlignSelection(Canvas *canvas) {
     GVC_t *gvc = gvContext();
-    Agraph_t* gv = agopen((char *) "g", AGRAPH);
+    Agraph_t* gv = agopen((char *) "g", Agundirected, NULL);
 
     std::map<ShapeObj*, Agnode_t*> gv_nodes;
     std::map<Agnode_t*, ShapeObj*> dunnart_nodes;
@@ -1941,11 +1951,15 @@ void autoAlignSelection(Canvas *canvas) {
     Point old_graph_centre;
     double max_width, max_height, minX, maxX, minY, maxY;
     bool first = true;
-    double x, y, w, h;
 
     //create graphviz graph, calculate centre point, max height width X Y, min X Y as we go.
     ConnMultiset allConnMs;
     QList<CanvasItem *> canvas_selection = canvas->selectedItems();
+
+    if (canvas_selection.empty())
+    {
+        return;
+    }
 
     for(int i = 0; i < canvas_selection.size(); ++i)
     {
@@ -1953,36 +1967,33 @@ void autoAlignSelection(Canvas *canvas) {
         ShapeObj *shape = dynamic_cast<ShapeObj *> (co);
         if (shape)
         {
-            std::ostringstream s; s << shape->get_ID();
+            std::ostringstream s; s << shape->internalId();
             char ss[s.str().length()+1];
             strcpy(ss,s.str().c_str());
             Agnode_t *n;
-            gv_nodes[shape] = n = agnode(gv,ss);
+            gv_nodes[shape] = n = agnode(gv,ss,TRUE);
             dunnart_nodes[n] = shape;
-            double x, y, w, h;
-            shape->getPosAndSize(x,y,w,h);
-            sumX += x;
-            sumY += y;
+            QRectF bBox = shape->shapeRect();
+            sumX += bBox.left();
+            sumY += bBox.top();
             ++num_nodes;
-            newPos[shape] = Point(x, y);
-
-            shape->getPosAndSize(x,y,w,h);
+            newPos[shape] = Point(bBox.center().x(), bBox.center().y());
             if (first)
             {
                 first = false;
-                max_width = w;
-                max_height = h;
-                minX = x;
-                maxX = x + w;
-                minY = y;
-                maxY = y+h;
+                max_width = bBox.width();
+                max_height = bBox.height();
+                minX = bBox.left();
+                maxX = bBox.right();
+                minY = bBox.top();
+                maxY = bBox.bottom();
             }
-            max_width = std::max(max_width, w);
-            max_height = std::max(max_height, h);
-            maxX = std::max(maxX, x+w);
-            maxY = std::max(maxY, y+h);
-            minX = std::min(minX, x);
-            minY = std::min(minY, y);
+            max_width = std::max(max_width, bBox.width());
+            max_height = std::max(max_height, bBox.height());
+            maxX = std::max(maxX, bBox.right());
+            maxY = std::max(maxY, bBox.bottom());
+            minX = std::min(minX, bBox.left());
+            minY = std::min(minY, bBox.right());
         
             ConnMultiset connMs = shape->getConnMultiset();
             allConnMs.insert(connMs.begin(), connMs.end());
@@ -2000,10 +2011,11 @@ void autoAlignSelection(Canvas *canvas) {
                 // The two connector endpoints are both connected to
                 // shapes within the selection, add it to the set of 
                 // objects being considered.
-                std::pair<ShapeObj *, ShapeObj *> attachees = 
+                QPair<ShapeObj *, ShapeObj *> attachees = 
                         (*current)->getAttachedShapes();
                 agedge(gv, gv_nodes[dynamic_cast<ShapeObj*>(attachees.first)], 
-                           gv_nodes[dynamic_cast<ShapeObj*>(attachees.second)]);
+                           gv_nodes[dynamic_cast<ShapeObj*>(attachees.second)],
+                           (char *) "", TRUE);
             }
         }
         prev = current;
@@ -2050,7 +2062,11 @@ void autoAlignSelection(Canvas *canvas) {
         }
 
         //assign to grid.
-        dunnart_nodes[n]->getPosAndSize(x,y,w,h);
+        QRectF bBox = dunnart_nodes[n]->shapeRect();
+        double x = bBox.left();
+        double y = bBox.right();
+        //double w = bBox.width();
+        double h = bBox.height();
         closest_row = static_cast<int>(round((y-minY)/max_height));
         closest_col = static_cast<int>(round((x-minX)/max_width));
         if (grid.isEmpty(closest_row, closest_col))
@@ -2060,8 +2076,11 @@ void autoAlignSelection(Canvas *canvas) {
         else
         {
             //'push' idea.
-            double x2, y2, w2, h2;
-            grid.get(closest_row,closest_col)->getPosAndSize(x2,y2,w2,h2);
+            QRectF bBox2 = grid.get(closest_row,closest_col)->shapeRect();
+            double x2 = bBox2.left();
+            double y2 = bBox2.right();
+            //double w2 = bBox2.width();
+            double h2 = bBox2.height();
             //push_vertically if there is no overlap in height, otherwise push horizontally.
             bool push_vertically = y+h < y2 || y > y2+h2;
             //should always be room in positive direction, but not always negative direction.
@@ -2093,7 +2112,7 @@ void autoAlignSelection(Canvas *canvas) {
             //push left if room in the negative direction AND the the other class is closer than the class in that direction
             //if (room_neg && (new_class_pos_direction && new_class_closer || !new_class_pos_direction && !new_class_closer))
 
-            printf("room_neg: %d, push_vertically: %d, new_class_closer: %d, new_class_pos_direction: %d\n", room_neg, push_vertically, new_class_closer, new_class_pos_direction);
+            qDebug("room_neg: %d, push_vertically: %d, new_class_closer: %d, new_class_pos_direction: %d\n", room_neg, push_vertically, new_class_closer, new_class_pos_direction);
 
             if (room_neg && new_class_pos_direction == new_class_closer)    //simplifed from the line above
             {
@@ -2161,7 +2180,7 @@ void autoAlignSelection(Canvas *canvas) {
             {
                 int ec = edge_crossings(canvas, gv_nodes[grid.get(i, j)],
                         i, j, gv, dunnart_nodes, gv_nodes, grid);
-                printf("Crossings for %s: %d\n", grid.get(i,j)->getName(), ec);
+                qDebug("Crossings for %s: %d\n", qPrintable(grid.get(i,j)->getLabel()), ec);
             }
         }
 
@@ -2172,7 +2191,7 @@ void autoAlignSelection(Canvas *canvas) {
         Guideline *guide = dynamic_cast<Guideline *>(canvas_items.at(i));
         if (guide)
         {
-            shape_select(guide);
+            guide->setSelected(true);
             //guide->deleteObject(false);
         }
     }
@@ -2301,10 +2320,11 @@ void autoAlignSelection(Canvas *canvas) {
             if (!grid.isEmpty(i, j))
             {
                 ShapeObj *shape = grid.get(i,j);
-                shape->getPosAndSize(x,y,w,h);
-                newPos[shape].x = (minX + j*max_width + (max_width-w)/2);
-                newPos[shape].y = (minY + i*max_height + (max_height-h)/2);
-                incr[shape] = Point((x-newPos[shape].x)/FRAMES,(y-newPos[shape].y)/FRAMES);
+                QRectF bBox = shape->shapeRect();
+                newPos[shape].x = (minX + j*max_width + max_width/2);
+                newPos[shape].y = (minY + i*max_height + max_height/2);
+                incr[shape] = Point((bBox.center().x()-newPos[shape].x)/FRAMES,
+                                    (bBox.center().y()-newPos[shape].y)/FRAMES);
             }
         }
 
@@ -2312,10 +2332,9 @@ void autoAlignSelection(Canvas *canvas) {
     {
         for (std::map<Agnode_t*, ShapeObj*>::iterator m = dunnart_nodes.begin(); m != dunnart_nodes.end(); ++m)
         {
-            m->second->setPos(
-                    newPos[m->second].x + i*incr[m->second].x + HANDLE_PADDING,
-                    newPos[m->second].y + i*incr[m->second].y + HANDLE_PADDING,
-                    false);
+            QPointF pos(newPos[m->second].x + i*incr[m->second].x,
+                        newPos[m->second].y + i*incr[m->second].y);
+            m->second->setCentrePos(pos);
         }
 
         //reroute connectors using simple routing.
@@ -2367,7 +2386,7 @@ void autoAlignSelection(Canvas *canvas) {
                     canvas->deselectAll();
                     selections = 0;
                 }
-                shape_select(grid.get(i, j));
+                grid.get(i, j)->setSelected(true);
                 last_node = grid.get(i, j);
                 selections++;
             }
@@ -2413,7 +2432,7 @@ void autoAlignSelection(Canvas *canvas) {
                     canvas->deselectAll();
                     selections = 0;
                 }
-                shape_select(grid.get(i, j));
+                grid.get(i, j)->setSelected(true);
                 last_node = grid.get(i, j);
                 selections++;
             }

@@ -241,7 +241,7 @@ class Canvas : public QGraphicsScene
         void setLayoutSuspended(bool suspend);
         bool isLayoutSuspended(void) const;
 
-        void setDraggedItem(CanvasItem *item);
+        void setDraggedItem(CanvasItem *item, bool withForce = false);
         bool layoutRunningAndNotProcessingUpdates(void) const;
 
         QSvgRenderer *svgRenderer(void) const;
@@ -507,6 +507,7 @@ class Canvas : public QGraphicsScene
 
         std::map<int, Guideline *> m_vguides, m_hguides;
         CanvasItem *m_dragged_item;
+        bool m_dragged_with_force;
         CanvasItem *m_lone_selected_item;
         QUndoStack *m_undo_stack;
         UndoMacro *m_current_undo_macro;

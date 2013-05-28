@@ -178,6 +178,7 @@ Canvas::Canvas()
       m_opt_snap_grid_height(100.0),
       m_opt_relax_threshold_modifier(0.1),
       m_dragged_item(NULL),
+      m_dragged_with_force(false),
       m_lone_selected_item(NULL),
       m_undo_stack(NULL),
       m_current_undo_macro(NULL),
@@ -868,10 +869,11 @@ void Canvas::processSelectionDropEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void Canvas::setDraggedItem(CanvasItem *item)
+void Canvas::setDraggedItem(CanvasItem *item, bool withForce)
 {
     if (item == NULL)
     {
+        // Finished dragging.
         QApplication::restoreOverrideCursor();
         if (m_dragged_item)
         {
@@ -879,12 +881,21 @@ void Canvas::setDraggedItem(CanvasItem *item)
             clearIndicatorHighlights(true);
             m_hide_selection_handles = false;
             repositionAndShowSelectionResizeHandles(true);
-        }
+        }        
         m_dragged_item = NULL;
+        if (m_dragged_with_force == false)
+        {
+            // If the dragging wasn't forceful, then we call
+            // processResponseTasks() so it notices there is no longer
+            // a dragged item.  If the dragging was forceful, this action
+            // is performed once the layout converges.
+            processResponseTasks();
+        }
     }
 
     if ((m_dragged_item == NULL) && item)
     {
+        // Started dragging.
         m_dragged_item = item;
         clearIndicatorHighlights(true);
         createIndicatorHighlightCache();
@@ -897,6 +908,8 @@ void Canvas::setDraggedItem(CanvasItem *item)
         clearIndicatorHighlights();
         assert(item == m_dragged_item);
     }
+
+    m_dragged_with_force |= withForce;
 }
 
 
@@ -2406,6 +2419,16 @@ void Canvas::processLayoutFinishedEvent(void)
         gl->runLevel=1;
         qDebug("runLevel=1");
         interrupt_graph_layout();
+        changes = true;
+    }
+
+    if ((m_dragged_item == NULL) &&  m_dragged_with_force)
+    {
+        m_dragged_with_force = false;
+
+        // Let the layout notice there is no longer a dragged item
+        // and let it converge again.
+        processResponseTasks();
         changes = true;
     }
 

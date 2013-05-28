@@ -249,13 +249,6 @@ void CanvasItem::dragReleaseEvent(QGraphicsSceneMouseEvent *event)
     Q_UNUSED (event)
 
     canvas()->setDraggedItem(NULL);
-    if (canvas()->optGridSnap())
-    {
-        // If we are snapping to grid, then we allow the dragged shapes to
-        // be moved by the layout (and snapped to the grid) once they are
-        // released.  This call lets the layout notice the empty selection.
-        canvas()->processResponseTasks();
-    }
 }
 
 
@@ -264,7 +257,12 @@ void CanvasItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     Actions& actions = canvas()->getActions();
     QPointF diff = event->pos() - event->lastPos();
 
-    canvas()->setDraggedItem(this);
+    // Is this a forceful drag?
+    QPointF screenDiff = event->screenPos() - event->lastScreenPos();
+    double largestDiff = qMax(qAbs(screenDiff.x()), qAbs(screenDiff.y()));
+    bool withForce = (largestDiff > 50.0);
+
+    canvas()->setDraggedItem(this, withForce);
 
     QList<CanvasItem *> selected_items = canvas()->selectedItems();
     for (int i = 0; i < selected_items.size(); ++i)
