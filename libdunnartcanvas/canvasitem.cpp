@@ -249,13 +249,6 @@ void CanvasItem::dragReleaseEvent(QGraphicsSceneMouseEvent *event)
     Q_UNUSED (event)
 
     canvas()->setDraggedItem(NULL);
-    if (canvas()->optGridSnap())
-    {
-        // If we are snapping to grid, then we allow the dragged shapes to
-        // be moved by the layout (and snapped to the grid) once they are
-        // released.  This call lets the layout notice the empty selection.
-        canvas()->processResponseTasks();
-    }
 }
 
 

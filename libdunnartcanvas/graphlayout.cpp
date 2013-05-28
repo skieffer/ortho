@@ -1291,7 +1291,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     alg.setConstraints(m_graph->ccs);
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
     alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
-    if ((m_canvas->m_dragged_item == NULL) || !m_canvas->m_dragged_with_force)
+    if (!m_canvas->m_dragged_with_force)
     {
         alg.addGridSnapStress(m_canvas->m_opt_grid_snap);
     }

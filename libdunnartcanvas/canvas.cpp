@@ -873,6 +873,7 @@ void Canvas::setDraggedItem(CanvasItem *item, bool withForce)
 {
     if (item == NULL)
     {
+        // Finished dragging.
         QApplication::restoreOverrideCursor();
         if (m_dragged_item)
         {
@@ -880,12 +881,21 @@ void Canvas::setDraggedItem(CanvasItem *item, bool withForce)
             clearIndicatorHighlights(true);
             m_hide_selection_handles = false;
             repositionAndShowSelectionResizeHandles(true);
-        }
+        }        
         m_dragged_item = NULL;
+        if (m_dragged_with_force == false)
+        {
+            // If the dragging wasn't forceful, then we call
+            // processResponseTasks() so it notices there is no longer
+            // a dragged item.  If the dragging was forceful, this action
+            // is performed once the layout converges.
+            processResponseTasks();
+        }
     }
 
     if ((m_dragged_item == NULL) && item)
     {
+        // Started dragging.
         m_dragged_item = item;
         clearIndicatorHighlights(true);
         createIndicatorHighlightCache();
@@ -2409,6 +2419,16 @@ void Canvas::processLayoutFinishedEvent(void)
         gl->runLevel=1;
         qDebug("runLevel=1");
         interrupt_graph_layout();
+        changes = true;
+    }
+
+    if ((m_dragged_item == NULL) &&  m_dragged_with_force)
+    {
+        m_dragged_with_force = false;
+
+        // Let the layout notice there is no longer a dragged item
+        // and let it converge again.
+        processResponseTasks();
         changes = true;
     }
 
