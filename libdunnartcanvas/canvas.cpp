@@ -178,6 +178,7 @@ Canvas::Canvas()
       m_opt_snap_grid_height(100.0),
       m_opt_relax_threshold_modifier(0.1),
       m_dragged_item(NULL),
+      m_dragged_with_force(false),
       m_lone_selected_item(NULL),
       m_undo_stack(NULL),
       m_current_undo_macro(NULL),
@@ -868,7 +869,7 @@ void Canvas::processSelectionDropEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void Canvas::setDraggedItem(CanvasItem *item)
+void Canvas::setDraggedItem(CanvasItem *item, bool withForce)
 {
     if (item == NULL)
     {
@@ -897,6 +898,8 @@ void Canvas::setDraggedItem(CanvasItem *item)
         clearIndicatorHighlights();
         assert(item == m_dragged_item);
     }
+
+    m_dragged_with_force |= withForce;
 }
 
 

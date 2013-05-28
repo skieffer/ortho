@@ -264,7 +264,12 @@ void CanvasItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     Actions& actions = canvas()->getActions();
     QPointF diff = event->pos() - event->lastPos();
 
-    canvas()->setDraggedItem(this);
+    // Is this a forceful drag?
+    QPointF screenDiff = event->screenPos() - event->lastScreenPos();
+    double largestDiff = qMax(qAbs(screenDiff.x()), qAbs(screenDiff.y()));
+    bool withForce = (largestDiff > 50.0);
+
+    canvas()->setDraggedItem(this, withForce);
 
     QList<CanvasItem *> selected_items = canvas()->selectedItems();
     for (int i = 0; i < selected_items.size(); ++i)
