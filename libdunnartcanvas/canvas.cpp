@@ -85,6 +85,17 @@ bool Actions::empty(void) const
            !(flags & (ACTION_ADDITIONS | ACTION_MODIFICATIONS | ACTION_DELETIONS));
 }
 
+struct OrthoWeights {
+    OrthoWeights() :
+        wcr(22.0),
+        wco(45.0),
+        wob(1.0),
+        wst(1.0) {}
+    double wcr;
+    double wco;
+    double wob;
+    double wst;
+};
 
 // Resize Handle Types
 enum {
@@ -201,6 +212,9 @@ Canvas::Canvas()
       m_num_align_tries(0),
       m_align_pairs_tried(NULL),
       m_most_recent_stress(0),
+      m_most_recent_ortho_obj_func(0),
+      m_most_recent_crossing_count(0),
+      m_most_recent_coincidence_count(0),
       m_stress_bar_maximum(500),
       m_obliquity_bar_maximum(5000)
 {
@@ -3938,7 +3952,7 @@ void Canvas::tryAlignments()
                 //qDebug() << "Trying alignment" << a << "adx=" << adx << "ady=" << ady << "s:" << s->idString() << "t:" << t->idString();
                 Guideline *gdln = createAlignment(a,items);
                 //qDebug() << "guideline is" << (gdln==NULL?"NULL":"not null");
-                //gdln->setTentative(true);
+                gdln->setTentative(true);
                 m_trying_alignments = true;
                 m_num_align_tries++;
                 m_align_pairs_tried[pairIndex] = true; // Mark this pair of shapes as "tried".
@@ -3963,6 +3977,16 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
     ShapeObj *t = conn->getAttachedShapes().second;
     double sx=s->centrePos().x(), sy=s->centrePos().y();
     double tx=t->centrePos().x(), ty=t->centrePos().y();
+    computeParameters(sx,sy,tx,ty);
+}
+
+LineSegment::LineSegment(double sx, double sy, double tx, double ty) : connector(NULL)
+{
+    computeParameters(sx,sy,tx,ty);
+}
+
+void LineSegment::computeParameters(double sx, double sy, double tx, double ty)
+{
     // If the points are coincident, set angle to -1 and quit.
     if (sx==tx && sy==ty) { angle = -1; return; }
     double a;
@@ -4098,6 +4122,79 @@ void Canvas::updateStress(double stress) {
     emit newStressBarValue(stressBarValue);
 }
 
+/*
+* Predicts what the ortho objective function would be if you were
+* to align the endpoints of the connector in the named dimension.
+*
+* Returns -1 if this alignment is predicted to result in creation
+* of an edge coincidence.
+*
+* Leaves out crossing detection -- just uses the current value.
+*
+* Only uses a heuristic to check if a coincidence will be created.
+*
+*/
+double Canvas::predictOrthoObjective(Connector *conn, Dimension dim)
+{
+    // Obliquity
+    QList<LineSegment*> segs;
+    double obliquity = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (Connector *c = dynamic_cast<Connector*>(item))
+        {
+            if (c==conn) continue; // (If conn is aligned, it will have 0 obliquity.)
+            LineSegment *s = new LineSegment(c);
+            segs.append(s);
+            obliquity += s->obliquityScore();
+        }
+    }
+
+    // Stress
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+    ShapeObj *s1 = conn->getAttachedShapes().first;
+    ShapeObj *s2 = conn->getAttachedShapes().second;
+    unsigned id1 = graph->getNodeID(s1);
+    unsigned id2 = graph->getNodeID(s2);
+    QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
+
+    vpsc::Rectangle *r1 = graph->rs.at(id1);
+    vpsc::Rectangle *r2 = graph->rs.at(id2);
+    // Now translate rectangles according to proposed alignment.
+    if (dim == HORIZ) {
+        double yav = ( p1.y() + p2.y() ) / 2.0;
+        r1->moveCentreY(yav);
+        r2->moveCentreY(yav);
+    } else { // dim == VERT
+        double xav = ( p1.x() + p2.x() ) / 2.0;
+        r1->moveCentreX(xav);
+        r2->moveCentreX(xav);
+    }
+    //
+    valarray<double> elengths;
+    graph->getEdgeLengths(elengths);
+    cola::ConstrainedFDLayout alg(graph->rs, graph->edges, 1.0, m_opt_prevent_overlaps,
+                                  m_opt_snap_to, m_opt_snap_distance_modifier,
+                                  &elengths[0], NULL, NULL);
+    alg.setConstraints(graph->ccs);
+    alg.setClusterHierarchy(&(graph->clusterHierarchy));
+    alg.setSnapStrength(m_opt_snap_strength_modifier);
+    alg.setSnapGridWidth(m_opt_snap_grid_width);
+    alg.setSnapGridHeight(m_opt_snap_grid_height);
+    double stress = alg.computeStress();
+
+    // Crossings
+    int crossings = m_most_recent_crossing_count;
+
+    // Coincidences
+    int coincidences = m_most_recent_coincidence_count;
+
+    // Sum up
+    OrthoWeights o = m_ortho_weights;
+    double prediction = o.wcr*crossings + o.wco*coincidences + o.wob*obliquity + o.wst*stress;
+    return prediction;
+}
+
 double Canvas::computeOrthoObjective()
 {
     // Build a LineSegment for each Connector.
@@ -4133,6 +4230,8 @@ double Canvas::computeOrthoObjective()
             if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
         }
     }
+    m_most_recent_crossing_count = crossings;
+    m_most_recent_coincidence_count = coincidences;
     emit newCrossingCount(crossings);
     emit newCoincidenceCount(coincidences);
 
@@ -4141,13 +4240,11 @@ double Canvas::computeOrthoObjective()
     segs.clear();
 
     // Compute the score.
-    double wcr = 22.0;
-    double wco = 45.0;
-    double wob = 1.0;
-    double wst = 1.0;
+    OrthoWeights o = m_ortho_weights;
     //qDebug() << "Stress:" << m_most_recent_stress;
-    double score = wcr*crossings + wco*coincidences + wob*obliquity + wst*m_most_recent_stress;
+    double score = o.wcr*crossings + o.wco*coincidences + o.wob*obliquity + o.wst*m_most_recent_stress;
     emit newOrthoGoalBarValue( (int)(round(score)) );
+    m_most_recent_ortho_obj_func = score;
     return score;
 }
 
