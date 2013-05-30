@@ -34,6 +34,7 @@ namespace dunnart {
 
 class GraphData;
 class CanvasItem;
+class Canvas;
 
 class GraphvizLayout {
     public:
@@ -42,6 +43,7 @@ class GraphvizLayout {
     private:
         QList<CanvasItem *> guideList;
         Separation* sep;
+        Canvas *canvas;
 };
 
 }
