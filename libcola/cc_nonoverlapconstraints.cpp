@@ -544,9 +544,9 @@ void NonOverlapConstraints::generateSeparationConstraints(
         double gap = half1 + half2;
         if (gridMode) {
             double size = dim == vpsc::HORIZONTAL ? gridWidth : gridHeight;
-            // Set gap to smallest multiple of grid size which is <= half1+half2.
-            // Then take off one quarter of grid size.
-            gap = size * ceil(gap/size);
+            // Set gap to smallest multiple of grid size which is >= half1+half2.
+            // Then take off a small bit of grid size.
+            gap = size * ( ceil(gap/size) - 0.001 );
         }
 
         if (rect1.overlapD(!dim, &rect2) > 0.0005)

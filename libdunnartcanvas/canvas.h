@@ -38,6 +38,8 @@
 #include <QDomDocument>
 #include <QUndoCommand>
 
+#include "libavoid/geometry.h"
+
 class QToolBar;
 class QStatusBar;
 class QSvgRenderer;
@@ -246,8 +248,8 @@ class Canvas : public QGraphicsScene
         double optIdealEdgeLengthModifier(void) const;
         double optSnapDistanceModifier(void) const;
         double optSnapStrengthModifier(void) const;
-        double optGridWidthModifier(void) const;
-        double optGridHeightModifier(void) const;
+        double optGridWidth(void) const;
+        double optGridHeight(void) const;
         double optRelaxThresholdModifier(void) const;
         int optConnectorRoundingDistance(void) const;
         int optRoutingPenaltySegment(void) const;
@@ -335,10 +337,9 @@ class Canvas : public QGraphicsScene
         void setOptSnapDistanceModifier(double modifier);
         void setOptSnapStrengthModifierFromSlider(int int_modifier);
         void setOptSnapStrengthModifier(double modifier);
-        void setOptGridWidthModifierFromSlider(int int_modifier);
-        void setOptGridWidthModifier(double modifier);
-        void setOptGridHeightModifierFromSlider(int int_modifier);
-        void setOptGridHeightModifier(double modifier);
+        void setOptGridSizeFromSlider(int intValue);
+        void setOptGridWidth(double value);
+        void setOptGridHeight(double value);
         void setOptRelaxThresholdModifierFromSlider(int int_modifier);
         void setOptRelaxThresholdModifier(double modifier);
         void updateStress(double stress);
@@ -406,8 +407,9 @@ class Canvas : public QGraphicsScene
         void optChangedIdealEdgeLengthModifier(double value);
         void optChangedSnapDistanceModifier(double value);
         void optChangedSnapStrengthModifier(double value);
-        void optChangedGridWidthModifier(double value);
-        void optChangedGridHeightModifier(double value);
+        void optChangedGridWidth(double value);
+        void optChangedGridHeight(double value);
+        void optChangedGridSize(double value);
         void optChangedRelaxThresholdModifier(double value);
         void optChangedLayoutMode(int mode);
         void optChangedDirectedEdgeSeparationModifier(double modifier);
@@ -660,6 +662,10 @@ struct LineSegment {
     // unit speed in angle direction from intercept point.
     double t0;
     double t1;
+
+    // libavoid segment endpoints for segmentIntersect testing.
+    Avoid::Point p1;
+    Avoid::Point p2;
 };
 
 extern QRectF diagramBoundingRect(const QList<CanvasItem *>& list);

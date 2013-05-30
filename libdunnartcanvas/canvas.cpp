@@ -1616,30 +1616,31 @@ void Canvas::setOptSnapStrengthModifier(double modifier)
     fully_restart_graph_layout();
 }
 
-void Canvas::setOptGridWidthModifierFromSlider(int int_modifier)
+void Canvas::setOptGridSizeFromSlider(int intValue)
 {
-    double double_modifier = int_modifier / 1.0;
-    setOptGridWidthModifier(double_modifier);
-}
+    double doubleValue = intValue / 1.0;
 
-void Canvas::setOptGridWidthModifier(double modifier)
-{
-    m_opt_snap_grid_width = modifier;
-    emit optChangedGridWidthModifier(modifier);
+    m_opt_snap_grid_width = doubleValue;
+    m_opt_snap_grid_height = doubleValue;
+    emit optChangedGridWidth(doubleValue);
+    emit optChangedGridHeight(doubleValue);
+    emit optChangedGridSize(doubleValue);
     fully_restart_graph_layout();
     this->update(combinedViewsRect());
 }
 
-void Canvas::setOptGridHeightModifierFromSlider(int int_modifier)
+void Canvas::setOptGridWidth(double value)
 {
-    double double_modifier = int_modifier / 1.0;
-    setOptGridHeightModifier(double_modifier);
+    m_opt_snap_grid_width =value;
+    emit optChangedGridWidth(value);
+    fully_restart_graph_layout();
+    this->update(combinedViewsRect());
 }
 
-void Canvas::setOptGridHeightModifier(double modifier)
+void Canvas::setOptGridHeight(double value)
 {
-    m_opt_snap_grid_height = modifier;
-    emit optChangedGridHeightModifier(modifier);
+    m_opt_snap_grid_height = value;
+    emit optChangedGridHeight(value);
     fully_restart_graph_layout();
     this->update(combinedViewsRect());
 }
@@ -1789,12 +1790,12 @@ double Canvas::optSnapStrengthModifier(void) const
     return m_opt_snap_strength_modifier;
 }
 
-double Canvas::optGridWidthModifier(void) const
+double Canvas::optGridWidth(void) const
 {
     return m_opt_snap_grid_width;
 }
 
-double Canvas::optGridHeightModifier(void) const
+double Canvas::optGridHeight(void) const
 {
     return m_opt_snap_grid_height;
 }
@@ -2458,6 +2459,11 @@ void Canvas::processLayoutFinishedEvent(void)
         // Save the SVG and exit.
         //QT saveDiagramAsSVG(this, filename());
         exit(EXIT_SUCCESS);
+    }
+
+    if (!changes)
+    {
+        computeOrthoObjective();
     }
 
     if (m_trying_alignments) {
@@ -4015,6 +4021,9 @@ LineSegment::LineSegment(double sx, double sy, double tx, double ty) : connector
 
 void LineSegment::computeParameters(double sx, double sy, double tx, double ty)
 {
+    p1 = Avoid::Point(sx, sy);
+    p2 = Avoid::Point(tx, ty);
+
     // If the points are coincident, set angle to -1 and quit.
     if (sx==tx && sy==ty) { angle = -1; return; }
     double a;
@@ -4026,9 +4035,6 @@ void LineSegment::computeParameters(double sx, double sy, double tx, double ty)
         a = 0;
     }
     angle = (int)(round(a*180/3.1415927)) % 180;
-    double rad = angle*3.1415926/180;
-    m_cos = cos(rad);
-    m_sin = sin(rad);
     if (angle==0) {
         intercept = (sy+ty)/2.0;
         t0 = sx < tx ? sx : tx;
@@ -4049,56 +4055,9 @@ void LineSegment::computeParameters(double sx, double sy, double tx, double ty)
 
 bool LineSegment::intersects(LineSegment *other, double tolerance)
 {
-    bool ans = false;
-    // If angles are equal, then the segments are not said to intersect.
-    // (They may be coincident, but that is another matter.)
-    if (angle==other->angle) {
-        ans = false;
-    }
-    // Otherwise the /lines/ intersect at a unique point, and we must say whether
-    // that point happens to lie on both /segments/.
-    // (And it should lie sufficiently within each segment, according to passed tolerance.)
-    else if (angle==0 || other->angle==0) {
-        // Precisely one of the angles is zero.
-        LineSegment *zseg, *nzseg;
-        if (angle==0) {
-            zseg = this; nzseg = other;
-        } else {
-            zseg = other; nzseg = this;
-        }
-        double a = nzseg->intercept, b = zseg->intercept;
-        double t = b/nzseg->m_sin, x = a + t*nzseg->m_cos;
-        double c = 3*tolerance;
-        ans = nzseg->t0+c<=t && t+c<=nzseg->t1 && zseg->t0+c<=x && x+c<=zseg->t1;
-    } else {
-        // Neither angle is zero.
-        // Compute the parameters u1 and u2 for the intersection point.
-        double u1, u2;
-        // Compare x-intercepts.
-        double x1 = intercept, x2 = other->intercept;
-        LineSegment *left, *right;
-        double delta;
-        if (x1 <= x2) {
-            left = this; right = other;
-            delta = x2-x1;
-        } else {
-            right = this; left = other;
-            delta = x1-x2;
-        }
-        double a1 = left->angle, a2 = right->angle;
-        double s1 = left->m_sin, s2 = right->m_sin;
-        double k = delta/sin(a2-a1);
-        u1 = k*s2; u2 = k*s1;
-        double c = 3*tolerance;
-        ans = left->t0+c<=u1 && u1+c<=left->t1 && right->t0+c<=u2 && u2+c<=right->t1;
+    Q_UNUSED (tolerance)
 
-        bool DEBUG = false;
-        if (ans && DEBUG) {
-            ShapeObj *sh = this->connector->getAttachedShapes().first;
-            qDebug() << "intersection!";
-        }
-
-    }
+    bool ans = Avoid::segmentIntersect(p1, p2, other->p1, other->p2);
     if (ans) {
         connector->addIntersector(other->connector);
         other->connector->addIntersector(connector);

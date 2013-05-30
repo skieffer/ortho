@@ -39,6 +39,7 @@
 #include "libtopology/topology_graph.h"
 
 #include "libavoid/router.h"
+#include "libavoid/shape.h"
 
 #ifndef ND_coord
 
@@ -206,18 +207,18 @@ private:
         Avoid::ShapeRef *shapeRef = 
                 new Avoid::ShapeRef(router, shapePoly, shapeID);
         // ShapeRef constructor makes a copy of polygon so we can free it:
-        router->addShape(shapeRef);
         shapeRefs.push_back(shapeRef);
     }
     Agraph_t* gv;
     GraphData& gd;
     NodeMap& nodeMap;
     Avoid::Router *router;
-    std::vector<ShapeRef*> shapeRefs;
+    std::vector<Avoid::ShapeRef*> shapeRefs;
 };
 GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
+    canvas = g.canvas_;
 	GVC_t *gvc = gvContext();
-	Agraph_t* gv = agopen((char *) "g",AGDIGRAPH);
+        Agraph_t* gv = agopen((char *) "g",Agdirected, NULL);
 	unsigned n = g.getNodeCount(), m = g.getEdgeCount();
 	std::vector<Agnode_t*> nodes(n);
 	std::vector<Agedge_t*> edges(m);
@@ -226,11 +227,12 @@ GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
         std::ostringstream s; s << i;
         char ss[s.str().length()+1];
         strcpy(ss,s.str().c_str());
-		nodes[i]=agnode(gv,ss);
+                nodes[i]=agnode(gv,ss, TRUE);
         nodeMap[nodes[i]]=i;
 	}
 	for(unsigned i=0;i<m;i++) {
-		edges[i]=agedge(gv, nodes[g.getConnStart(i)],nodes[g.getConnEnd(i)]);
+                edges[i]=agedge(gv, nodes[g.getConnStart(i)],
+                        nodes[g.getConnEnd(i)], (char *) "", TRUE);
 	}
 	gvLayout(gvc,gv,(char *) "dot");
 
@@ -246,15 +248,15 @@ GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
 	}
     for(unsigned i=0;i<m;i++) {
         Agedge_t* e = edges[i];
-        Agnode_t* u = e->tail;
+        Agnode_t* u = agtail(e);
         printf("u=%p, rank=%d\n",u,ND_rank(u));
         VisibilityGraph visibilityGraph(gv, g, nodeMap);
         //visibilityGraph.addRankNeighbours(u);
         Agnode_t* v=NULL;
         int lastRank = ND_rank(u);
         if(ED_to_virt(e)) {
-            assert(ED_to_virt(e)->tail==u);
-            v = ED_to_virt(e)->head;
+            assert(agtail(ED_to_virt(e))==u);
+            v = aghead(ED_to_virt(e));
             while(ND_node_type(v)==1) {
                 printf("v=%p, rank=%d, type=%d\n",v,ND_rank(v),ND_node_type(v));
                 assert(v!=NULL);
@@ -262,7 +264,7 @@ GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
                 lastRank=ND_rank(v);
                 visibilityGraph.addRankNeighbours(v);
                 Agedge_t* out = *(ND_out(v).list);
-                v = out->head;
+                v = aghead(out);
             }
         }
         printf("v=%p, rank=%d\n",v,ND_rank(v));
@@ -289,8 +291,7 @@ GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
         if (!rankObjList.empty())
         {
             // XXX: This is probably unsafe from within this thread.
-            bool recordUndo = false;
-            Guideline *guide =  createAlignment(ALIGN_MIDDLE, rankObjList, recordUndo);
+            Guideline *guide = createAlignment(ALIGN_MIDDLE, rankObjList);
             if (guide)
             {
                 guideList.push_back(guide);
@@ -303,7 +304,7 @@ GraphvizLayout::GraphvizLayout(GraphData& g) : sep(NULL) {
     {
         bool recordUndo = false;
         bool sortGuidelines = false;
-        sep=createSeparation(SEP_VERTICAL, guideList, recordUndo, sortGuidelines);
+        sep=createSeparation(NULL, SEP_VERTICAL, guideList, recordUndo, sortGuidelines);
         g.separationToMultiSeparationConstraint(sep);
         // QT Actions& actions = getActions();
         // QT actions.clear();
