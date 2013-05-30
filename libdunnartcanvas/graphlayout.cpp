@@ -1255,6 +1255,31 @@ void GraphLayout::setOptimizationMethod(OptimizationMethod newOM)
     cout << "Optimization method set to " << s << endl;
 }
 
+double GraphLayout::computeStressOfGraph(GraphData *graph)
+{
+    PreIteration preIter(*this);
+    PostIteration postIter(*this);
+
+    valarray<double> elengths;
+    graph->getEdgeLengths(elengths);
+
+    cola::ConstrainedFDLayout alg(graph->rs, graph->edges, 1.0,
+            m_canvas->m_opt_prevent_overlaps,
+            m_canvas->m_opt_snap_to,  m_canvas->m_opt_snap_distance_modifier,
+            &elengths[0], postIter, &preIter);
+    alg.setConstraints(graph->ccs);
+    alg.setClusterHierarchy(&(graph->clusterHierarchy));
+    alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
+    if (!m_canvas->m_dragged_with_force)
+    {
+        alg.addGridSnapStress(m_canvas->m_opt_grid_snap);
+    }
+    alg.setSnapStrength(m_canvas->m_opt_snap_strength_modifier);
+    alg.setSnapGridWidth(m_canvas->m_opt_snap_grid_width);
+    alg.setSnapGridHeight(m_canvas->m_opt_snap_grid_height);
+    return alg.computeStress();
+}
+
 void GraphLayout::initialise(void)
 {
     //qDebug("GraphLayout::initialise: runlevel=%d",runLevel);

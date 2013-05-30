@@ -85,18 +85,6 @@ bool Actions::empty(void) const
            !(flags & (ACTION_ADDITIONS | ACTION_MODIFICATIONS | ACTION_DELETIONS));
 }
 
-struct OrthoWeights {
-    OrthoWeights() :
-        wcr(22.0),
-        wco(45.0),
-        wob(1.0),
-        wst(1.0) {}
-    double wcr;
-    double wco;
-    double wob;
-    double wst;
-};
-
 // Resize Handle Types
 enum {
     HAND_TOP_LEFT = 0,
@@ -3819,6 +3807,7 @@ void Canvas::initTryAlignments()
     // Also build neighbour sets.
     int maxID = 0;
     m_align_nbrs.clear();
+    QList<Connector*> conns;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
@@ -3828,6 +3817,7 @@ void Canvas::initTryAlignments()
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
+            conns.append(conn);
             QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
             m_align_nbrs.insertMulti(endpts.first,endpts.second);
             m_align_nbrs.insertMulti(endpts.second,endpts.first);
@@ -3837,6 +3827,7 @@ void Canvas::initTryAlignments()
     m_max_shape_id = maxID;
     int size = maxID*maxID;
 
+    // Array that just says whether we've tried aligning a pair of nodes or not:
     if (m_align_pairs_tried) {
         delete[] m_align_pairs_tried;
     }
@@ -3845,8 +3836,28 @@ void Canvas::initTryAlignments()
         m_align_pairs_tried[i] = false;
     }
 
+    // Array that indicates the "alignment state: of each pair of nodes, using
+    // Canvas::AlignmentFlags
+    // We only use the portion of the matrix above the main diagonal.
+    m_alignment_state = new int[size];
+    for (int i = 0; i < size; i++) {
+        m_alignment_state[i]  = 0;
+    }
+    foreach (Connector *conn, conns) {
+        ShapeObj *s = conn->getAttachedShapes().first, *t = conn->getAttachedShapes().second;
+        int sID = s->internalId(), tID = t->internalId();
+        int i = min(sID, tID), j = max(sID, tID);
+        int k = i*m_max_shape_id + j;
+        m_alignment_state[k] |= Connected;
+    }
+
     m_num_align_tries = 0;
     tryAlignments();
+}
+
+void Canvas::updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a)
+{
+
 }
 
 /// Say whether named side of shape is "clear", meaning that there is not
@@ -3953,6 +3964,8 @@ void Canvas::tryAlignments()
                 Guideline *gdln = createAlignment(a,items);
                 //qDebug() << "guideline is" << (gdln==NULL?"NULL":"not null");
                 gdln->setTentative(true);
+                AlignmentFlags af = plan==2 ? Vertical : Horizontal;
+                updateAlignmentStates(s,t,af);
                 m_trying_alignments = true;
                 m_num_align_tries++;
                 m_align_pairs_tried[pairIndex] = true; // Mark this pair of shapes as "tried".
@@ -4122,6 +4135,58 @@ void Canvas::updateStress(double stress) {
     emit newStressBarValue(stressBarValue);
 }
 
+bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
+{
+    // TODO
+}
+
+/*
+* Predicts what the change in the ortho objective function would be if you were
+* to align the endpoints of the connector in the named dimension.
+*
+* Returns  DBL_MAX if this alignment is predicted to result in creation
+* of an edge coincidence.
+*
+* Leaves out crossing detection -- just uses the current value.
+*
+*/
+double Canvas::predictOrthoObjectiveChange(Connector *conn, Dimension dim)
+{
+    // Would it create a coincidence?
+    double foo = DBL_MAX;
+
+    // Obliquity change
+    LineSegment seg(conn);
+    double dOb = -seg.obliquityScore();
+
+    // Stress change
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+    ShapeObj *s1 = conn->getAttachedShapes().first;
+    ShapeObj *s2 = conn->getAttachedShapes().second;
+    unsigned id1 = graph->getNodeID(s1);
+    unsigned id2 = graph->getNodeID(s2);
+    QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
+    vpsc::Rectangle *r1 = graph->rs.at(id1);
+    vpsc::Rectangle *r2 = graph->rs.at(id2);
+    // Now translate rectangles according to proposed alignment.
+    if (dim == HORIZ) {
+        double yav = ( p1.y() + p2.y() ) / 2.0;
+        r1->moveCentreY(yav);
+        r2->moveCentreY(yav);
+    } else { // dim == VERT
+        double xav = ( p1.x() + p2.x() ) / 2.0;
+        r1->moveCentreX(xav);
+        r2->moveCentreX(xav);
+    }
+    double stress = m_graphlayout->computeStressOfGraph(graph);
+    double dStress = stress-m_most_recent_stress;
+
+    // Sum up
+    OrthoWeights o = m_ortho_weights;
+    double predictedDelta = o.wob*dOb + o.wst*dStress;
+    return predictedDelta;
+}
+
 /*
 * Predicts what the ortho objective function would be if you were
 * to align the endpoints of the connector in the named dimension.
@@ -4170,18 +4235,8 @@ double Canvas::predictOrthoObjective(Connector *conn, Dimension dim)
         r1->moveCentreX(xav);
         r2->moveCentreX(xav);
     }
-    //
-    valarray<double> elengths;
-    graph->getEdgeLengths(elengths);
-    cola::ConstrainedFDLayout alg(graph->rs, graph->edges, 1.0, m_opt_prevent_overlaps,
-                                  m_opt_snap_to, m_opt_snap_distance_modifier,
-                                  &elengths[0], NULL, NULL);
-    alg.setConstraints(graph->ccs);
-    alg.setClusterHierarchy(&(graph->clusterHierarchy));
-    alg.setSnapStrength(m_opt_snap_strength_modifier);
-    alg.setSnapGridWidth(m_opt_snap_grid_width);
-    alg.setSnapGridHeight(m_opt_snap_grid_height);
-    double stress = alg.computeStress();
+
+    double stress = m_graphlayout->computeStressOfGraph(graph);
 
     // Crossings
     int crossings = m_most_recent_crossing_count;
