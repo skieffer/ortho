@@ -1267,8 +1267,6 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
 
 // Grid forces; uses quadratic U-stress:
 void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, valarray<double> &g) {
-    //double b = m_snapStressBeta;
-    //double sig = m_snapStressSigma;
     double b = m_snap_strength;
     double sig = m_snap_distance;
     double k = b/(sig*sig);
@@ -1278,7 +1276,11 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
         double q,r;
         double d=0,t=0;
         r = fabs(modf(z/D, &q));
-        //qDebug() << "q, |r|: " << q << r;
+// If want to break ties halfway between grid lines so that we always
+// favour the side closer to the origin, then define smallerCoordsWin.
+// Otherwise zero force will be exerted at the midpoints.
+#define smallerCoordsWin
+#ifndef smallerCoordsWin
         if (r!=0.5) { // no "tug of war"
             d = r<0.5 ? z-q*D : ( z>0 ? z-(q+1)*D : z-(q-1)*D );
             if (-sig<=d && d<=sig) {
@@ -1286,10 +1288,17 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
                 double dH = k;
                 g[u]+=dg;
                 H(u,u)+=dH;
-                //qDebug() << "g: " << dg;
-                //qDebug() << "H: " << dH;
             }
         }
+#else
+        d = r<=0.5 ? z-q*D : ( z>0 ? z-(q+1)*D : z-(q-1)*D );
+        if (-sig<=d && d<=sig) {
+            double dg = k*d;
+            double dH = k;
+            g[u]+=dg;
+            H(u,u)+=dH;
+        }
+#endif
     }
 }
 
@@ -1303,7 +1312,7 @@ void ConstrainedFDLayout::quadUForces(const vpsc::Dim dim, SparseMap &H, std::va
     foreach(Edge e, edges) {
         unsigned u = e.first, v = e.second;
         double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
-        if (-sig <= d && d <= sig) {
+        if (-sig < d && d <= sig) {
             double kd = k*d;
             g[u]+=kd;
             H(u,v)-=k;
@@ -1689,6 +1698,7 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
         double q,r;
         double dx=0,dy=0;
         double sx=0,sy=0;
+#ifndef smallerCoordsWin
         // x-dimension
         r = fabs(modf(x/W, &q));
         if (r!=0.5) { // no "tug of war"
@@ -1697,13 +1707,6 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
                 sx = dx*dx/sig2;
             }
         }
-
-        /*
-        qDebug() << "u: " << u;
-        qDebug() << "q, r: " << q << r;
-        qDebug() << "dx, sx: " << dx << sx;
-        */
-
         // y-dimension
         r = fabs(modf(y/H, &q));
         if (r!=0.5) {
@@ -1712,6 +1715,20 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
                 sy = dy*dy/sig2;
             }
         }
+#else
+        // x-dimension
+        r = fabs(modf(x/W, &q));
+        dx=r<=0.5?r*W:(1-r)*W;
+        if (dx<=sig) {
+            sx = dx*dx/sig2;
+        }
+        // y-dimension
+        r = fabs(modf(y/H, &q));
+        dy=r<=0.5?r*H:(1-r)*H;
+        if (dy<=sig) {
+            sy = dy*dy/sig2;
+        }
+#endif
 
         stress+=sx+sy;
     }
@@ -1731,18 +1748,18 @@ double ConstrainedFDLayout::quadUStress() const {
         double dx=X[u]-X[v], dy=Y[u]-Y[v];
 
         double sx = 0;
-        if (dx < -sig) {
+        if (dx <= -sig) {
             sx = c;
-        } else if (-sig <= dx && dx <= sig) {
+        } else if (-sig < dx && dx <= sig) {
             sx = dx*dx/sig2;
         } else { // sig < dx
             sx = c;
         }
 
         double sy = 0;
-        if (dy < -sig) {
+        if (dy <= -sig) {
             sy = c;
-        } else if (-sig <= dy && dy <= sig) {
+        } else if (-sig < dy && dy <= sig) {
             sy = dy*dy/sig2;
         } else { // sig < dy
             sy = c;

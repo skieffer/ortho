@@ -3839,25 +3839,40 @@ void Canvas::initTryAlignments()
     // Array that indicates the "alignment state: of each pair of nodes, using
     // Canvas::AlignmentFlags
     // We only use the portion of the matrix above the main diagonal.
-    m_alignment_state = new int[size];
-    for (int i = 0; i < size; i++) {
-        m_alignment_state[i]  = 0;
+
+    m_alignment_state = new Matrix2d<int>(maxID,maxID);
+    for (int i = 0; i < maxID; i++) {
+        for (int j = 0; j < maxID; j++) {
+            (*m_alignment_state)(i,j)  = 0;
+        }
     }
     foreach (Connector *conn, conns) {
         ShapeObj *s = conn->getAttachedShapes().first, *t = conn->getAttachedShapes().second;
         int sID = s->internalId(), tID = t->internalId();
-        int i = min(sID, tID), j = max(sID, tID);
-        int k = i*m_max_shape_id + j;
-        m_alignment_state[k] |= Connected;
+        (*m_alignment_state)(sID,tID) = Connected;
+        (*m_alignment_state)(tID,sID) = Connected;
     }
-
     m_num_align_tries = 0;
     tryAlignments();
 }
 
 void Canvas::updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a)
 {
-
+    /*
+    // Get sets of indices of shapes already aligned with each of s and t.
+    int sID = s->internalId(), tID = t->internalId();
+    QList<int> sA, tA;
+    // Traverse upper triangular aray for s and for t:
+    for (int j = 0; j < m_max_shape_id; j++) {
+        int k = j < sID ? j*m_max_shape_id + sID : sID*m_max_shape_id + j;
+        if (m_alignment_state[k] & a) sA.append(j);
+        int l = j < tID ? j*m_max_shape_id + tID : tID*m_max_shape_id + j;
+        if (m_alignment_state[l] & a) tA.append(j);
+    }
+    // s and t are aligned deliberately
+    int i = min(sID,tID), j = max(sID,tID);
+    m_alignment_state[i*m_max_shape_id+j] |= a | Deliberate;
+    */
 }
 
 /// Say whether named side of shape is "clear", meaning that there is not

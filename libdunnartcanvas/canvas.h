@@ -97,6 +97,19 @@ struct OrthoWeights {
     double wst;
 };
 
+template<typename T>
+struct Matrix2d
+{
+    int rows, cols;
+    std::vector<T> data;
+    Matrix2d() {}
+    Matrix2d(int rows, int cols) : rows(rows), cols(cols), data(rows*cols)
+    { }
+
+    T operator()(int i, int j) const { return data[i*cols+j]; }
+    T& operator()(int i, int j) { return data[i*cols+j]; }
+};
+
 static const unsigned int DEFAULT_CANVAS_FONT_SIZE = 11;
 
 static const uint MESSAGEBOX_PIXMAP_SIZE = 70;
@@ -491,7 +504,8 @@ class Canvas : public QGraphicsScene
         bool * m_align_pairs_tried;
         QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
         bool sideIsClear(ShapeObj* s, int side, double tolerance, ShapeObj* except=NULL);
-        int * m_alignment_state;
+        //int **m_alignment_state;
+        Matrix2d<int> *m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
 
         double m_opt_ideal_edge_length_modifier;
