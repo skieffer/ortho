@@ -9,18 +9,13 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Michael Wybrow
+ * Author(s):  Michael Wybrow
 */
 
 
@@ -743,7 +738,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 if (CONSTRAIN_CHECKPOINTS && les->containsCheckpoint && 
                         beforeLes->containsCheckpoint)
                 {
-                    // Both segments are passing a checkpoint.a
+                    // Both segments are passing a checkpoint.
                     // Constrain them together.
                     double sepDist =  
                             (les->lowPoint()[les->dimension] - 
@@ -1033,7 +1028,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
             continue;
         }
         Polygon& displayRoute = (*curr)->displayRoute();
-        bool routeHasCheckpointInfo = !displayRoute.segmentHasCheckpoint.empty();
+        bool routeHasCheckpointInfo = !displayRoute.checkpointsOnRoute.empty();
         // Determine all line segments that we are interested in shifting. 
         // We don't consider the first or last segment of a path.
         for (size_t i = 1; i < displayRoute.size(); ++i)
@@ -1041,7 +1036,8 @@ static void buildOrthogonalLayoutSegments(Router *router,
             bool containsCheckpoint = false;
             if (preserveCheckpointBends && routeHasCheckpointInfo)
             {
-                containsCheckpoint = displayRoute.segmentHasCheckpoint[i - 1];
+                containsCheckpoint = 
+                        (displayRoute.checkpointsOnSegment(i - 1).size() > 0);
             }
             
             if (displayRoute.ps[i - 1][dim] == displayRoute.ps[i][dim])

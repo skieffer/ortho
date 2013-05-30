@@ -123,11 +123,10 @@ Relationship::Relationship(Canvas *canvas, const QDomElement& node,
     //
 Relationship::Relationship(Guideline *g, ShapeObj *sh, atypes t, bool no_undo)
 {
+    commonInit();
+
     relType = REL_Align;
     shape = sh;
-    distro = NULL;
-    separation = NULL;
-    guide2 = NULL;
     type = t;
     guide = g;
     
@@ -137,55 +136,55 @@ Relationship::Relationship(Guideline *g, ShapeObj *sh, atypes t, bool no_undo)
 
 Relationship::Relationship(Distribution *d, Guideline *g1, Guideline *g2, bool no_undo)
 {
+    commonInit();
+
     relType = REL_Distr;
     assert(g1);
     assert(g2);
-    shape = NULL;
     distro = d;
-    separation = NULL;
     guide = g1;
     guide2 = g2;
     
     Activate(BOTH_SIDE, no_undo);
 }
 
+
 Relationship::Relationship(Separation *s, Guideline *g1, Guideline *g2, bool no_undo)
 {
+    commonInit();
+
     relType = REL_Separ;
     assert(g1);
     assert(g2);
-    shape = NULL;
-    distro = NULL;
     separation = s;
     guide = g1;
     guide2 = g2;
     
-    //QcFloat *q1GuV = g1->cVar->qcFloat();
-    //cVars.push_back(g1->cVar);
-    //QcFloat *q2GuV = g2->cVar->qcFloat();
-    //cVars.push_back(g2->cVar);
-    //QcFloat *qSepr = s->cSepr->qcFloat();
-    //cVars.push_back(s->cSepr);
-   
-    //constraint = (*qSepr - (*q2GuV - *q1GuV)  == 0);
     Activate(BOTH_SIDE, no_undo);
 }
 
     // This one is for unifying guidelines.
 Relationship::Relationship(Guideline *g1, Guideline *g2, bool no_undo)
 {
+    commonInit();
+
     relType = REL_Unify;
     assert(g1);
     assert(g2);
-    shape = NULL;
-    distro = NULL;
-    separation = NULL;
     guide = g1;
     guide2 = g2;
     
     Activate(BOTH_SIDE, no_undo);
 }
 
+void Relationship::commonInit(void)
+{
+    shape = NULL;
+    distro = NULL;
+    guide = NULL;
+    guide2 = NULL;
+    deadguide = NULL;
+}
 
 QDomElement Relationship::to_QDomElement(const unsigned int subset, 
         QDomDocument& doc)
@@ -229,9 +228,6 @@ QDomElement Relationship::to_QDomElement(const unsigned int subset,
 
 void Relationship::Deactivate(side s, bool by_undo)
 {
-    RelsList *rlist = NULL;
-    RelsList::iterator rlistItem;
-            
     // If a guideline is deleted, delete the distribution.
     if (s == EVERYTHING)
     {
@@ -268,7 +264,7 @@ void Relationship::Deactivate(side s, bool by_undo)
         // UNDO bool care_order = true;
         // UNDO add_undo_record(DELTA_DEL_REL, this, s, care_order);
     }
-    if (s & PARASITE_SIDE)
+    if (s & BOTH_SIDE)
     {
         if (relType == REL_Align)
         {
@@ -276,64 +272,40 @@ void Relationship::Deactivate(side s, bool by_undo)
         }
         else if (relType == REL_Distr)
         {
-            // Must use a pointer so we modify the original list.
-            rlist =  &(guide->rels);
-            rlistItem = find(rlist->begin(), rlist->end(), this);
-            assert(rlistItem != rlist->end());
-            rlist->erase(rlistItem);
-
-            rlist =  &(guide2->rels);
-            rlistItem = find(rlist->begin(), rlist->end(), this);
-            assert(rlistItem != rlist->end());
-            rlist->erase(rlistItem);
+            guide->rels.removeOne(this);
+            guide2->rels.removeOne(this);
         }
         else if (relType == REL_Separ)
         {
-            // Must use a pointer so we modify the original list.
-            rlist =  &(guide->rels);
-            rlistItem = find(rlist->begin(), rlist->end(), this);
-            assert(rlistItem != rlist->end());
-            rlist->erase(rlistItem);
-
-            rlist =  &(guide2->rels);
-            rlistItem = find(rlist->begin(), rlist->end(), this);
-            assert(rlistItem != rlist->end());
-            rlist->erase(rlistItem);
+            guide->rels.removeOne(this);
+            guide2->rels.removeOne(this);
         }
         else if (relType == REL_Unify)
         {
             assert(s & BOTH_SIDE);
-            rlist =  &(guide2->rels);
-            rlistItem = find(rlist->begin(), rlist->end(), this);
-            assert(rlistItem != rlist->end());
-            rlist->erase(rlistItem);
+            guide2->rels.removeOne(this);
         }
-    }
-    if (s & HOST_SIDE)
-    { 
+
         // Must use a pointer so we modify the original list.
         if (relType == REL_Distr)
         {
-            rlist = &(distro->rels);
+            distro->rels.removeOne(this);
         }
         else if (relType == REL_Separ)
         {
-            rlist = &(separation->rels);
+            separation->rels.removeOne(this);
         }
         else
         {
-            rlist = &(guide->rels);
+            guide->rels.removeOne(this);
         }
-        rlistItem = find(rlist->begin(), rlist->end(), this);
-        assert(rlistItem != rlist->end());
-        rlist->erase(rlistItem);
     }
 }
 
 
 void Relationship::Activate(side s, bool by_undo)
 {
-    if (s & PARASITE_SIDE)
+    if (s & BOTH_SIDE)
     {
         if (relType == REL_Align)
         {
@@ -354,9 +326,7 @@ void Relationship::Activate(side s, bool by_undo)
             assert(s & BOTH_SIDE);
             guide->rels.push_back(this);
         }
-    }
-    if (s & HOST_SIDE)
-    {
+
         if (relType == REL_Align)
         {
             guide->rels.push_back(this);
@@ -379,44 +349,6 @@ void Relationship::Activate(side s, bool by_undo)
     {
         // UNDO add_undo_record(DELTA_ADD_REL, this, s);
     }
-
-    // This little check prevents them from being unhidden on creation
-    // or if they don't exist.
-#if 0
-    // QT
-    for (int i = 0; i < 2; i++)
-    {
-        if (indi[i] && indi[i]->is_hidden())
-        {
-            if (indi[i]->get_parent()->get_active_image_n() !=
-                    SHAPE_STATE_UNSELECTED)
-            {
-                indi[i]->set_active_image(1);
-            }
-            indi[i]->setVisible(true);
-        }
-    }
-#endif
-}
-
-
-// Takes a new guideline that has the opposite orientation to the
-// current guideline, replace the guide, and reassign the relationships
-void Relationship::switchGuidelineAndAttachment(Guideline *g) 
-{
-    Q_UNUSED (g)
-
-    guide = NULL; // update the current guide to the new guide
-  
-    //  Deactivate(PARASITE_SIDE);
-
-    // update the relationship types to suit the new guide,
-    // which will have the opposite orientation to the previous guide
-    type = atypes((type+3)%6); // works as long as there are 6 atypes
-  
-    //  Activate(EVERYTHING);
-
-    printf("atype = %d\n", type);
 }
 
 

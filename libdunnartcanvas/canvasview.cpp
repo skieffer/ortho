@@ -96,6 +96,8 @@ void CanvasView::setScene(QGraphicsScene *scene)
                 this, SLOT(debugOverlayEnabled(bool)));
         connect(canvas(), SIGNAL(editModeChanged(int)),
                 this, SLOT(editModeChanged(int)));
+        connect(canvas(), SIGNAL(canvasDrawingChanged()),
+                this, SLOT(repaintCanvasViewport()));
     }
 }
 
@@ -133,6 +135,12 @@ void CanvasView::adjustSceneRect(QRectF new_scene_rect)
     //     connectors returning incorrect sizes at some point.
     scene_rect = scene_rect.united(canvas()->itemsBoundingRect());
     setSceneRect(scene_rect);
+}
+
+void CanvasView::repaintCanvasViewport(void)
+{
+    // Trigger a repaint of the entire visible canvas viewport.
+    canvas()->update(viewportRect());
 }
 
 
@@ -379,10 +387,9 @@ void CanvasView::keyReleaseEvent(QKeyEvent *keyEvent)
              keyEvent->key() == Qt::Key_Equal)
     {
         // The + (=) key will increase the detail level of any selected shapes.
-        CanvasItemList selection = canvas()->selectedItems();
-        for (int i = 0; i < selection.size(); ++i)
+        foreach (CanvasItem *item, canvas()->selectedItems())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (selection.at(i));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             if (shape)
             {
                 shape->changeDetailLevel(true);
@@ -392,10 +399,9 @@ void CanvasView::keyReleaseEvent(QKeyEvent *keyEvent)
     else if (keyEvent->key() == Qt::Key_Minus)
     {
         // The - key will decrease the detail level of any selected shapes.
-        CanvasItemList selection = canvas()->selectedItems();
-        for (int i = 0; i < selection.size(); ++i)
+        foreach (CanvasItem *item, canvas()->selectedItems())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (selection.at(i));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             if (shape)
             {
                 shape->changeDetailLevel(false);

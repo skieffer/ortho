@@ -56,7 +56,7 @@
 namespace dunnart {
 
 
-typedef std::map<CanvasItem *, QDomElement> CanvasItemXmlList;
+typedef QMap<CanvasItem *, QDomElement> CanvasItemXmlList;
 static CanvasItemXmlList inactiveObjXml;
 static CanvasItemList inactiveObjList;
 
@@ -264,21 +264,21 @@ void CanvasItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
     canvas()->setDraggedItem(this, withForce);
 
-    QList<CanvasItem *> selected_items = canvas()->selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, canvas()->selectedItems())
     {
-        CanvasItem *canvas_obj = selected_items.at(i);
-        if (canvas_obj->canvasItemFlags() & ItemIsMovable)
+        if (item->canvasItemFlags() & ItemIsMovable)
         {
             // Only move movable items.
-            canvas_obj->userMoveBy(diff.x(), diff.y());
-            actions.moveList.push_back(canvas_obj);
-            canvas()->highlightIndicatorsForItemMove(canvas_obj);
+            item->userMoveBy(diff.x(), diff.y());
+            actions.moveList.push_back(item);
+            canvas()->highlightIndicatorsForItemMove(item);
         }
     }
     canvas()->processResponseTasks();
 
     // Still do routing even when the layout thread is suspended.
+    // XXX We need to only reroute connectors attached to moved shape
+    //     during dragging if topology layout is turned on.
     if (canvas()->isLayoutSuspended())
     {
         reroute_connectors(canvas());
@@ -916,7 +916,7 @@ void CanvasItem::setAsInactive(bool inactive, CanvasItemSet fullSet)
             // QT recursiveReadSVG(NULL, inactiveObjXml[this], NULL,
             //                 PASS_RELATIONSHIPS);
         }
-        inactiveObjXml.erase(this);
+        inactiveObjXml.remove(this);
     }
 }
 
@@ -945,10 +945,10 @@ void CanvasItem::glowSetClipRect(SDL_Surface *surface)
         int h1 = connectedObjs[0]->get_height();
         int h2 = connectedObjs[1]->get_height();
 
-        int cx = std::min(x1, x2);
-        int cy = std::min(y1, y2);
-        int cw = std::max(x1 + w1, x2 + w2) - cx;
-        int ch = std::max(y1 + h1, y2 + h2) - cy;
+        int cx = qMin(x1, x2);
+        int cy = qMin(y1, y2);
+        int cw = qMax(x1 + w1, x2 + w2) - cx;
+        int ch = qMax(y1 + h1, y2 + h2) - cy;
         SDL_Rect crect = { cx, cy, cw, ch };
         SDL_SetClipRect(surface, &crect);
     }

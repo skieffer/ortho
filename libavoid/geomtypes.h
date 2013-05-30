@@ -33,6 +33,8 @@
 #include <vector>
 #include <utility>
 
+#include "libavoid/dllexport.h"
+
 
 namespace Avoid
 {
@@ -47,7 +49,7 @@ class Polygon;
 //! Points consist of an x and y value.  They may also have an ID and vertex
 //! number associated with them.
 //!
-class Point
+class AVOID_EXPORT Point
 {
     public:
         //! @brief  Default constructor.
@@ -128,7 +130,7 @@ typedef Point Vector;
 //! @brief  A bounding box, represented by the top-left and
 //!         bottom-right corners.
 //!
-class Box
+class AVOID_EXPORT Box
 {
     public:
         //! The top-left point.
@@ -141,7 +143,7 @@ class Box
 
 //! @brief  A common interface used by the Polygon classes.
 //!
-class PolygonInterface
+class AVOID_EXPORT PolygonInterface
 {
     public:
         //! @brief  Constructor.
@@ -173,10 +175,7 @@ class PolygonInterface
         //! the bounding rectangle for the shape's polygon.
         //!
         //! @param     offset  Extra distance to pad each side of the rect.
-        //! @param[out]  minX  The left hand side of the bounding box.
-        //! @param[out]  minY  The top of the bounding box.
-        //! @param[out]  maxX  The right hand side of the bounding box.
-        //! @param[out]  maxY  The bottom of the bounding box.
+        //! @return    The bounding box for the polygon.
         Box offsetBoundingBox(double offset) const;
 
         Polygon offsetPolygon(double offset) const;
@@ -185,7 +184,7 @@ class PolygonInterface
 
 //! @brief  A line between two points. 
 //!
-class Edge
+class AVOID_EXPORT Edge
 {
     public:
         //! The first point.
@@ -204,7 +203,7 @@ class ReferencingPolygon;
 //! @note The Rectangle class can be used as an easy way of constructing a
 //!       square or rectangular polygon.
 //!
-class Polygon : public PolygonInterface
+class AVOID_EXPORT Polygon : public PolygonInterface
 {
     public:
         //! @brief  Constructs an empty polygon (with zero points). 
@@ -300,14 +299,26 @@ class Polygon : public PolygonInterface
         //!         returned by curvedPolyline().  
         std::vector<char> ts;
 
-        //! @brief  If used, denotes whether the corresponding segment contains a
-        //!         checkpoint for the connector.
-        //!
-        //! Set and used by the orthogonal routing code.
-        //!
-        //! Where a checkpoint occurs on a bend in the connector, both the neighbouring
-        //! segments will be marked as being restricted by a checkpoint.
-        std::vector<bool> segmentHasCheckpoint;
+        // @brief  If used, denotes checkpoints through which the route travels
+        //         and the relevant segment of the route.
+        //
+        // Set and used by the orthogonal routing code. Note the first value
+        // in the pair doesn't correspond to the segment index containing the 
+        // checkpoint, but rather the segment or bendpoint on which it lies.
+        //    0 if on ps[0]
+        //    1 if on line ps[0]-ps[1]
+        //    2 if on ps[1]
+        //    3 if on line ps[1]-ps[2]
+        //    etc.
+        std::vector<std::pair<size_t, Point> > checkpointsOnRoute;
+
+        // Returns true if at least one checkpoint lies on the line segment
+        // or at either end of it.  An indexModifier of +1 will cause it to
+        // ignore a checkpoint on the corner at the start of the segment and
+        // -1 will cause it to do the same for the corner at the end of the
+        // segment.
+        std::vector<Point> checkpointsOnSegment(size_t segmentLowerIndex,
+                int indexModifier = 0) const;
 };
 
 
@@ -321,7 +332,7 @@ typedef Polygon PolyLine;
 //! This type of Polygon is used to accurately represent cluster boundaries 
 //! made up from the corner points of shapes.
 //!
-class ReferencingPolygon : public PolygonInterface
+class AVOID_EXPORT ReferencingPolygon : public PolygonInterface
 {
     public:
         ReferencingPolygon();
@@ -341,7 +352,7 @@ class ReferencingPolygon : public PolygonInterface
 //! @brief  A Rectangle, a simpler way to define the polygon for square or
 //!         rectangular shapes.
 //!
-class Rectangle : public Polygon
+class AVOID_EXPORT Rectangle : public Polygon
 {
     public:
         //! @brief  Constructs a rectangular polygon given two opposing 

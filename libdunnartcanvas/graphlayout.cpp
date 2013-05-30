@@ -1080,7 +1080,7 @@ void GraphLayout::clearReturnPosInfos(void)
 
 void GraphLayout::addPinnedShapesToFixedList(void)
 {
-    CObjList list;
+    CanvasItemsList list;
     QList<CanvasItem *> canvas_items = m_canvas->items();
     for (int i = 0; i < canvas_items.size(); ++i)
     {
@@ -1099,34 +1099,24 @@ void GraphLayout::pinUnselectedShapes(QWidget ** c)
 {
     Q_UNUSED (c)
 
-    // selection is globally defined in canvas
-    set<ShapeObj*> selected;
-    QList<CanvasItem *> selected_items = 
-            m_canvas->selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, m_canvas->selectedItems())
     {
-        if (ShapeObj *shape = isShapeForLayout(selected_items.at(i))) 
+        if (ShapeObj *shape = isShapeForLayout(item))
         {
-            selected.insert(shape);
-        }
-    }
-    QList<CanvasItem *> canvas_items = m_canvas->items();
-    for (int i = 0; i < canvas_items.size(); ++i)
-    {
-        if (ShapeObj *shape = isShapeForLayout(canvas_items.at(i))) 
-        {
-            set<ShapeObj*>::iterator i = selected.find(shape);
-            // anything not in the selection is locked, everything else
-            // is unlocked
-            if(i==selected.end()) {
-                QSet<ShapeObj*>::iterator si = pinnedShapes.find(shape);
-                if(si==pinnedShapes.end()) {
+            // Anything not in the selection is locked, everything else
+            // is unlocked.
+            if(shape->isSelected())
+            {
+                pinnedShapes.remove(shape);
+                shape->setPinned(false);
+            }
+            else
+            {
+                if(pinnedShapes.contains(shape) == false)
+                {
                     pinnedShapes.insert(shape);
                     shape->setPinned(true);
                 }
-            } else {
-                pinnedShapes.remove(shape);
-                shape->setPinned(false);
             }
         }
     }
@@ -1136,10 +1126,9 @@ void GraphLayout::unpinAllShapes(QWidget ** c)
 {
     Q_UNUSED (c)
 
-    QList<CanvasItem *> canvas_items = m_canvas->items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, m_canvas->items())
     {
-        if (ShapeObj *shape = isShapeForLayout(canvas_items.at(i))) 
+        if (ShapeObj *shape = isShapeForLayout(item))
         {
             pinnedShapes.remove(shape);
             shape->setPinned(false);
@@ -1147,8 +1136,8 @@ void GraphLayout::unpinAllShapes(QWidget ** c)
     }
 }
 
-void GraphLayout::addToFixedList(CObjList & objList) {
-    for(CObjList::iterator i=objList.begin(); i!=objList.end();i++) {
+void GraphLayout::addToFixedList(CanvasItemsList & objList) {
+    for(CanvasItemsList::iterator i=objList.begin(); i!=objList.end();i++) {
         Guideline *guide = dynamic_cast<Guideline *> (*i);
         Distribution *distro = dynamic_cast<Distribution *> (*i);
         Separation *separation = dynamic_cast<Separation *> (*i);
@@ -1181,8 +1170,8 @@ void GraphLayout::addToFixedList(CObjList & objList) {
         }
     }
 }
-void GraphLayout::addToResizedList(CObjList & objList) {
-    for(CObjList::iterator i=objList.begin(); i!=objList.end();i++) {
+void GraphLayout::addToResizedList(CanvasItemsList & objList) {
+    for(CanvasItemsList::iterator i=objList.begin(); i!=objList.end();i++) {
         if (ShapeObj *shape = isShapeForLayout(*i)) 
         {
             map<ShapeObj*,ShapePosInfo*>::iterator i=fixedShapeLookup.find(shape);
@@ -1210,7 +1199,7 @@ void GraphLayout::apply(bool ignoreEdges)
     addToFixedList(actions.moveList);
     addToResizedList(actions.resizeList);
 
-    CObjList pinnedShapesList;
+    CanvasItemsList pinnedShapesList;
     foreach (ShapeObj *shape, pinnedShapes)
     {
         pinnedShapesList.push_back(shape);
@@ -1266,7 +1255,7 @@ double GraphLayout::computeStressOfGraph(GraphData *graph)
     cola::ConstrainedFDLayout alg(graph->rs, graph->edges, 1.0,
             m_canvas->m_opt_prevent_overlaps,
             m_canvas->m_opt_snap_to,  m_canvas->m_opt_snap_distance_modifier,
-            &elengths[0], postIter, &preIter);
+            &elengths[0], &postIter, &preIter);
     alg.setConstraints(graph->ccs);
     alg.setClusterHierarchy(&(graph->clusterHierarchy));
     alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);
@@ -1312,7 +1301,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     cola::ConstrainedFDLayout alg(m_graph->rs, m_graph->edges, 1.0,
             m_canvas->m_opt_prevent_overlaps,
             m_canvas->m_opt_snap_to,  m_canvas->m_opt_snap_distance_modifier,
-            &elengths[0], postIter, &preIter);
+            &elengths[0], &postIter, &preIter);
     alg.setConstraints(m_graph->ccs);
     alg.setClusterHierarchy(&(m_graph->clusterHierarchy));
     alg.setRelaxThreshold(m_canvas->m_opt_relax_threshold_modifier);

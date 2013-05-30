@@ -40,6 +40,8 @@
 
 #include "libavoid/connector.h"
 #include "libavoid/connectionpin.h"
+#include "libavoid/router.h"
+#include "libavoid/shape.h"
 
 namespace dunnart {
 
@@ -184,31 +186,35 @@ void ConnectorEndpointHandle::paint(QPainter *painter,
 void ConnectorEndpointHandle::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     int index = this->handleFlags();
+    QPair<ShapeObj *, ShapeObj *> attachedShapes = m_conn->getAttachedShapes();
+    ShapeObj *otherEndShape = (index == SRCPT) ? attachedShapes.second :
+            attachedShapes.first;
 
-    ShapeObj *attShape = NULL;
-    QList<CanvasItem *> canvas_items = m_conn->canvas()->items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    QPointF mousePoint = event->scenePos();
+    Avoid::ShapeRef *containingShapeRef = canvas()->router()->shapeContainingPoint(
+            Avoid::Point(mousePoint.x(), mousePoint.y()));
+    ShapeObj *containingShape = NULL;
+    foreach (CanvasItem *item, m_conn->canvas()->items())
     {
-        ShapeObj *shape = dynamic_cast<ShapeObj *>
-                (canvas_items.at(i));
-        if (shape && shape->contains(event->scenePos() - shape->scenePos()))
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
+        if (shape && (shape != otherEndShape) &&
+                (shape->avoidRef == containingShapeRef))
         {
-            attShape = shape;
+            containingShape = shape;
             break;
         }
     }
 
-    if (attShape)
+    if (containingShape)
     {
-        m_conn->setNewEndpoint(index, attShape->centrePos(), attShape,
-                CENTRE_CONNECTION_PIN);
+        m_conn->setNewEndpoint(index, containingShape->centrePos(),
+                containingShape, CENTRE_CONNECTION_PIN);
     }
     else
     {
         m_conn->setNewEndpoint(index, event->scenePos(), NULL);
     }
-
-    Handle::mouseMoveEvent(event);
+    reposition();
 }
 
 
@@ -250,16 +256,15 @@ void ConnectorCheckpointHandle::reposition(void)
 void ConnectorCheckpointHandle::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     int index = this->handleFlags();
-    QPointF scenePosition = event->scenePos();
-    Avoid::Point newPosition(scenePosition.x(), scenePosition.y());
+    m_pos = event->scenePos();
+    Avoid::Point newPosition(m_pos.x(), m_pos.y());
     std::vector<Avoid::Checkpoint> checkpoints =
             m_conn->avoidRef->routingCheckpoints();
     checkpoints[index].point = newPosition;
     m_conn->avoidRef->setRoutingCheckpoints(checkpoints);
     // XXX Horribly inefficient.
     reroute_connectors(m_conn->canvas(), true);
-
-    Handle::mouseMoveEvent(event);
+    reposition();
 }
 
 void ConnectorCheckpointHandle::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -391,10 +396,9 @@ void ConnectionPinHandle::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if (m_new_conn)
     {
         ShapeObj *attShape = NULL;
-        QList<CanvasItem *> canvas_items = canvas->items();
-        for (int i = 0; i < canvas_items.size(); ++i)
+        foreach (CanvasItem *item, canvas->items())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(i));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             if (shape == m_shape)
             {
                 continue;

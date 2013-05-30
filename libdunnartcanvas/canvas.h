@@ -37,6 +37,7 @@
 #include <QString>
 #include <QDomDocument>
 #include <QUndoCommand>
+#include <QColor>
 
 #include "libavoid/geometry.h"
 
@@ -72,13 +73,13 @@ class UndoMacro;
 class BCLayout;
 class ShapeObj;
 
-typedef QList<CanvasItem *> CObjList;
+typedef QList<CanvasItem *> CanvasItemsList;
 
 class Actions {
     public:
         unsigned int flags;
-        CObjList moveList;
-        CObjList resizeList;
+        CanvasItemsList moveList;
+        CanvasItemsList resizeList;
 
         Actions();
         void clear(void);
@@ -153,6 +154,7 @@ class Canvas : public QGraphicsScene
     Q_PROPERTY (int connectorRoundingDistance READ optConnectorRoundingDistance WRITE setOptConnRoundingDist)
     Q_PROPERTY (int routingSegmentPenalty READ optRoutingPenaltySegment WRITE setOptRoutingPenaltySegment)
     Q_PROPERTY (bool structuralEditingDisabled READ optStructuralEditingDisabled WRITE setOptStructuralEditingDisabled)
+    Q_PROPERTY (QColor canvasBackgroundColour READ optCanvasBackgroundColour WRITE setOptCanvasBackgroundColour)
     Q_ENUMS (FlowDirection)
     Q_ENUMS (LayoutMode)
     Q_ENUMS (LayeredAlignment)
@@ -261,6 +263,7 @@ class Canvas : public QGraphicsScene
         LayeredAlignment optLayeredAlignmentPosition(void) const;
         double optStressBarMaximum(void) const;
         double optObliquityBarMaximum(void) const;
+        QColor optCanvasBackgroundColour(void) const;
 
         bool overlayRouterRawRoutes(void) const;
         bool overlayRouterDisplayRoutes(void) const;
@@ -365,6 +368,7 @@ class Canvas : public QGraphicsScene
         void setOptFlowDirectionFromDial(const int value);
         void setOptShapeNonoverlapPadding(const int value);
         void setOptLayeredAlignmentPosition(const LayeredAlignment pos);
+        void setOptCanvasBackgroundColour(const QColor colour);
 
         void processResponseTasks(void);
         void processUndoResponseTasks(void);
@@ -380,7 +384,6 @@ class Canvas : public QGraphicsScene
         // for printing documents as well as exporting SVG, PDF and PS files.
         bool isRenderingForPrinting(void) const;
         void setRenderingForPrinting(const bool printingMode);
-
         bool inSelectionMode(void) const;
         void postRoutingRequiredEvent(void);
 
@@ -391,9 +394,11 @@ class Canvas : public QGraphicsScene
 
     signals:
         void diagramFilenameChanged(const QFileInfo& title);
+        void canvasDrawingChanged(void);
         void debugOverlayEnabled(bool enabled);
         void clipboardContentsChanged(void);
         void editModeChanged(const int mode);
+        void layoutHasConverged(void);
 
         void optChangedAutomaticLayout(bool checked);
         void optChangedPreserveTopology(bool checked);
@@ -531,10 +536,11 @@ class Canvas : public QGraphicsScene
         bool m_opt_stuctural_editing_disabled;
         int  m_opt_flow_direction;
         int m_opt_layered_alignment_position;
+        QColor m_opt_canvas_background_colour;
         Actions m_actions;
 
-        std::map<QString, QString> m_paste_id_map;
-        std::list<QString> m_paste_bad_constraint_ids;
+        QMap<QString, QString> m_paste_id_map;
+        QList<QString> m_paste_bad_constraint_ids;
         // list of nodes in other namespaces
         QList<QDomNode> m_external_node_list;
         QMap<QString, QString> m_extra_namespaces_map;
@@ -551,7 +557,7 @@ class Canvas : public QGraphicsScene
         // Access via interferingConnectorColours().
         QList<QColor> m_interfering_connector_colours;
 
-        std::map<int, Guideline *> m_vguides, m_hguides;
+        QMap<int, Guideline *> m_vguides, m_hguides;
         CanvasItem *m_dragged_item;
         bool m_dragged_with_force;
         CanvasItem *m_lone_selected_item;
