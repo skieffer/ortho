@@ -64,6 +64,7 @@ class Graph;
 
 class CanvasItem;
 class Guideline;
+class Connector;
 class GraphLayout;
 class SelectionResizeHandle;
 class UndoMacro;
@@ -85,7 +86,18 @@ class Actions {
 };
 
 struct AlignDesc;
-struct OrthoWeights;
+
+struct OrthoWeights {
+    OrthoWeights() :
+        wcr(22.0),
+        wco(45.0),
+        wob(1.0),
+        wst(1.0) {}
+    double wcr;
+    double wco;
+    double wob;
+    double wst;
+};
 
 static const unsigned int DEFAULT_CANVAS_FONT_SIZE = 11;
 
@@ -163,6 +175,14 @@ class Canvas : public QGraphicsScene
         {
             VERT,
             HORIZ
+        };
+
+        enum AlignmentFlags
+        {
+            Horizontal = 1,
+            Vertical   = 2,
+            Deliberate = 4,
+            Connected  = 8
         };
 
         bool loadGmlDiagram(const QFileInfo& fileInfo);
@@ -354,6 +374,8 @@ class Canvas : public QGraphicsScene
 
         double computeOrthoObjective(void);
         double predictOrthoObjective(Connector *conn, Dimension dim);
+        double predictOrthoObjectiveChange(Connector *conn, Dimension dim);
+        bool predictCoincidence(Connector *conn, Dimension dim);
 
     signals:
         void diagramFilenameChanged(const QFileInfo& title);
@@ -471,6 +493,8 @@ class Canvas : public QGraphicsScene
         bool * m_align_pairs_tried;
         QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
         bool sideIsClear(ShapeObj* s, int side, double tolerance, ShapeObj* except=NULL);
+        int * m_alignment_state;
+        void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

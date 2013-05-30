@@ -185,6 +185,7 @@ public:
 
     ShapePosInfo *makeShapePosInfo(ShapeObj *shape, double x, double y);
     void processShapePosInfos(QList<ShapePosInfo*> posinfos);
+    double computeStressOfGraph(GraphData *graph);
 
 private:
     Canvas *m_canvas;
