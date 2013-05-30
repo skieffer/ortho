@@ -3813,6 +3813,7 @@ void Canvas::initTryAlignments()
     // Also build neighbour sets.
     int maxID = 0;
     m_align_nbrs.clear();
+    m_shapes_by_id.clear();
     QList<Connector*> conns;
     foreach (CanvasItem *item, items())
     {
@@ -3820,6 +3821,7 @@ void Canvas::initTryAlignments()
         {
             int id = shape->idString().toInt();
             maxID = id > maxID ? id : maxID;
+            m_shapes_by_id.insert(id,shape);
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
@@ -3842,43 +3844,82 @@ void Canvas::initTryAlignments()
         m_align_pairs_tried[i] = false;
     }
 
-    // Array that indicates the "alignment state: of each pair of nodes, using
+    // Array that indicates the "alignment state" of each pair of nodes, using
     // Canvas::AlignmentFlags
-    // We only use the portion of the matrix above the main diagonal.
 
-    m_alignment_state = new Matrix2d<int>(maxID,maxID);
+    m_alignment_state = Matrix2d<int>(maxID,maxID);
     for (int i = 0; i < maxID; i++) {
         for (int j = 0; j < maxID; j++) {
-            (*m_alignment_state)(i,j)  = 0;
+            m_alignment_state(i,j) = 0;
         }
     }
     foreach (Connector *conn, conns) {
         ShapeObj *s = conn->getAttachedShapes().first, *t = conn->getAttachedShapes().second;
         int sID = s->internalId(), tID = t->internalId();
-        (*m_alignment_state)(sID,tID) = Connected;
-        (*m_alignment_state)(tID,sID) = Connected;
+        m_alignment_state(sID,tID) = Connected;
+        m_alignment_state(tID,sID) = Connected;
     }
     m_num_align_tries = 0;
     tryAlignments();
 }
 
+/*
+* Update alignment state matrix for the alignment of shapes s and t in the
+* dimension indicated by the alignment flag.
+*/
 void Canvas::updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a)
 {
-    /*
     // Get sets of indices of shapes already aligned with each of s and t.
     int sID = s->internalId(), tID = t->internalId();
     QList<int> sA, tA;
-    // Traverse upper triangular aray for s and for t:
     for (int j = 0; j < m_max_shape_id; j++) {
-        int k = j < sID ? j*m_max_shape_id + sID : sID*m_max_shape_id + j;
-        if (m_alignment_state[k] & a) sA.append(j);
-        int l = j < tID ? j*m_max_shape_id + tID : tID*m_max_shape_id + j;
-        if (m_alignment_state[l] & a) tA.append(j);
+        if (m_alignment_state(sID, j) & a) sA.append(j);
+        if (m_alignment_state(tID, j) & a) tA.append(j);
     }
     // s and t are aligned deliberately
-    int i = min(sID,tID), j = max(sID,tID);
-    m_alignment_state[i*m_max_shape_id+j] |= a | Deliberate;
-    */
+    m_alignment_state(sID,tID) |= a | Deliberate;
+    m_alignment_state(tID,sID) |= a | Deliberate;
+    // s is now aligned with each element of tA, and vice versa
+    foreach(int k, tA) {
+        m_alignment_state(sID,k) |= a;
+        m_alignment_state(k,sID) |= a;
+    }
+    foreach(int k, sA) {
+        m_alignment_state(tID,k) |= a;
+        m_alignment_state(k,tID) |= a;
+    }
+}
+
+bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
+{
+    ShapeObj *s = conn->getAttachedShapes().first, *t = conn->getAttachedShapes().second;
+    double sz = dim==HORIZ ? s->centrePos().x() : s->centrePos().y();
+    double tz = dim==HORIZ ? t->centrePos().x() : t->centrePos().y();
+    double lowCoord = sz<tz ? sz : tz;
+    double highCoord = sz<tz ? tz : sz;
+    int lowID = sz<tz ? s->internalId() : t->internalId();
+    int highID = sz<tz ? t->internalId() : s->internalId();
+    // We predict a coincidence iff (the low shape is already aligned with and shares an
+    // edge with some shape of higher coordinate) OR (the high shape is already aligned with
+    // and shares an edge with some shape of lower coordinate).
+    bool coincidence = false;
+    AlignmentFlags a = dim==HORIZ ? Horizontal : Vertical;
+    for (int j = 0; j < m_max_shape_id; j++) {
+        if (!m_shapes_by_id.contains(j)) continue;
+        ShapeObj *r = m_shapes_by_id.value(j);
+        double z = dim==HORIZ ? r->centrePos().x() : r->centrePos().y();
+        // low shape
+        int lj = m_alignment_state(lowID, j);
+        if ( lj&a && lj&Connected && lowCoord < z ) {
+            coincidence = true; break;
+        }
+        // high shape
+        int hj = m_alignment_state(highID, j);
+        if ( hj&a && hj&Connected && z < highCoord ) {
+            coincidence = true; break;
+        }
+    }
+    return coincidence;
 }
 
 /// Say whether named side of shape is "clear", meaning that there is not
@@ -4109,11 +4150,6 @@ void Canvas::updateStress(double stress) {
     emit newStressBarValue(stressBarValue);
 }
 
-bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
-{
-    // TODO
-}
-
 /*
 * Predicts what the change in the ortho objective function would be if you were
 * to align the endpoints of the connector in the named dimension.
@@ -4127,7 +4163,7 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
 double Canvas::predictOrthoObjectiveChange(Connector *conn, Dimension dim)
 {
     // Would it create a coincidence?
-    double foo = DBL_MAX;
+    if (predictCoincidence(conn,dim)) return DBL_MAX;
 
     // Obliquity change
     LineSegment seg(conn);

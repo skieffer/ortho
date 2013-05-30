@@ -505,9 +505,10 @@ class Canvas : public QGraphicsScene
         int m_max_shape_id;
         bool * m_align_pairs_tried;
         QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
+        QMap<int,ShapeObj*> m_shapes_by_id;
         bool sideIsClear(ShapeObj* s, int side, double tolerance, ShapeObj* except=NULL);
         //int **m_alignment_state;
-        Matrix2d<int> *m_alignment_state;
+        Matrix2d<int> m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
 
         double m_opt_ideal_edge_length_modifier;
