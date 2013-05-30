@@ -38,6 +38,8 @@
 #include <QDomDocument>
 #include <QUndoCommand>
 
+#include "libavoid/geometry.h"
+
 class QToolBar;
 class QStatusBar;
 class QSvgRenderer;
@@ -615,6 +617,10 @@ struct LineSegment {
     // unit speed in angle direction from intercept point.
     double t0;
     double t1;
+
+    // libavoid segment endpoints for segmentIntersect testing.
+    Avoid::Point p1;
+    Avoid::Point p2;
 };
 
 extern QRectF diagramBoundingRect(const QList<CanvasItem *>& list);

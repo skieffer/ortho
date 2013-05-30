@@ -3953,6 +3953,8 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
     ShapeObj *t = conn->getAttachedShapes().second;
     double sx=s->centrePos().x(), sy=s->centrePos().y();
     double tx=t->centrePos().x(), ty=t->centrePos().y();
+    p1 = Avoid::Point(sx, sy);
+    p2 = Avoid::Point(tx, ty);
     // If the points are coincident, set angle to -1 and quit.
     if (sx==tx && sy==ty) { angle = -1; return; }
     double a;
@@ -3964,9 +3966,6 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
         a = 0;
     }
     angle = (int)(round(a*180/3.1415927)) % 180;
-    double rad = angle*3.1415926/180;
-    m_cos = cos(rad);
-    m_sin = sin(rad);
     if (angle==0) {
         intercept = (sy+ty)/2.0;
         t0 = sx < tx ? sx : tx;
@@ -3987,49 +3986,9 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
 
 bool LineSegment::intersects(LineSegment *other, double tolerance)
 {
-    bool ans = false;
-    // If angles are equal, then the segments are not said to intersect.
-    // (They may be coincident, but that is another matter.)
-    if (angle==other->angle) {
-        ans = false;
-    }
-    // Otherwise the /lines/ intersect at a unique point, and we must say whether
-    // that point happens to lie on both /segments/.
-    // (And it should lie sufficiently within each segment, according to passed tolerance.)
-    else if (angle==0 || other->angle==0) {
-        // Precisely one of the angles is zero.
-        LineSegment *zseg, *nzseg;
-        if (angle==0) {
-            zseg = this; nzseg = other;
-        } else {
-            zseg = other; nzseg = this;
-        }
-        double a = nzseg->intercept, b = zseg->intercept;
-        double t = b/nzseg->m_sin, x = a + t*nzseg->m_cos;
-        double c = 3*tolerance;
-        ans = nzseg->t0+c<=t && t+c<=nzseg->t1 && zseg->t0+c<=x && x+c<=zseg->t1;
-    } else {
-        // Neither angle is zero.
-        // Compute the parameters u1 and u2 for the intersection point.
-        double u1, u2;
-        // Compare x-intercepts.
-        double x1 = intercept, x2 = other->intercept;
-        LineSegment *left, *right;
-        double delta;
-        if (x1 <= x2) {
-            left = this; right = other;
-            delta = x2-x1;
-        } else {
-            right = this; left = other;
-            delta = x1-x2;
-        }
-        double a1 = left->angle, a2 = right->angle;
-        double s1 = left->m_sin, s2 = right->m_sin;
-        double k = delta/sin(a2-a1);
-        u1 = k*s2; u2 = k*s1;
-        double c = 3*tolerance;
-        ans = left->t0+c<=u1 && u1+c<=left->t1 && right->t0+c<=u2 && u2+c<=right->t1;
-    }
+    Q_UNUSED (tolerance)
+
+    bool ans = Avoid::segmentIntersect(p1, p2, other->p1, other->p2);
     if (ans) {
         connector->addIntersector(other->connector);
         other->connector->addIntersector(connector);
