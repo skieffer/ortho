@@ -217,7 +217,31 @@ class BuiltinSVGFileIOPlugin : public QObject, public FileIOPluginInterface
             QString parsingError;
             int errorLine;
             int errorColumn;
+#if 1
+            // We can open files from Dunnart Ver 1 by rewriting some
+            // properties.  This is still required for opening older
+            // Pro-origami files
+            QTextStream stream(&file);
+            QString content = stream.readAll();
+            if (content.contains("sodipodi:guide dunnart:type=\"indGuide\""))
+            {
+                // This has v1 guidline descriptions that need to be rewritten.
+                content.replace(" direction=", " foo=");
+                content.replace(" position=", " bar=");
+                content.replace("sodipodi:guide", "dunnart:node");
+            }
+            content.replace("node dunnart:type=", "node type=");
+            content.replace("dunnart:direction=", "direction=");
+            content.replace("dunnart:position=", "position=");
+            content.replace("dunnart:sepDistance=", "sepDistance=");
+            content.replace("avoidBuffer=\"10\"", "avoidBuffer=\"6\"");
+            content.replace("dunnart:xPos=", "dunnart:cx=");
+            content.replace("dunnart:yPos=", "dunnart:cy=");
+            if (!doc.setContent(content, true, &parsingError, &errorLine, &errorColumn))
+#else
+            // Once we don't care, this is simpler.
             if (!doc.setContent(&file, true, &parsingError, &errorLine, &errorColumn))
+#endif
             {
                 file.close();
                 errorMessage = tr("Error reading SVG: %1:%2: %3").arg(errorLine).

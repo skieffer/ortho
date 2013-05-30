@@ -34,6 +34,7 @@
 #include <utility>
 #include <string>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/connector.h"
 #include "libavoid/vertices.h"
 #include "libavoid/graph.h"
@@ -137,7 +138,6 @@ enum RoutingParameter
     //!        routing.  This controls how closely connectors pass shapes, and
     //!        can be used to prevent connectors overlapping with shape 
     //!        boundaries. By default, this distance is set to a value of 0.
-    //! @note  Currently used.
     shapeBufferDistance,
     //! @brief This parameter defines the spacing distance that will be used
     //!        for nudging apart overlapping corners and line segments of 
@@ -258,7 +258,7 @@ class TopologyAddonInterface
 //! Usually you would keep a separate Router instance for each diagram
 //! or layout you have open in your application.
 //
-class Router {
+class AVOID_EXPORT Router {
     public:
         //! @brief  Constructor for router instance.
         //!
@@ -613,15 +613,21 @@ class Router {
         ConnType validConnType(const ConnType select = ConnType_None) const;
         bool isInCrossingPenaltyReroutingStage(void) const;
         void markAllObstaclesAsMoved(void);
+        ShapeRef *shapeContainingPoint(const Point& point);
 
-        // Interface for libtopology to be able to set an addon to 
-        // provide additional topology improving layout using libavoid
-        // routing.
+        /** 
+         *  @brief  Set an addon for doing orthogonal topology improvement.
+         *
+         *  It is expected that you would use the topology::AvoidTopologyAddon() 
+         *  from libtopology rather than write your own.  This is done so that 
+         *  libavoid does not have to depend on libtopology.
+         */
         void setTopologyAddon(TopologyAddonInterface *topologyAddon);
         void improveOrthogonalTopology(void);
 
         // Testing and debugging methods.
-        bool existsOrthogonalPathOverlap(const bool atEnds = false);
+        bool existsOrthogonalSegmentOverlap(const bool atEnds = false);
+        bool existsOrthogonalFixedSegmentOverlap(const bool atEnds = false);
         bool existsOrthogonalTouchingPaths(void);
         int  existsCrossings(const bool optimisedForConnectorType = false);
         bool existsInvalidOrthogonalPaths(void);

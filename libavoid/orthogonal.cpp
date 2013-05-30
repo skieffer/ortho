@@ -19,7 +19,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Author(s):  Michael Wybrow
 */
 
 
@@ -322,7 +322,6 @@ class NudgingShiftSegment : public ShiftSegment
               finalSegment(false),
               endsInShape(false),
               singleConnectedSegment(false),
-              containsCheckpoint(false),
               sBend(isSBend),
               zBend(isZBend)
         {
@@ -341,7 +340,6 @@ class NudgingShiftSegment : public ShiftSegment
               finalSegment(false),
               endsInShape(false),
               singleConnectedSegment(false),
-              containsCheckpoint(false),
               sBend(false),
               zBend(false)
         {
@@ -401,7 +399,7 @@ class NudgingShiftSegment : public ShiftSegment
                     weight = strongerWeight;
                 }
             }
-            else if (containsCheckpoint)
+            else if (checkpoints.size() > 0)
             {
                 weight = strongWeight;
             }
@@ -613,7 +611,7 @@ class NudgingShiftSegment : public ShiftSegment
         bool finalSegment;
         bool endsInShape;
         bool singleConnectedSegment;
-        bool containsCheckpoint;
+        std::vector<Point> checkpoints;
     private:
         bool sBend;
         bool zBend;
@@ -1803,6 +1801,49 @@ static void processEventHori(Router *router, NodeSet& scanline,
     }
 }
 
+// Correct visibility for pins or connector endpoints on the leading or
+// trailing edge of the visibility graph which may only have visibility in 
+// the outward direction where there will not be a possible path.
+void fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(Event **events, 
+        size_t totalEvents, ConnDirFlags addedVisibility)
+{
+    if (totalEvents > 0)
+    {
+        double firstPos = events[0]->pos;
+        size_t index = 0;
+        while (index < totalEvents)
+        {
+            if (events[index]->pos > firstPos)
+            {
+                break;
+            }
+            fprintf(stderr, "HERE 1\n");
+
+            if (events[index]->v->c)
+            {
+                events[index]->v->c->visDirections |= addedVisibility;
+            }
+            ++index;
+        }
+        index = 0;
+        double lastPos = events[totalEvents - 1]->pos;
+        while (index < totalEvents)
+        {
+            size_t revIndex = totalEvents - 1 - index;
+            if (events[revIndex]->pos < lastPos)
+            {
+                break;
+            }
+            fprintf(stderr, "HERE 2\n");
+
+            if (events[revIndex]->v->c)
+            {
+                events[revIndex]->v->c->visDirections |= addedVisibility;
+            }
+            ++index;
+        }
+    }
+}
 
 extern void generateStaticOrthogonalVisGraph(Router *router)
 {
@@ -1853,6 +1894,13 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         events[ctr++] = new Event(ConnPoint, v, point.y);
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+    
+    // Correct visibility for pins or connector endpoints on the leading or
+    // trailing edge of the visibility graph which may only have visibility in 
+    // the outward direction where there will not be a possible path.  We
+    // fix this by giving them visibility left and right.
+    fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
+            (ConnDirLeft | ConnDirRight));
 
     // Process the vertical sweep.
     // We do multiple passes over sections of the list so we can add relevant
@@ -1942,6 +1990,13 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         events[ctr++] = new Event(ConnPoint, v, point.x);
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+
+    // Correct visibility for pins or connector endpoints on the leading or
+    // trailing edge of the visibility graph which may only have visibility in 
+    // the outward direction where there will not be a possible path.  We
+    // fix this by giving them visibility up and down.
+    fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
+            (ConnDirUp | ConnDirDown));
 
     // Process the horizontal sweep
     thisPos = (totalEvents > 0) ? events[0]->pos : 0;
@@ -2202,10 +2257,17 @@ static void buildOrthogonalNudgingSegments(Router *router,
                     indexHigh = i - 1;
                 }
 
-                bool containsCheckpoint = (displayRoute.segmentHasCheckpoint.empty()) ?
-                        false : displayRoute.segmentHasCheckpoint[i - 1];
-                
-                if (containsCheckpoint && !nudgeFinalSegments)
+                // Find the checkpoints on the current segment and the 
+                // checkpoints on the adjoining segments that aren't on
+                // the corner (hence the +1 and -1 modifiers).
+                std::vector<Point> checkpoints = 
+                        displayRoute.checkpointsOnSegment(i - 1);
+                std::vector<Point> prevCheckpoints = 
+                        displayRoute.checkpointsOnSegment(i - 2, -1);
+                std::vector<Point> nextCheckpoints = 
+                        displayRoute.checkpointsOnSegment(i, +1);
+                bool hasCheckpoints = (checkpoints.size() > 0); 
+                if (hasCheckpoints && !nudgeFinalSegments)
                 {
                     // This segment includes one of the routing
                     // checkpoints so we shouldn't shift it.
@@ -2230,10 +2292,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         bool first = (i == 1) ? true : false;
                         bool last = ((i + 1) == displayRoute.size()) ? 
                                 true : false;
-                        // If the position of the opposite end of the
-                        // attached segment is within the shape boundaries
-                        // then we want to use this as an ideal position
-                        // for the segment.
                         if (!first)
                         {
                             double prevPos = displayRoute.ps[i - 2][dim];
@@ -2258,6 +2316,11 @@ static void buildOrthogonalNudgingSegments(Router *router,
                                 maxLim = std::min(maxLim, nextPos);
                             }
                         }
+
+                        // If the position of the opposite end of the
+                        // attached segment is within the shape boundaries
+                        // then we want to use this as an ideal position
+                        // for the segment.
 
                         // Bitflags indicating whether this segment starts 
                         // and/or ends in a shape.
@@ -2343,7 +2406,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
                      ((prevPos > thisPos) && (nextPos < thisPos)) )
                 {
-
                     // Determine limits if the s-bend is not due to an 
                     // obstacle.  In this case we need to limit the channel 
                     // to the span of the adjoining segments to this one.
@@ -2352,12 +2414,58 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         minLim = std::max(minLim, prevPos);
                         maxLim = std::min(maxLim, nextPos);
                         isZBend = true;
+                    
+                        // Constrain these segments by checkpoints along the
+                        // adjoining segments.  Ignore checkpoints at ends of
+                        // those segments.  XXX Perhaps this should not
+                        // affect the ideal centre position in the channel.
+                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
+                        {
+                            if (prevCheckpoints[cp][dim] < thisPos)
+                            {
+                                // Not at thisPoint, so constrain.
+                                minLim = std::max(minLim, 
+                                        prevCheckpoints[cp][dim]);
+                            }
+                        }
+                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
+                        {
+                            if (nextCheckpoints[cp][dim] > thisPos)
+                            {
+                                // Not at thisPoint, so constrain.
+                                maxLim = std::min(maxLim, 
+                                        nextCheckpoints[cp][dim]);
+                            }
+                        }
                     }
-                    else
+                    else // if ((prevPos > thisPos) && (nextPos < thisPos))
                     {
                         minLim = std::max(minLim, nextPos);
                         maxLim = std::min(maxLim, prevPos);
                         isSBend = true;
+                        
+                        // Constrain these segments by checkpoints along the
+                        // adjoining segments.  Ignore checkpoints at ends of
+                        // those segments.  XXX Perhaps this should not
+                        // affect the ideal centre position in the channel.
+                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
+                        {
+                            if (nextCheckpoints[cp][dim] < thisPos)
+                            {
+                                // Not at thisPoint, so constrain.
+                                minLim = std::max(minLim, 
+                                        nextCheckpoints[cp][dim]);
+                            }
+                        }
+                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
+                        {
+                            if (prevCheckpoints[cp][dim] > thisPos)
+                            {
+                                // Not at thisPoint, so constrain.
+                                maxLim = std::min(maxLim, 
+                                        prevCheckpoints[cp][dim]);
+                            }
+                        }
                     }
                 }
                 else
@@ -2378,7 +2486,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 NudgingShiftSegment *nss = new NudgingShiftSegment(*curr,
                         indexLow, indexHigh, isSBend, isZBend, dim,
                         minLim, maxLim);
-                nss->containsCheckpoint = containsCheckpoint;
+                nss->checkpoints = checkpoints;
                 segmentList.push_back(nss);
             }
         }
@@ -2912,7 +3020,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
                     currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension], 
                     currSegment->variable->weight, 
-                    (int) currSegment->containsCheckpoint);
+                    (int) currSegment->checkpoints.size());
 #endif
 #ifdef NUDGE_DEBUG_SVG
             // Debugging info:

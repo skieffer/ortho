@@ -283,7 +283,7 @@ bool Distribution::guideLessThan(Guideline *g1, Guideline *g2)
 void Distribution::recreate(void)
 {
     RelsList trels = rels;
-    trels.sort(RelationshipLessThan());
+    qSort(trels.begin(), trels.end(), RelationshipLessThan());
     
     double bx, by, bw, bh, first, last, size = 16;
 
@@ -297,9 +297,9 @@ void Distribution::recreate(void)
     }
     else if (type == GUIDE_TYPE_VERT)
     {
-        first = std::min(trels.front()->guide->x(),
+        first = qMin(trels.front()->guide->x(),
                 trels.front()->guide2->x());
-        last  = std::max(trels.back()->guide->x(),
+        last  = qMax(trels.back()->guide->x(),
                 trels.back()->guide2->x());
         
         bw = last - first + 8;
@@ -310,9 +310,9 @@ void Distribution::recreate(void)
     }
     else // if (type == GUIDE_TYPE_HORI)
     {
-        first = std::min(trels.front()->guide->y(),
+        first = qMin(trels.front()->guide->y(),
                 trels.front()->guide2->y());
-        last  = std::max(trels.back()->guide->y(),
+        last  = qMax(trels.back()->guide->y(),
                 trels.back()->guide2->y());
         
         bw = size;
@@ -366,20 +366,19 @@ void Distribution::userMoveBy(qreal dx, qreal dy)
 {
     // Move the attached guidelines
     Actions& actions = canvas()->getActions();
-    std::set<Guideline *> guides;
+    QSet<Guideline *> guides;
     for (RelsList::iterator g = rels.begin(); g != rels.end(); ++g)
     {
         guides.insert((*g)->guide);
         guides.insert((*g)->guide2);
     }
-    for (std::set<Guideline *>::iterator g = guides.begin();
-            g != guides.end(); ++g)
+    foreach (Guideline *guideline, guides)
     {
-        if (!(*g)->isSelected())
+        if (!guideline->isSelected())
         {
             // Move the guideline, if it is unselected.
-            (*g)->QGraphicsItem::moveBy(dx, dy);
-            actions.moveList.push_back(*g);
+            guideline->QGraphicsItem::moveBy(dx, dy);
+            actions.moveList.push_back(guideline);
         }
     }
     moveBy(dx, dy);
@@ -448,14 +447,14 @@ QPainterPath Distribution::buildPainterPath(void)
             double gp1 = (*r)->guide->x();
             double gp2 = (*r)->guide2->x();
 
-            double pos1 = std::min(gp1, gp2) - x() + padding;
-            double pos2 = std::max(gp1, gp2) - x() - padding;
+            double pos1 = qMin(gp1, gp2) - x() + padding;
+            double pos2 = qMax(gp1, gp2) - x() - padding;
             
             if (sections > 1)
             {
                 double position = pos1 - 2 + halfSep - (padding / 2);
-                bridgeMin = std::min(bridgeMin, position);
-                bridgeMax = std::max(bridgeMax, position);
+                bridgeMin = qMin(bridgeMin, position);
+                bridgeMax = qMax(bridgeMax, position);
                 painter_path.moveTo(position, bridgePos);
                 painter_path.lineTo(position, markerPos);
             }
@@ -498,14 +497,14 @@ QPainterPath Distribution::buildPainterPath(void)
             double gp1 = (*r)->guide->y();
             double gp2 = (*r)->guide2->y();
 
-            double pos1 = std::min(gp1, gp2) - y() + padding;
-            double pos2 = std::max(gp1, gp2) - y() - padding;
+            double pos1 = qMin(gp1, gp2) - y() + padding;
+            double pos2 = qMax(gp1, gp2) - y() - padding;
           
             if (sections > 1)
             {
                 double position = pos1 - 2 + halfSep - (padding / 2);
-                bridgeMin = std::min(bridgeMin, position);
-                bridgeMax = std::max(bridgeMax, position);
+                bridgeMin = qMin(bridgeMin, position);
+                bridgeMax = qMax(bridgeMax, position);
                 painter_path.moveTo(bridgePos, position);
                 painter_path.lineTo(markerPos, position);
             }
@@ -696,9 +695,6 @@ void Distribution::deactivateAll(CanvasItemSet& selSet)
 
 void Distribution::RemoveGuideline(Guideline *g)
 {
-    RelsList *rlist = NULL;
-    RelsList::iterator rlistItem;
-            
     if (rels.size() < 2)
     {
         RemoveEntire();
@@ -730,15 +726,8 @@ void Distribution::RemoveGuideline(Guideline *g)
     {
         //UNDO add_undo_record(DELTA_DEL_REL, (*r), PARASITE_SIDE);
         
-        rlist =  &((*r)->guide->rels);
-        rlistItem = find(rlist->begin(), rlist->end(), (*r));
-        assert(rlistItem != rlist->end());
-        rlist->erase(rlistItem);
-
-        rlist =  &((*r)->guide2->rels);
-        rlistItem = find(rlist->begin(), rlist->end(), (*r));
-        assert(rlistItem != rlist->end());
-        rlist->erase(rlistItem);
+        (*r)->guide->rels.removeOne(*r);
+        (*r)->guide2->rels.removeOne(*r);
     }
 
     Distribution *newdistro = new Distribution(&guides, x(), y());
@@ -755,9 +744,6 @@ void Distribution::RemoveGuideline(Guideline *g)
 
 void Distribution::RemoveEntire(void)
 {
-    RelsList *rlist = NULL;
-    RelsList::iterator rlistItem;
-            
     RelsList::iterator r;
     for (r = rels.begin(); r != rels.end(); r++)
     {
@@ -765,15 +751,8 @@ void Distribution::RemoveEntire(void)
         
         // UNDO add_undo_record(DELTA_DEL_REL, (*r), PARASITE_SIDE);
         
-        rlist =  &((*r)->guide->rels);
-        rlistItem = find(rlist->begin(), rlist->end(), (*r));
-        assert(rlistItem != rlist->end());
-        rlist->erase(rlistItem);
-
-        rlist =  &((*r)->guide2->rels);
-        rlistItem = find(rlist->begin(), rlist->end(), (*r));
-        assert(rlistItem != rlist->end());
-        rlist->erase(rlistItem);
+        (*r)->guide->rels.removeOne(*r);
+        (*r)->guide2->rels.removeOne(*r);
     }
 
     // Actually delete the indicator:
@@ -815,7 +794,7 @@ Guideline *Distribution::draggedGuideline(void) const
     return guidelineAtPosition(draggedGuidelineN);
 }
 
-Guideline *Distribution::guidelineAtPosition(size_t position) const
+Guideline *Distribution::guidelineAtPosition(int position) const
 {
     assert(!rels.empty());
     
@@ -824,7 +803,7 @@ Guideline *Distribution::guidelineAtPosition(size_t position) const
         return rels.back()->guide2;
     }
     
-    size_t relN = 1;
+    int relN = 1;
     RelsList::const_iterator r = rels.begin();
     while (relN < position)
     {

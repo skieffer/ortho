@@ -19,7 +19,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Author(s):  Michael Wybrow
 */
 
 #include <cfloat>
@@ -106,6 +106,9 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
     m_junction->addConnectionPin(this);
     
     // Create a visibility vertex for this ShapeConnectionPin.
+    // XXX These IDs should really be uniquely identifiable in case there
+    //     are multiple pins on a shape.  I think currently this case will
+    //     break rubber-band routing.
     VertID id(m_junction->id(), kShapeConnectionPin, 
             VertID::PROP_ConnPoint | VertID::PROP_ConnectionPin);
     m_vertex = new VertInf(m_router, id, m_junction->position());
@@ -213,8 +216,6 @@ const Point ShapeConnectionPin::position(const Polygon& newPoly) const
 
     // We want to place connection points exactly on the edges of shapes, 
     // or possibly slightly inside them (if m_insideOfset is set).
-
-    point.vn = kUnassignedVertexNumber;
     if (m_x_portion_offset == ATTACH_POS_LEFT)
     {
         point.x = x_min + m_inside_offset;

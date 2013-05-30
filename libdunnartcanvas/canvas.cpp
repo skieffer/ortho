@@ -239,6 +239,9 @@ Canvas::Canvas()
     m_opt_flow_direction = FlowDown;
     m_opt_layered_alignment_position = ShapeMiddle;
 
+    // Set default canvas background colour.
+    m_opt_canvas_background_colour = QColor(189, 189, 223);
+
     // Default list of connector colors. Use only dark colors (and full
     // opacity) since connectors are drawn as thin lines so light
     // colors will be hard to see.
@@ -372,12 +375,11 @@ void Canvas::postDiagramLoad(void)
     setOptAutomaticGraphLayout(m_opt_automatic_graph_layout);
 
     // Update on-screen representation of dependant indicators.
-    QList<CanvasItem *> citems = items();
-    for (int i = 0; i < citems.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        Guideline *gobj =    dynamic_cast<Guideline *> (citems.at(i));
-        Distribution *dobj = dynamic_cast<Distribution *> (citems.at(i));
-        Separation *sobj =   dynamic_cast<Separation *> (citems.at(i));
+        Guideline *gobj =    dynamic_cast<Guideline *> (item);
+        Distribution *dobj = dynamic_cast<Distribution *> (item);
+        Separation *sobj =   dynamic_cast<Separation *> (item);
 
         if (dobj)
         {
@@ -410,13 +412,11 @@ void Canvas::postDiagramLoad(void)
 CanvasItem *Canvas::getItemByID(QString ID) const
 {
     assert(this != NULL);
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        CanvasItem *cobj = canvas_items.at(i);
-        if (ID == cobj->idString())
+        if (ID == item->idString())
         {
-            return cobj;
+            return item;
         }
     }
     return NULL;
@@ -425,13 +425,11 @@ CanvasItem *Canvas::getItemByID(QString ID) const
 CanvasItem *Canvas::getItemByInternalId(uint internalId) const
 {
     assert(this != NULL);
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        CanvasItem *cobj = canvas_items.at(i);
-        if (internalId == cobj->internalId())
+        if (internalId == item->internalId())
         {
-            return cobj;
+            return item;
         }
     }
     return NULL;
@@ -505,7 +503,7 @@ QString Canvas::assignStringId(QString id)
             uint idUInt = id.toUInt (&isUInt);
             if (isUInt)
             {
-                m_max_string_id = std::max(idUInt, m_max_string_id);
+                m_max_string_id = qMax(idUInt, m_max_string_id);
             }
         }
         else
@@ -565,7 +563,6 @@ void Canvas::setExpandedPage(const QRectF newExpandedPage)
     }
 }
 
-
 void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
 {
     if ( m_rendering_for_printing )
@@ -581,7 +578,7 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
     }
 
     // Draws purple background and the white page (if it is set).
-    painter->fillRect(rect, QColor(189, 189, 223));
+    painter->fillRect(rect, m_opt_canvas_background_colour);
     painter->fillRect(m_expanded_page, QColor(200, 200, 200));
     painter->fillRect(m_page, QColor(255, 255, 255));
     painter->setPen(QColor(110, 110, 110));
@@ -634,10 +631,9 @@ void Canvas::drawForeground(QPainter *painter, const QRectF& rect)
         QPen pen(Qt::red);
         pen.setCosmetic(true);
         painter->setPen(pen);
-        QList<CanvasItem *> canvas_items = items();
-        for (int i = 0; i < canvas_items.size(); ++i)
+        foreach (CanvasItem *item, items())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(i));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
 
             if (shape && shape->avoidRef)
             {
@@ -827,12 +823,10 @@ void Canvas::processSelectionDropEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-    QList<CanvasItem *> selected_items = selectedItems();
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *selectedItem, selectedItems())
     {
-        ShapeObj *selectedShape = 
-                dynamic_cast<ShapeObj *> (selected_items.at(i));
+        ShapeObj *selectedShape =
+                dynamic_cast<ShapeObj *> (selectedItem);
 
         if (!selectedShape)
         {
@@ -842,9 +836,9 @@ void Canvas::processSelectionDropEvent(QGraphicsSceneMouseEvent *event)
         QRectF selectedShapeRect = selectedShape->boundingRect().translated(
                 selectedShape->scenePos());
         
-        for (int j = 0; j < canvas_items.size(); ++j)
+        foreach (CanvasItem *item, items())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(j));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             
             if (shape)
             {
@@ -852,9 +846,9 @@ void Canvas::processSelectionDropEvent(QGraphicsSceneMouseEvent *event)
             }
         }
 
-        for (int j = 0; j < canvas_items.size(); ++j)
+        foreach (CanvasItem *item, items())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(j));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             if (!shape || (shape == selectedShape))
             {
                 continue;
@@ -996,10 +990,9 @@ void Canvas::customEvent(QEvent *event)
 
 void Canvas::toggleSelectedShapePinning(void)
 {
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selectedItems())
     {
-        if (ShapeObj *shape = isShapeForLayout(selected_items.at(i)))
+        if (ShapeObj *shape = isShapeForLayout(item))
         {
             // Toggle pinned position setting.
             if (shape->isPinned())
@@ -1029,10 +1022,9 @@ void Canvas::setEditMode(int mode)
     selectionChangeTriggers();
 
     // Repaint selected objects (for changed selection cues).
-    QList<QGraphicsItem *> selection = QGraphicsScene::selectedItems();
-    for (int i = 0; i < selection.size(); ++i)
+    foreach (QGraphicsItem *item, QGraphicsScene::selectedItems())
     {
-        selection.at(i)->update();
+        item->update();
     }
 }
 
@@ -1252,10 +1244,9 @@ QString Canvas::saveConstraintInfoToString(void) const
 
     // Put things into a multimap before outputting them,
     // so that they will be sorted in the correct Z-order.
-    QList<CanvasItem *> canvas_items = this->items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        Indicator *indicator = dynamic_cast<Indicator *> (canvas_items.at(i));
+        Indicator *indicator = dynamic_cast<Indicator *> (item);
 
         if (indicator)
         {
@@ -1378,6 +1369,12 @@ void Canvas::setDebugCOLAOutput(const bool value)
     m_graphlayout->setOutputDebugFiles(value);
 }
 
+QColor Canvas::optCanvasBackgroundColour(void) const
+{
+    return m_opt_canvas_background_colour;
+}
+
+
 int Canvas::optRoutingShapePadding(void) const
 {
     return (int) m_router->routingParameter(Avoid::shapeBufferDistance);
@@ -1457,9 +1454,9 @@ void Canvas::setOptStructuralEditingDisabled(const bool value)
 void Canvas::setSelection(const QList<CanvasItem *>& newSelection)
 {
     clearSelection();
-    for (int i = 0; i < newSelection.size(); ++i)
+    foreach (CanvasItem *item, newSelection)
     {
-        newSelection.at(i)->setSelected(true);
+        item->setSelected(true);
     }
 }
 
@@ -1691,6 +1688,12 @@ void Canvas::setOptFlowDirectionFromDial(const int value)
     setOptFlowDirection((FlowDirection) value);
 }
 
+void Canvas::setOptCanvasBackgroundColour(const QColor colour)
+{
+   m_opt_canvas_background_colour = colour;
+   emit canvasDrawingChanged();
+}
+
 bool Canvas::hasVisibleOverlays(void) const
 {
     return m_overlay_router_raw_routes|| m_overlay_router_display_routes ||
@@ -1843,10 +1846,9 @@ void Canvas::bringToFront(void)
         return;
     }
 
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selectedItems())
     {
-        selected_items.at(i)->bringToFront();
+        item->bringToFront();
     }
 }
 
@@ -1858,20 +1860,18 @@ void Canvas::sendToBack(void)
         return;
     }
 
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selectedItems())
     {
-        selected_items.at(i)->sendToBack();
+        item->sendToBack();
     }
 }
 
 
 void Canvas::deselectAll(void)
 {
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selectedItems())
     {
-        selected_items.at(i)->setSelected(false);
+        item->setSelected(false);
     }
 }
 
@@ -1902,11 +1902,9 @@ void Canvas::copySelection(void)
 
     //QT selection_box_props(&clip_x, &clip_y, &clip_w, &clip_h);
 
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selectedItems())
     {
-        QDomElement elem =
-                selected_items.at(i)->to_QDomElement(XMLSS_ALL, clipboard);
+        QDomElement elem = item->to_QDomElement(XMLSS_ALL, clipboard);
 
         svg.appendChild(elem);
     }
@@ -1979,16 +1977,16 @@ void Canvas::pasteSelection(void)
 
     // Move the new selection to paste position.
     QPointF difference = pastePosition - oldCentrePos;
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selected_items)
     {
-        selected_items.at(i)->moveBy(difference.x(), difference.y());
+        item->moveBy(difference.x(), difference.y());
     }
 
     // Put the distribution indicators at their default positions:
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selected_items)
     {
-        Distribution *distro = dynamic_cast<Distribution *> (selected_items.at(i));
-        Separation *sep = dynamic_cast<Separation *> (selected_items.at(i));
+        Distribution *distro = dynamic_cast<Distribution *> (item);
+        Separation *sep = dynamic_cast<Separation *> (item);
         bool store_undo = false;
 
         if (distro)
@@ -2174,28 +2172,26 @@ void Canvas::deleteSelection(void)
     this->deselectAll();
 
     // Do distro's first, incase they have guidelines and distros selected.
-    for (QList<CanvasItem *>::iterator sh = sel_copy.begin();
-            sh != sel_copy.end(); ++sh)
+    foreach (CanvasItem *item, sel_copy)
     {
-        Distribution *distro = dynamic_cast<Distribution *> (*sh);
-        Separation *sep = dynamic_cast<Separation *> (*sh);
+        Distribution *distro = dynamic_cast<Distribution *> (item);
+        Separation *sep = dynamic_cast<Separation *> (item);
 
         if (distro || sep)
         {
             // Deactivate constraints:
-            (*sh)->deactivateAll(selSet);
+            item->deactivateAll(selSet);
         }
     }
-    for (QList<CanvasItem *>::iterator sh = sel_copy.begin();
-            sh != sel_copy.end(); ++sh)
+    foreach (CanvasItem *item, sel_copy)
     {
-        Connector  *conn  = dynamic_cast<Connector *>  (*sh);
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (*sh);
-        Guideline *guide = dynamic_cast<Guideline *> (*sh);
+        Connector  *conn  = dynamic_cast<Connector *>  (item);
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
+        Guideline *guide = dynamic_cast<Guideline *> (item);
         
         if (conn || guide || shape)
         {
-            (*sh)->deactivateAll(selSet);
+            item->deactivateAll(selSet);
         }
         if (shape)
         {
@@ -2204,20 +2200,18 @@ void Canvas::deleteSelection(void)
     }
     
     // Remove containment relationships.
-    QList<CanvasItem *> canvas_items = this->items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (canvas_items.at(i));
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape)
         {
             shape->removeContainedShapes(sel_shapes);
         }
     }
 
-    for (QList<CanvasItem *>::iterator sh = sel_copy.begin();
-            sh != sel_copy.end(); ++sh)
+    foreach (CanvasItem *item, sel_copy)
     {
-        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, *sh);
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, item);
         undoMacro->addCommand(cmd);
     }
     restart_graph_layout();
@@ -2270,10 +2264,9 @@ QList<CanvasItem *> Canvas::items(void) const
 {
     QList<CanvasItem *> canvasItems;
 
-    QList<QGraphicsItem *> itemList = QGraphicsScene::items();
-    for (int i = 0; i < itemList.size(); ++i)
+    foreach (QGraphicsItem *item, QGraphicsScene::items())
     {
-        CanvasItem *canvasItem = dynamic_cast<CanvasItem *> (itemList.at(i));
+        CanvasItem *canvasItem = dynamic_cast<CanvasItem *> (item);
         if (canvasItem)
         {
             canvasItems.push_back(canvasItem);
@@ -2289,10 +2282,9 @@ QList<CanvasItem *> Canvas::selectedItems(void) const
     QList<CanvasItem *> filteredSelection;
     
     // Filter and return just the CanvasItem-based objects.
-    QList<QGraphicsItem *> selection = QGraphicsScene::selectedItems();
-    for (int i = 0; i < selection.size(); ++i)
+    foreach (QGraphicsItem *item, QGraphicsScene::selectedItems())
     {
-        CanvasItem *canvasItem = dynamic_cast<CanvasItem *> (selection.at(i));
+        CanvasItem *canvasItem = dynamic_cast<CanvasItem *> (item);
         if (canvasItem)
         {
             filteredSelection.push_back(canvasItem);
@@ -2353,14 +2345,11 @@ void Canvas::processLayoutUpdateEvent(void)
     }
     updates++;
 #endif
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        CanvasItem *canvasObj = canvas_items.at(i);
-
-        if (canvasObj && canvasObj->constraintConflict())
+        if (item && item->constraintConflict())
         {
-            canvasObj->setConstraintConflict(false);
+            item->setConstraintConflict(false);
         }
     }
 
@@ -2435,10 +2424,7 @@ void Canvas::processLayoutFinishedEvent(void)
         changes = true;
     }
 
-    if (layoutDoneCallback!=NULL)
-    {
-        layoutDoneCallback->notify();
-    }
+    emit layoutHasConverged();
 
     if (m_batch_diagram_layout && !changes)
     {
@@ -2490,10 +2476,9 @@ void Canvas::setLayoutSuspended(bool suspend)
         // Restart the automatic layout.
         // Make it look like things just moved.
         Actions& actions = getActions();
-        CanvasItemList selection = selectedItems();
-        for (int i = 0; i < selection.size(); ++i)
+        foreach (CanvasItem *item, selectedItems())
         {
-            actions.moveList.push_back(selection.at(i));
+            actions.moveList.push_back(item);
         }
 
         m_graphlayout->setLayoutSuspended(false);
@@ -2515,10 +2500,9 @@ void Canvas::createIndicatorHighlightCache(void)
         return;
     }
 
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        Guideline *g = dynamic_cast<Guideline *> (canvas_items.at(i));
+        Guideline *g = dynamic_cast<Guideline *> (item);
         if (g && (g->isSelected() == false))
         {
             // We don't want guides that are being moved, because they
@@ -2632,10 +2616,9 @@ void highlightIndicators(Shape *shape, const QRectF& shapeRect)
 
 void Canvas::clearIndicatorHighlights(const bool clearCache)
 {
-    QList<CanvasItem *> canvas_items = items();
-    for (int i = 0; i < canvas_items.size(); ++i)
+    foreach (CanvasItem *item, items())
     {
-        Guideline *g = dynamic_cast<Guideline *> (canvas_items.at(i));
+        Guideline *g = dynamic_cast<Guideline *> (item);
         if (g)
         {
             if (g->isHighlighted())
@@ -2662,11 +2645,10 @@ void Canvas::glueObjectsToIndicators(void)
         return;
     }
 
-    QList<CanvasItem *> selection = selectedItems();
-    for (int s = 0; s < selection.size(); ++s)
+    foreach (CanvasItem *item, selectedItems())
     {
         bool vfound = false, hfound = false;
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (selection.at(s));
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape && (shape->canvasItemFlags() & CanvasItem::ItemIsAlignable))
         {
             for (int i = 0; i < 6; i++)
@@ -2764,9 +2746,9 @@ void Canvas::selectionChangeTriggers(void)
     m_selection_shapes_bounding_rect = QRectF();
 
     QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    foreach (CanvasItem *item, selected_items)
     {
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (selected_items.at(i));
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape)
         {
             if (!shape->sizeLocked())
@@ -2779,7 +2761,7 @@ void Canvas::selectionChangeTriggers(void)
             }
             shapeCount++;
         }
-        else if (dynamic_cast<Indicator *> (selected_items.at(i)))
+        else if (dynamic_cast<Indicator *> (item))
         {
             indicatorCount++;
         }
@@ -2868,9 +2850,10 @@ void Canvas::storeSelectionResizeInfo(void)
     assert(selectionDimensions.y() >= 0);
     QList<CanvasItem *> selected_items = selectedItems();
     m_selection_resize_info = QVector<QRectF>(selected_items.size());
-    for (int i = 0; i < selected_items.size(); ++i)
+    size_t index = 0;
+    foreach (CanvasItem *item, selected_items)
     {
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (selected_items.at(i));
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape && !shape->sizeLocked())
         {
             QRectF shapeBR = shape->boundingRect().adjusted(
@@ -2884,8 +2867,9 @@ void Canvas::storeSelectionResizeInfo(void)
                     (shapeBR.bottomRight() - selectionTopLeft);
             bottomRight = QPointF(bottomRight.x() / selectionDimensions.x(),
                                   bottomRight.y() / selectionDimensions.y());
-            m_selection_resize_info[i] = QRectF(topLeft, bottomRight);
+            m_selection_resize_info[index] = QRectF(topLeft, bottomRight);
         }
+        ++index;
     }
 }
 
@@ -2968,17 +2952,17 @@ void Canvas::moveSelectionResizeHandle(const int index, const QPointF pos)
     QPointF selectionTopLeft = m_selection_shapes_bounding_rect.topLeft();
     QPointF selectionDimensions =
             m_selection_shapes_bounding_rect.bottomRight() - selectionTopLeft;
-    QList<CanvasItem *> selected_items = selectedItems();
-    for (int i = 0; i < selected_items.size(); ++i)
+    size_t ind = 0;
+    foreach (CanvasItem *item, selectedItems())
     {
-        ShapeObj *shape = dynamic_cast<ShapeObj *> (selected_items.at(i));
+        ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape && !shape->sizeLocked())
         {
             QRectF shapeBR = shape->boundingRect().adjusted(
                     +BOUNDINGRECTPADDING, +BOUNDINGRECTPADDING,
                     -BOUNDINGRECTPADDING, -BOUNDINGRECTPADDING);
-            QPointF topLeft = m_selection_resize_info[i].topLeft();
-            QPointF bottomRight = m_selection_resize_info[i].bottomRight();
+            QPointF topLeft = m_selection_resize_info[ind].topLeft();
+            QPointF bottomRight = m_selection_resize_info[ind].bottomRight();
 
             topLeft = QPointF(topLeft.x() * selectionDimensions.x(),
                               topLeft.y() * selectionDimensions.y());
@@ -2990,9 +2974,10 @@ void Canvas::moveSelectionResizeHandle(const int index, const QPointF pos)
 
             QRectF newSize(topLeft, bottomRight);
             shape->setPosAndSize(newSize.center(),
-                    QSizeF(std::max(newSize.width(), MIN_SHAPE_SIZE),
-                           std::max(newSize.height(), MIN_SHAPE_SIZE)));
+                    QSizeF(qMax(newSize.width(), MIN_SHAPE_SIZE),
+                           qMax(newSize.height(), MIN_SHAPE_SIZE)));
         }
+        ++ind;
     }
 
     // Cause the layout engine to notice changes to shape sizes.
@@ -3003,9 +2988,9 @@ void Canvas::moveSelectionResizeHandle(const int index, const QPointF pos)
 
 void Canvas::hideSelectionResizeHandles(void)
 {
-    for (int i = 0; i < m_selection_resize_handles.size(); ++i)
+    foreach (SelectionResizeHandle *handle, m_selection_resize_handles)
     {
-        m_selection_resize_handles[i]->setVisible(false);
+        handle->setVisible(false);
     }
 }
 
@@ -3026,10 +3011,9 @@ void Canvas::repositionAndShowSelectionResizeHandles(bool calculatePosition)
     {
         m_selection_shapes_bounding_rect = QRectF();
 
-        QList<CanvasItem *> selected_items = selectedItems();
-        for (int i = 0; i < selected_items.size(); ++i)
+        foreach (CanvasItem *item, selectedItems())
         {
-            ShapeObj *shape = dynamic_cast<ShapeObj *> (selected_items.at(i));
+            ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
             if (shape && !shape->sizeLocked())
             {
                 // Build the bounding rectangle from the union of all shape's
@@ -3072,9 +3056,9 @@ void Canvas::repositionAndShowSelectionResizeHandles(bool calculatePosition)
             m_selection_shapes_bounding_rect.center().y());
 
     // Show resize handles.
-    for (int i = 0; i < m_selection_resize_handles.size(); ++i)
+    foreach (SelectionResizeHandle *handle, m_selection_resize_handles)
     {
-        m_selection_resize_handles[i]->setVisible(true);
+        handle->setVisible(true);
     }
 }
 
@@ -3131,8 +3115,7 @@ void Canvas::recursiveMapIDs(QDomNode start, const QString& ns, int pass)
                 }
                 else if (pass == PASTE_REMOVEBADDISTROS)
                 {
-                    if (std::find(m_paste_bad_constraint_ids.begin(), m_paste_bad_constraint_ids.end(),idVal)
-                            !=  m_paste_bad_constraint_ids.end())
+                    if (m_paste_bad_constraint_ids.contains(idVal))
                     {
                         // This is a bad distribution or separation, so
                         // remove its dunnart type so that it is ignored.
@@ -3558,11 +3541,11 @@ QRectF diagramBoundingRect(const QList<CanvasItem *>& list)
 {
     QRectF rect;
 
-    for (int i = 0; i < list.size(); ++i)
+    foreach (CanvasItem *item, list)
     {
-        if (!dynamic_cast<Indicator *> (list.at(i)))
+        if (!dynamic_cast<Indicator *> (item))
         {
-            rect |= list.at(i)->sceneBoundingRect();
+            rect |= item->sceneBoundingRect();
         }
     }
 

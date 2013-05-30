@@ -42,15 +42,15 @@ FORMS = \
     ui/canvasoverview.ui
 
 SOURCES += \ 
+        align3.cpp \
+        expand_grid.cpp \
         BCLayout.cpp \
 	FMMLayout.cpp \
-	align3.cpp \
 	oldcanvas.cpp \
 	canvasitem.cpp \
 	cluster.cpp \
 	connector.cpp \
 	distribution.cpp \
-	expand_grid.cpp \
 	freehand.cpp \
 	graphdata.cpp \
 	graphlayout.cpp \
@@ -96,15 +96,15 @@ SOURCES += \
     ui/canvasoverview.cpp
 
 HEADERS += \
+        align3.h \
+        expand_grid.h \
         BCLayout.h \
 	FMMLayout.h \
-	align3.h \
 	oldcanvas.h \
 	canvasitem.h \
 	cluster.h \
 	connector.h \
 	distribution.h \
-	expand_grid.h \
 	freehand.h \
 	gmlgraph.h \
 	graphdata.h \
