@@ -32,22 +32,22 @@ ConnectorPropertiesDialog::ConnectorPropertiesDialog(Canvas *canvas, QWidget *pa
 {
     this->setupUi(this);
 
-    connect(roundedCornersSlider, SIGNAL(sliderMoved(int)),
+    connect(roundedCornersSlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptChangedConnRoundingDist(int)));
 
     connect(nudgingCheckBox, SIGNAL(clicked(bool)),
             this, SIGNAL(setOptChangedConnPerformNudging(bool)));
 
-    connect(segmentPenaltySlider, SIGNAL(sliderMoved(int)),
+    connect(segmentPenaltySlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptChangedConnPenaltySegment(int)));
 
-    connect(crossingPenaltySlider, SIGNAL(sliderMoved(int)),
+    connect(crossingPenaltySlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptChangedConnPenaltyCrossing(int)));
 
-    connect(pathOverlapPenaltySlider, SIGNAL(sliderMoved(int)),
+    connect(pathOverlapPenaltySlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptChangedConnPenaltyFixedSharedPath(int)));
 
-    connect(shapePaddingSlider, SIGNAL(sliderMoved(int)),
+    connect(shapePaddingSlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptChangedRoutingShapeBuffer(int)));
 
     changeCanvas(canvas);

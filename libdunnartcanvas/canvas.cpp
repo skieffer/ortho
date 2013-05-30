@@ -1616,30 +1616,31 @@ void Canvas::setOptSnapStrengthModifier(double modifier)
     fully_restart_graph_layout();
 }
 
-void Canvas::setOptGridWidthModifierFromSlider(int int_modifier)
+void Canvas::setOptGridSizeFromSlider(int intValue)
 {
-    double double_modifier = int_modifier / 1.0;
-    setOptGridWidthModifier(double_modifier);
-}
+    double doubleValue = intValue / 1.0;
 
-void Canvas::setOptGridWidthModifier(double modifier)
-{
-    m_opt_snap_grid_width = modifier;
-    emit optChangedGridWidthModifier(modifier);
+    m_opt_snap_grid_width = doubleValue;
+    m_opt_snap_grid_height = doubleValue;
+    emit optChangedGridWidth(doubleValue);
+    emit optChangedGridHeight(doubleValue);
+    emit optChangedGridSize(doubleValue);
     fully_restart_graph_layout();
     this->update(combinedViewsRect());
 }
 
-void Canvas::setOptGridHeightModifierFromSlider(int int_modifier)
+void Canvas::setOptGridWidth(double value)
 {
-    double double_modifier = int_modifier / 1.0;
-    setOptGridHeightModifier(double_modifier);
+    m_opt_snap_grid_width =value;
+    emit optChangedGridWidth(value);
+    fully_restart_graph_layout();
+    this->update(combinedViewsRect());
 }
 
-void Canvas::setOptGridHeightModifier(double modifier)
+void Canvas::setOptGridHeight(double value)
 {
-    m_opt_snap_grid_height = modifier;
-    emit optChangedGridHeightModifier(modifier);
+    m_opt_snap_grid_height = value;
+    emit optChangedGridHeight(value);
     fully_restart_graph_layout();
     this->update(combinedViewsRect());
 }
@@ -1789,12 +1790,12 @@ double Canvas::optSnapStrengthModifier(void) const
     return m_opt_snap_strength_modifier;
 }
 
-double Canvas::optGridWidthModifier(void) const
+double Canvas::optGridWidth(void) const
 {
     return m_opt_snap_grid_width;
 }
 
-double Canvas::optGridHeightModifier(void) const
+double Canvas::optGridHeight(void) const
 {
     return m_opt_snap_grid_height;
 }
@@ -2458,6 +2459,11 @@ void Canvas::processLayoutFinishedEvent(void)
         // Save the SVG and exit.
         //QT saveDiagramAsSVG(this, filename());
         exit(EXIT_SUCCESS);
+    }
+
+    if (!changes)
+    {
+        computeOrthoObjective();
     }
 
     if (m_trying_alignments) {

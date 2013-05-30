@@ -72,8 +72,7 @@ class LayoutPropertiesDialog : public QDockWidget, private Ui::LayoutProperties
         void changeIdealEdgeLength(double value);
         void changeSnapDistance(double value);
         void changeSnapStrength(double value);
-        void changeGridWidth(double value);
-        void changeGridHeight(double value);
+        void changeGridSize(double value);
         void changeRelaxThreshold(double value);
     private:
         Canvas *m_canvas;

@@ -30,7 +30,16 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,1">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
      <number>4</number>
     </property>
     <item>
@@ -124,7 +133,16 @@ Manual layout</string>
       </property>
       <widget class="QWidget" name="manualLayoutPage">
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>8</number>
+        </property>
+        <property name="topMargin">
+         <number>8</number>
+        </property>
+        <property name="rightMargin">
+         <number>8</number>
+        </property>
+        <property name="bottomMargin">
          <number>8</number>
         </property>
         <item>
@@ -200,7 +218,16 @@ Manual layout</string>
         </sizepolicy>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>8</number>
+        </property>
+        <property name="topMargin">
+         <number>8</number>
+        </property>
+        <property name="rightMargin">
+         <number>8</number>
+        </property>
+        <property name="bottomMargin">
          <number>8</number>
         </property>
         <item>
@@ -376,7 +403,7 @@ Manual layout</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="spacing">
-           <number>0</number>
+           <number>-1</number>
           </property>
           <property name="leftMargin">
            <number>20</number>
@@ -451,47 +478,14 @@ Manual layout</string>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
-             <widget class="QLabel" name="gridWLabel">
+             <widget class="QLabel" name="gridSizeLabel">
               <property name="text">
-               <string>Grid width:</string>
+               <string>Grid size:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QSlider" name="gridWidthSlider">
-              <property name="minimum">
-               <number>10</number>
-              </property>
-              <property name="maximum">
-               <number>200</number>
-              </property>
-              <property name="singleStep">
-               <number>10</number>
-              </property>
-              <property name="pageStep">
-               <number>50</number>
-              </property>
-              <property name="value">
-               <number>100</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_8">
-            <item>
-             <widget class="QLabel" name="gridHLabel">
-              <property name="text">
-               <string>Grid height:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="gridHeightSlider">
+             <widget class="QSlider" name="gridSizeSlider">
               <property name="minimum">
                <number>10</number>
               </property>

@@ -109,9 +109,9 @@ LayoutPropertiesDialog::LayoutPropertiesDialog(Canvas *canvas, QWidget *parent)
     connect(this, SIGNAL(optChangedFitWithinPage(bool) ),
             pageBoundaryCheckBox2, SLOT(setChecked(bool)));
 
-    connect(spacingSlider, SIGNAL(sliderMoved(int)),
+    connect(spacingSlider, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptShapeNonoverlapPadding(int)));
-    connect(spacingSlider2, SIGNAL(sliderMoved(int)),
+    connect(spacingSlider2, SIGNAL(valueChanged(int)),
             this, SIGNAL(setOptShapeNonoverlapPadding(int)));
     connect(this, SIGNAL(optChangedShapeNonoverlapPadding(int)),
             spacingSlider, SLOT(setValue(int)));
@@ -135,8 +135,7 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
         disconnect(idealLengthSlider, 0, m_canvas, 0);
         disconnect(snapDistanceSlider, 0, m_canvas, 0);
         disconnect(snapStrengthSlider, 0, m_canvas, 0);
-        disconnect(gridWidthSlider, 0, m_canvas, 0);
-        disconnect(gridHeightSlider, 0, m_canvas, 0);
+        disconnect(gridSizeSlider, 0, m_canvas, 0);
         disconnect(relaxThresholdSlider, 0, m_canvas, 0);
         disconnect(flowSeparationSlider, 0, m_canvas, 0);
         disconnect(flowDirectionDial, 0, m_canvas, 0);
@@ -193,37 +192,32 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     connect(m_canvas, SIGNAL(optChangedFitWithinPage(bool) ),
             this, SIGNAL(optChangedFitWithinPage(bool) ));
 
-    connect(idealLengthSlider, SIGNAL(sliderMoved(int)),
+    connect(idealLengthSlider, SIGNAL(valueChanged(int)),
             m_canvas, SLOT(setOptIdealEdgeLengthModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedIdealEdgeLengthModifier(double)),
             this, SLOT(changeIdealEdgeLength(double)));
 
-    connect(snapDistanceSlider, SIGNAL(sliderMoved(int)),
+    connect(snapDistanceSlider, SIGNAL(valueChanged(int)),
             m_canvas, SLOT(setOptSnapDistanceModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedSnapDistanceModifier(double)),
             this, SLOT(changeSnapDistance(double)));
 
-    connect(snapStrengthSlider, SIGNAL(sliderMoved(int)),
+    connect(snapStrengthSlider, SIGNAL(valueChanged(int)),
             m_canvas, SLOT(setOptSnapStrengthModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedSnapStrengthModifier(double)),
             this, SLOT(changeSnapStrength(double)));
 
-    connect(gridWidthSlider, SIGNAL(sliderMoved(int)),
-            m_canvas, SLOT(setOptGridWidthModifierFromSlider(int)));
-    connect(m_canvas, SIGNAL(optChangedGridWidthModifier(double)),
-            this, SLOT(changeGridWidth(double)));
+    connect(gridSizeSlider, SIGNAL(valueChanged(int)),
+            m_canvas, SLOT(setOptGridSizeFromSlider(int)));
+    connect(m_canvas, SIGNAL(optChangedGridSize(double)),
+            this, SLOT(changeGridSize(double)));
 
-    connect(gridHeightSlider, SIGNAL(sliderMoved(int)),
-            m_canvas, SLOT(setOptGridHeightModifierFromSlider(int)));
-    connect(m_canvas, SIGNAL(optChangedGridHeightModifier(double)),
-            this, SLOT(changeGridHeight(double)));
-
-    connect(relaxThresholdSlider, SIGNAL(sliderMoved(int)),
+    connect(relaxThresholdSlider, SIGNAL(valueChanged(int)),
             m_canvas, SLOT(setOptRelaxThresholdModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedRelaxThresholdModifier(double)),
             this, SLOT(changeRelaxThreshold(double)));
 
-    connect(flowSeparationSlider, SIGNAL(sliderMoved(int)),
+    connect(flowSeparationSlider, SIGNAL(valueChanged(int)),
             m_canvas, SLOT(setOptFlowSeparationModifierFromSlider(int)));
     connect(m_canvas, SIGNAL(optChangedDirectedEdgeSeparationModifier(double)),
             this, SLOT(changeDirectedEdgeSeparationModifier(double)));
@@ -271,13 +265,9 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     snapStrengthSlider->setSliderPosition(snap_strength);
     snapStrengthLabel->setText(QString("Strength: %1").arg(snap_strength));
 
-    double grid_width = m_canvas->optGridWidthModifier();
-    gridWidthSlider->setSliderPosition(grid_width);
-    gridWLabel->setText(QString("Width: %1").arg(grid_width));
-
-    double grid_height = m_canvas->optGridHeightModifier();
-    gridHeightSlider->setSliderPosition(grid_height);
-    gridHLabel->setText(QString("Height: %1").arg(grid_height));
+    double grid_width = m_canvas->optGridWidth();
+    gridSizeSlider->setSliderPosition(grid_width);
+    gridSizeLabel->setText(QString("Grid Size: %1").arg(grid_width));
 
     double relax_threshold = m_canvas->optRelaxThresholdModifier();
     relaxThresholdSlider->setSliderPosition(relax_threshold * 100);
@@ -386,16 +376,10 @@ void LayoutPropertiesDialog::changeSnapStrength(double value)
     snapStrengthLabel->setText(QString("Strength: %1").arg(value));
 }
 
-void LayoutPropertiesDialog::changeGridWidth(double value)
+void LayoutPropertiesDialog::changeGridSize(double value)
 {
-    gridWidthSlider->setSliderPosition(value);
-    gridWLabel->setText(QString("Width: %1").arg(value));
-}
-
-void LayoutPropertiesDialog::changeGridHeight(double value)
-{
-    gridHeightSlider->setSliderPosition(value);
-    gridHLabel->setText(QString("Height: %1").arg(value));
+    gridSizeSlider->setSliderPosition(value);
+    gridSizeLabel->setText(QString("Grid Size: %1").arg(value));
 }
 
 void LayoutPropertiesDialog::changeRelaxThreshold(double value)
