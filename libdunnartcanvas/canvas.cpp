@@ -85,6 +85,17 @@ bool Actions::empty(void) const
            !(flags & (ACTION_ADDITIONS | ACTION_MODIFICATIONS | ACTION_DELETIONS));
 }
 
+struct OrthoWeights {
+    OrthoWeights() :
+        wcr(22.0),
+        wco(45.0),
+        wob(1.0),
+        wst(1.0) {}
+    double wcr;
+    double wco;
+    double wob;
+    double wst;
+};
 
 // Resize Handle Types
 enum {
@@ -201,6 +212,9 @@ Canvas::Canvas()
       m_num_align_tries(0),
       m_align_pairs_tried(NULL),
       m_most_recent_stress(0),
+      m_most_recent_ortho_obj_func(0),
+      m_most_recent_crossing_count(0),
+      m_most_recent_coincidence_count(0),
       m_stress_bar_maximum(500),
       m_obliquity_bar_maximum(5000)
 {
@@ -945,7 +959,7 @@ void Canvas::customEvent(QEvent *event)
     else if (dynamic_cast<LayoutFinishedEvent *> (event))
     {
         //qDebug() << "Finish " << (long long) this;
-        qDebug() << "Layout finished.";
+        //qDebug() << "Layout finished.";
         this->startLayoutFinishTimer();
     }
     else if (dynamic_cast<RoutingRequiredEvent *> (event))
@@ -3839,13 +3853,18 @@ void Canvas::initTryAlignments()
 /// currently a neighbour of this shape which is on that side and roughly
 /// aligned, up to the named tolerance.
 ///
+/// If a shape object is passed as the optional fourth argument (default
+/// value is NULL), then this shape is considered an exception; i.e. if this
+/// turns out to be the only neighbour on the named side, true is still returned.
+///
 /// Should make 'side' into an enum. For now:
 /// 0 = right, 1 = top, 2 = left, 3 = bottom.
-bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance) {
+bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance, ShapeObj* except) {
     bool clear = true;
     QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
     double sx = s->centrePos().x(), sy = s->centrePos().y();
     foreach (ShapeObj *nbr, nbrs) {
+        if (nbr == except) continue;
         double nx = nbr->centrePos().x(), ny = nbr->centrePos().y();
         if (side==0) {
             // right side
@@ -3867,13 +3886,13 @@ bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance) {
 void Canvas::tryAlignments()
 {
     m_trying_alignments = false;
-    qDebug() << "Num align tries:" << m_num_align_tries;
-    if (m_num_align_tries >= m_max_align_tries) return;
+    //qDebug() << "Num align tries:" << m_num_align_tries;
+    //if (m_num_align_tries >= m_max_align_tries) return;
     double score = computeOrthoObjective();
-    qDebug() << "Objective function:" << score;
+    //qDebug() << "Objective function:" << score;
     double eps = 10;
     double sig = m_opt_snap_distance_modifier;
-    qDebug() << "snap distance:" << sig;
+    //qDebug() << "snap distance:" << sig;
     // For now, try simply aligning neighbours which are not already aligned.
     foreach (CanvasItem *item, items())
     {
@@ -3892,8 +3911,8 @@ void Canvas::tryAlignments()
             double sx=s->centrePos().x(), sy=s->centrePos().y();
             double tx=t->centrePos().x(), ty=t->centrePos().y();
             double ady=fabs(ty-sy), adx=fabs(tx-sx);
-            if (adx < eps || ady < eps) continue; // already aligned
 
+            //if (adx < eps || ady < eps) continue; // already aligned
 
             int plan = 0; // 0 = plan no alignment; 1 = horizontal; 2 = vertical
 
@@ -3902,13 +3921,13 @@ void Canvas::tryAlignments()
                 // Check whether the appropriate sides of the shapes are open.
                 ShapeObj *left  = sx < tx ? s : t;
                 ShapeObj *right = sx < tx ? t : s;
-                if ( sideIsClear(left,0,eps) && sideIsClear(right,2,eps) ) plan = 1;
+                if ( sideIsClear(left,0,eps,right) && sideIsClear(right,2,eps,left) ) plan = 1;
             }
             // Would a vertical alignment be suitable?
             if (adx <= sig) {
                 ShapeObj *above = sy < ty ? s : t;
                 ShapeObj *below = sy < ty ? t : s;
-                if ( sideIsClear(above,3,eps) && sideIsClear(below,1,eps) ) {
+                if ( sideIsClear(above,3,eps,below) && sideIsClear(below,1,eps,above) ) {
                     plan = plan==0 ? 2 : ( adx < ady ? 2 : 1 );
                 }
             }
@@ -3921,13 +3940,18 @@ void Canvas::tryAlignments()
                 }
             }
 
+            if (i==35&&j==71 || i==71&&j==35) {
+                qDebug() << "i,j" << i << j << "plan:" << plan;
+            }
+
             if (plan > 0) {
                 // Will try an alignment.
                 CanvasItemList items;
                 items.append(s); items.append(t);
                 atypes a = plan==2 ? ALIGN_CENTER : ALIGN_MIDDLE;
-                qDebug() << "Trying alignment" << a << "adx=" << adx << "ady=" << ady << "s:" << s->idString() << "t:" << t->idString();
+                //qDebug() << "Trying alignment" << a << "adx=" << adx << "ady=" << ady << "s:" << s->idString() << "t:" << t->idString();
                 Guideline *gdln = createAlignment(a,items);
+                //qDebug() << "guideline is" << (gdln==NULL?"NULL":"not null");
                 gdln->setTentative(true);
                 m_trying_alignments = true;
                 m_num_align_tries++;
@@ -3953,8 +3977,19 @@ LineSegment::LineSegment(Connector *conn) : connector(conn)
     ShapeObj *t = conn->getAttachedShapes().second;
     double sx=s->centrePos().x(), sy=s->centrePos().y();
     double tx=t->centrePos().x(), ty=t->centrePos().y();
+    computeParameters(sx,sy,tx,ty);
+}
+
+LineSegment::LineSegment(double sx, double sy, double tx, double ty) : connector(NULL)
+{
+    computeParameters(sx,sy,tx,ty);
+}
+
+void LineSegment::computeParameters(double sx, double sy, double tx, double ty)
+{
     p1 = Avoid::Point(sx, sy);
     p2 = Avoid::Point(tx, ty);
+
     // If the points are coincident, set angle to -1 and quit.
     if (sx==tx && sy==ty) { angle = -1; return; }
     double a;
@@ -4040,6 +4075,79 @@ void Canvas::updateStress(double stress) {
     emit newStressBarValue(stressBarValue);
 }
 
+/*
+* Predicts what the ortho objective function would be if you were
+* to align the endpoints of the connector in the named dimension.
+*
+* Returns -1 if this alignment is predicted to result in creation
+* of an edge coincidence.
+*
+* Leaves out crossing detection -- just uses the current value.
+*
+* Only uses a heuristic to check if a coincidence will be created.
+*
+*/
+double Canvas::predictOrthoObjective(Connector *conn, Dimension dim)
+{
+    // Obliquity
+    QList<LineSegment*> segs;
+    double obliquity = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (Connector *c = dynamic_cast<Connector*>(item))
+        {
+            if (c==conn) continue; // (If conn is aligned, it will have 0 obliquity.)
+            LineSegment *s = new LineSegment(c);
+            segs.append(s);
+            obliquity += s->obliquityScore();
+        }
+    }
+
+    // Stress
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+    ShapeObj *s1 = conn->getAttachedShapes().first;
+    ShapeObj *s2 = conn->getAttachedShapes().second;
+    unsigned id1 = graph->getNodeID(s1);
+    unsigned id2 = graph->getNodeID(s2);
+    QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
+
+    vpsc::Rectangle *r1 = graph->rs.at(id1);
+    vpsc::Rectangle *r2 = graph->rs.at(id2);
+    // Now translate rectangles according to proposed alignment.
+    if (dim == HORIZ) {
+        double yav = ( p1.y() + p2.y() ) / 2.0;
+        r1->moveCentreY(yav);
+        r2->moveCentreY(yav);
+    } else { // dim == VERT
+        double xav = ( p1.x() + p2.x() ) / 2.0;
+        r1->moveCentreX(xav);
+        r2->moveCentreX(xav);
+    }
+    //
+    valarray<double> elengths;
+    graph->getEdgeLengths(elengths);
+    cola::ConstrainedFDLayout alg(graph->rs, graph->edges, 1.0, m_opt_prevent_overlaps,
+                                  m_opt_snap_to, m_opt_snap_distance_modifier,
+                                  &elengths[0], NULL, NULL);
+    alg.setConstraints(graph->ccs);
+    alg.setClusterHierarchy(&(graph->clusterHierarchy));
+    alg.setSnapStrength(m_opt_snap_strength_modifier);
+    alg.setSnapGridWidth(m_opt_snap_grid_width);
+    alg.setSnapGridHeight(m_opt_snap_grid_height);
+    double stress = alg.computeStress();
+
+    // Crossings
+    int crossings = m_most_recent_crossing_count;
+
+    // Coincidences
+    int coincidences = m_most_recent_coincidence_count;
+
+    // Sum up
+    OrthoWeights o = m_ortho_weights;
+    double prediction = o.wcr*crossings + o.wco*coincidences + o.wob*obliquity + o.wst*stress;
+    return prediction;
+}
+
 double Canvas::computeOrthoObjective()
 {
     // Build a LineSegment for each Connector.
@@ -4075,6 +4183,8 @@ double Canvas::computeOrthoObjective()
             if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
         }
     }
+    m_most_recent_crossing_count = crossings;
+    m_most_recent_coincidence_count = coincidences;
     emit newCrossingCount(crossings);
     emit newCoincidenceCount(coincidences);
 
@@ -4083,13 +4193,11 @@ double Canvas::computeOrthoObjective()
     segs.clear();
 
     // Compute the score.
-    double wcr = 22.0;
-    double wco = 45.0;
-    double wob = 1.0;
-    double wst = 1.0;
-    qDebug() << "Stress:" << m_most_recent_stress;
-    double score = wcr*crossings + wco*coincidences + wob*obliquity + wst*m_most_recent_stress;
+    OrthoWeights o = m_ortho_weights;
+    //qDebug() << "Stress:" << m_most_recent_stress;
+    double score = o.wcr*crossings + o.wco*coincidences + o.wob*obliquity + o.wst*m_most_recent_stress;
     emit newOrthoGoalBarValue( (int)(round(score)) );
+    m_most_recent_ortho_obj_func = score;
     return score;
 }
 

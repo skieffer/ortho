@@ -85,6 +85,7 @@ class Actions {
 };
 
 struct AlignDesc;
+struct OrthoWeights;
 
 static const unsigned int DEFAULT_CANVAS_FONT_SIZE = 11;
 
@@ -106,7 +107,6 @@ enum loadPass
     PASS_RELATIONSHIPS,
     PASS_LAST
 };
-
 
 class Canvas : public QGraphicsScene
 {
@@ -353,6 +353,7 @@ class Canvas : public QGraphicsScene
         void postRoutingRequiredEvent(void);
 
         double computeOrthoObjective(void);
+        double predictOrthoObjective(Connector *conn, Dimension dim);
 
     signals:
         void diagramFilenameChanged(const QFileInfo& title);
@@ -442,8 +443,12 @@ class Canvas : public QGraphicsScene
         bool m_use_gml_clusters;
 
         double m_most_recent_stress;
+        double m_most_recent_ortho_obj_func;
+        int m_most_recent_crossing_count;
+        int m_most_recent_coincidence_count;
         double m_stress_bar_maximum;
         double m_obliquity_bar_maximum;
+        OrthoWeights m_ortho_weights;
 
         double m_connector_nudge_distance;
         double m_ideal_connector_length;
@@ -465,7 +470,7 @@ class Canvas : public QGraphicsScene
         int m_max_shape_id;
         bool * m_align_pairs_tried;
         QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
-        bool sideIsClear(ShapeObj* s, int side, double tolerance);
+        bool sideIsClear(ShapeObj* s, int side, double tolerance, ShapeObj* except=NULL);
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
@@ -600,6 +605,8 @@ class Connector;
 struct LineSegment {
     LineSegment() : connector(NULL) {}
     LineSegment(Connector *conn);
+    LineSegment(double sx, double sy, double tx, double ty);
+    void computeParameters(double sx, double sy, double tx, double ty);
     bool intersects(LineSegment *other, double tolerance);
     bool coincidesWith(LineSegment *other, double angleTolerance, double interceptTolerance);
     double obliquityScore(void);

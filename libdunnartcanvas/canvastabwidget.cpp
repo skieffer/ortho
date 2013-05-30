@@ -331,7 +331,7 @@ void CanvasTabWidget::currentChanged(int index)
     connect(m_action_infer_alignments, SIGNAL(triggered()), m_canvas, SLOT(inferAndApplyAlignments()));
 
     m_action_apply_fm3->disconnect();
-    connect(m_action_apply_fm3, SIGNAL(triggered()), m_canvas, SLOT(applyKM3()));
+    connect(m_action_apply_fm3, SIGNAL(triggered()), m_canvas, SLOT(applyFM3()));
 
     m_action_layout_BCTrees->disconnect();
     connect(m_action_layout_BCTrees, SIGNAL(triggered()),
