@@ -3818,6 +3818,7 @@ void Canvas::initTryAlignments()
             int id = shape->idString().toInt();
             maxID = id > maxID ? id : maxID;
             m_shapes_by_id.insert(id,shape);
+            shape->setLabel(shape->idString());
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
@@ -3899,6 +3900,7 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
     double highCoord = sz<tz ? tz : sz;
     int lowID = sz<tz ? s->internalId() : t->internalId();
     int highID = sz<tz ? t->internalId() : s->internalId();
+    qDebug() << "pair:" << lowID << highID;
     // We predict a coincidence iff (the low shape is already aligned with and shares an
     // edge with some shape of higher coordinate) OR (the high shape is already aligned with
     // and shares an edge with some shape of lower coordinate).
@@ -3918,6 +3920,9 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
         if ( hj&a && hj&Connected && z < highCoord ) {
             coincidence = true; break;
         }
+    }
+    if (lowID==12&&highID==24 || lowID==24&&highID==12) {
+        qDebug() << "Result for 12 and 24:" << coincidence;
     }
     return coincidence;
 }
@@ -3979,11 +3984,14 @@ void Canvas::applyAlignments()
     qDebug() << "Checking" << ads.size() << "potential alignments.";
     // Compute predicted goal function changes.
     predictOrthoObjectiveChange(ads);
+    qDebug() << "List length is now" << ads.size();
     // Find most negative change.
     double dG = 0; AlignDesc *a = NULL;
     QString foo = "";
     foreach (AlignDesc *b, ads) {
-        foo += QString("%1").arg(b->goalDelta);
+        foo += QString(", %1").arg(b->goalDelta);
+        foo += QString(" for (%1").arg(b->connector->getAttachedShapes().first->internalId());
+        foo += QString(",%1)").arg(b->connector->getAttachedShapes().second->internalId());
         if (b->goalDelta < dG) {
             dG = b->goalDelta;
             a = b;
@@ -4026,6 +4034,7 @@ void Canvas::applyAlignmentsCallback()
     if (dG < -m_apply_alignments_epsilon) {
         applyAlignments();
     }
+    qDebug() << m_alignment_state.toString();
 }
 
 void Canvas::tryAlignments()
@@ -4207,9 +4216,10 @@ double LineSegment::obliquityScore()
 {
     // Put angle in range from 1 to 89.
     int a = angle > 90 ? angle - 90 : angle;
+    qDebug() << "a=" << a;
     // If close enough to orthogonal, then zero obliquity.
     int t = 3;
-    if (angle<=t || angle>=90-t) return 0;
+    if (a<=t || a>=90-t) return 0;
     // Else base score on distance from 45 deg.
     double d = fabs(a-45); // 0 <= d <= 45-t
     return 1 + d;
@@ -4288,6 +4298,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         // Obliquity change
         LineSegment seg(conn);
         double dOb = -seg.obliquityScore();
+        qDebug() << "obliquity:" << dOb << "for" << conn->getAttachedShapes().first->internalId() << "," << conn->getAttachedShapes().second->internalId();
 
         // Stress change
         /*

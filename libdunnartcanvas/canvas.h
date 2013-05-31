@@ -111,6 +111,21 @@ struct Matrix2d
 
     T operator()(int i, int j) const { return data[i*cols+j]; }
     T& operator()(int i, int j) { return data[i*cols+j]; }
+
+    QString toString() {
+        QString s = "";
+        s += "\n  ";
+        for (int j=0; j<cols; j++) s += QString(" %1").arg(j,2);
+        for (int i=0; i<rows; i++) {
+            s += "\n";
+            s += QString("%1").arg(i,2);
+            for (int j=0; j<cols; j++) {
+                s += QString(" %1").arg(data[i*cols+j],2);
+            }
+        }
+        return s;
+    }
+
 };
 
 static const unsigned int DEFAULT_CANVAS_FONT_SIZE = 11;
