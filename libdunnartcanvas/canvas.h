@@ -323,6 +323,7 @@ class Canvas : public QGraphicsScene
         void inferAndApplyAlignments(void);
         void initTryAlignments(void);
         void tryAlignments(void);
+        void applyAlignments(void);
         void arrangePendants(void);
         void applyFM3(void);
         void layoutBCTrees(void);
@@ -390,6 +391,7 @@ class Canvas : public QGraphicsScene
         double computeOrthoObjective(void);
         double predictOrthoObjective(Connector *conn, Dimension dim);
         double predictOrthoObjectiveChange(Connector *conn, Dimension dim);
+        void predictOrthoObjectiveChange(QList<AlignDesc*> &ads);
         bool predictCoincidence(Connector *conn, Dimension dim);
 
     signals:
@@ -515,6 +517,10 @@ class Canvas : public QGraphicsScene
         //int **m_alignment_state;
         Matrix2d<int> m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
+        void applyAlignmentsCallback(void);
+        double m_previous_ortho_goal_value;
+        double m_apply_alignments_epsilon;
+
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

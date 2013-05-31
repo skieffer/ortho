@@ -184,6 +184,7 @@ void Relationship::commonInit(void)
     guide = NULL;
     guide2 = NULL;
     deadguide = NULL;
+    separation = NULL;
 }
 
 QDomElement Relationship::to_QDomElement(const unsigned int subset, 

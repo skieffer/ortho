@@ -204,7 +204,8 @@ Canvas::Canvas()
       m_most_recent_crossing_count(0),
       m_most_recent_coincidence_count(0),
       m_stress_bar_maximum(500),
-      m_obliquity_bar_maximum(5000)
+      m_obliquity_bar_maximum(5000),
+      m_apply_alignments_epsilon(-1000)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -2453,7 +2454,12 @@ void Canvas::processLayoutFinishedEvent(void)
     }
 
     if (m_trying_alignments) {
+#define newApplyAlignments
+#ifdef newApplyAlignments
+        applyAlignmentsCallback();
+#else
         tryAlignments();
+#endif
     }
 }
 
@@ -3674,8 +3680,15 @@ struct AlignDesc {
         alignType = at;
         items = cil;
     }
+    AlignDesc(Connector *conn, Canvas::Dimension d) {
+        connector = conn;
+        dim = d;
+    }
     atypes alignType;
     CanvasItemList items;
+    Connector *connector;
+    Canvas::Dimension dim;
+    double goalDelta;
 };
 
 QList<AlignDesc> Canvas::inferAlignOneDim(QList<ShapeObj *> shapes, QMap<ShapeObj *, ShapeObj *> nbrs,
@@ -3843,7 +3856,11 @@ void Canvas::initTryAlignments()
         m_alignment_state(tID,sID) = Connected;
     }
     m_num_align_tries = 0;
-    tryAlignments();
+#ifdef newApplyAlignments
+        applyAlignments();
+#else
+        tryAlignments();
+#endif
 }
 
 /*
@@ -3937,6 +3954,78 @@ bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance, ShapeObj* exce
         }
     }
     return clear;
+}
+
+void Canvas::applyAlignments()
+{
+    m_trying_alignments = false;
+    m_previous_ortho_goal_value = computeOrthoObjective();
+    // Build list of potential alignments.
+    QList<AlignDesc*> ads;
+    foreach (CanvasItem *item, items())
+    {
+        if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            ShapeObj *s = conn->getAttachedShapes().first;
+            ShapeObj *t = conn->getAttachedShapes().second;
+            int sID = s->internalId(), tID = t->internalId();
+            // If not already aligned, then try both alignments.
+            if ( !( m_alignment_state(sID,tID) & (Horizontal|Vertical) ) ) {
+                ads.append( new AlignDesc(conn,HORIZ) );
+                ads.append( new AlignDesc(conn,VERT) );
+            }
+        }
+    }
+    qDebug() << "Checking" << ads.size() << "potential alignments.";
+    // Compute predicted goal function changes.
+    predictOrthoObjectiveChange(ads);
+    // Find most negative change.
+    double dG = 0; AlignDesc *a = NULL;
+    QString foo = "";
+    foreach (AlignDesc *b, ads) {
+        foo += QString("%1").arg(b->goalDelta);
+        if (b->goalDelta < dG) {
+            dG = b->goalDelta;
+            a = b;
+        }
+    }
+    qDebug() << "Got minimum dG of" << dG;
+    qDebug() << "out of:\n" << foo;
+    // Try another alignment only if it looks like one will
+    // result in a decrease of the goal function.
+    if (dG < 0) {
+        // Get the shapes involved.
+        ShapeObj *s = a->connector->getAttachedShapes().first;
+        ShapeObj *t = a->connector->getAttachedShapes().second;
+        // Update various records.
+        m_trying_alignments = true; // (enables callback trigger in Canvas::processLayoutFinishedEvent)
+        m_num_align_tries++;
+        AlignmentFlags af = a->dim==VERT ? Vertical : Horizontal;
+        updateAlignmentStates(s,t,af);
+        int sID = s->internalId(), tID = t->internalId();
+        m_align_pairs_tried[sID*m_max_shape_id+tID] = true;
+        m_align_pairs_tried[tID*m_max_shape_id+sID] = true;
+        // Create new guideline and restart graph layout.
+        CanvasItemList items;
+        items.append(s); items.append(t);
+        atypes at = a->dim==VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
+        Guideline *gdln = createAlignment(at,items);
+        gdln->setTentative(true);
+        qDebug() << "Trying alignment...";
+        fully_restart_graph_layout();
+    }
+}
+
+void Canvas::applyAlignmentsCallback()
+{
+    m_trying_alignments = false;
+    double G  = m_previous_ortho_goal_value;
+    double Gp = computeOrthoObjective();
+    double dG = Gp - G;
+    qDebug() << "Assessing result of alignment. dG =" << dG;
+    if (dG < -m_apply_alignments_epsilon) {
+        applyAlignments();
+    }
 }
 
 void Canvas::tryAlignments()
@@ -4178,6 +4267,66 @@ double Canvas::predictOrthoObjectiveChange(Connector *conn, Dimension dim)
     OrthoWeights o = m_ortho_weights;
     double predictedDelta = o.wob*dOb + o.wst*dStress;
     return predictedDelta;
+}
+
+/*
+* This version handles a whole list of Connector-Dimension pairs at once.
+*/
+void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
+{
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+    foreach (AlignDesc *ad, ads) {
+        Connector *conn = ad->connector;
+        Dimension dim   = ad->dim;
+
+        // Would it create a coincidence?
+        if (predictCoincidence(conn,dim)) {
+            ad->goalDelta = DBL_MAX;
+            continue;
+        }
+
+        // Obliquity change
+        LineSegment seg(conn);
+        double dOb = -seg.obliquityScore();
+
+        // Stress change
+        /*
+        ShapeObj *s1 = conn->getAttachedShapes().first;
+        ShapeObj *s2 = conn->getAttachedShapes().second;
+        unsigned id1 = graph->getNodeID(s1);
+        unsigned id2 = graph->getNodeID(s2);
+        QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
+        vpsc::Rectangle *r1 = graph->rs.at(id1);
+        vpsc::Rectangle *r2 = graph->rs.at(id2);
+        // Now translate rectangles according to proposed alignment.
+        double stress = 0;
+        if (dim == HORIZ) {
+            double yav = ( p1.y() + p2.y() ) / 2.0;
+            double c1 = r1->getCentreY(), c2 = r2->getCentreY();
+            r1->moveCentreY(yav);
+            r2->moveCentreY(yav);
+            stress = m_graphlayout->computeStressOfGraph(graph);
+            r1->moveCentreY(c1);
+            r2->moveCentreY(c2);
+        } else { // dim == VERT
+            double xav = ( p1.x() + p2.x() ) / 2.0;
+            double c1 = r1->getCentreX(), c2 = r2->getCentreX();
+            r1->moveCentreX(xav);
+            r2->moveCentreX(xav);
+            stress = m_graphlayout->computeStressOfGraph(graph);
+            r1->moveCentreX(c1);
+            r2->moveCentreX(c2);
+        }
+        double dStress = stress-m_most_recent_stress;
+        */
+        double dStress = 0;
+
+        // Sum up
+        OrthoWeights o = m_ortho_weights;
+        double predictedDelta = o.wob*dOb + o.wst*dStress;
+        ad->goalDelta = predictedDelta;
+
+    }
 }
 
 /*
