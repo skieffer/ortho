@@ -65,7 +65,7 @@ class Indicator: public CanvasItem
                 const QStyleOptionGraphicsItem *option, QWidget *widget);
         virtual void loneSelectedChange(const bool value);
 
-        RelsList rels;
+        RelsList relationships;
     protected:
         virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change,
                 const QVariant &value);
