@@ -468,7 +468,6 @@ class Canvas : public QGraphicsScene
         void setInterferingConnectorColours(const QString colourListString);
         void hideSelectionResizeHandles(void);
         void createIndicatorHighlightCache(void);
-        //static void highlightIndicators(ShapeObj *shape, const QRectF& shapeRect);
         void clearIndicatorHighlights(const bool clearCache = false);
         void glueObjectsToIndicators(void);
         bool hasVisibleOverlays(void) const;
@@ -535,6 +534,7 @@ class Canvas : public QGraphicsScene
         void applyAlignmentsCallback(void);
         double m_previous_ortho_goal_value;
         double m_apply_alignments_epsilon;
+        double m_max_actual_dG;
 
 
         double m_opt_ideal_edge_length_modifier;

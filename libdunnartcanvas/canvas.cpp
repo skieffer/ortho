@@ -205,7 +205,7 @@ Canvas::Canvas()
       m_most_recent_coincidence_count(0),
       m_stress_bar_maximum(500),
       m_obliquity_bar_maximum(5000),
-      m_apply_alignments_epsilon(-1000)
+      m_apply_alignments_epsilon(-DBL_MAX)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -2514,7 +2514,7 @@ void Canvas::createIndicatorHighlightCache(void)
             // We don't want guides that are being moved, because they
             // are attached via multi-way constraints to selected shapes.
             bool invalid = false;
-            for (RelsList::iterator r = g->rels.begin(); r != g->rels.end();
+            for (RelsList::iterator r = g->relationships.begin(); r != g->relationships.end();
                     r++)
             {
                 if ((*r)->shape && (*r)->shape->isSelected())
@@ -2584,41 +2584,6 @@ bool Canvas::inSelectionMode(void) const
 {
     return (m_edit_mode == ModeSelection);
 }
-
-/*
-void highlightIndicators(Shape *shape, const QRectF& shapeRect)
-{
-    Canvas *canvas = shape->canvas();
-    bool vfound = false, hfound = false;
-
-    // QT nx -= canvas->get_xpos() + cxoff;
-    // QT ny -= canvas->get_ypos() + cyoff;
-    for (int i = 0; i < 6; i++)
-    {
-        if (!(shape->rels[i]))
-        {
-            double pos = ShapeObj::attachedGuidelinePosition((atypes) i, shapeRect);
-
-            if (!hfound && (i < 3))
-            {
-                if (m_hguides.find(pos) != m_hguides.end())
-                {
-                    m_hguides[pos]->setHighlighted(true);
-                    m_hguides[pos]->update();
-                }
-            }
-            else if (!vfound && (i >= 3))
-            {
-                if (m_vguides.find(pos) != m_vguides.end())
-                {
-                    m_vguides[pos]->setHighlighted(true);
-                    m_vguides[pos]->update();
-                }
-            }
-        }
-    }
-}
-*/
 
 void Canvas::clearIndicatorHighlights(const bool clearCache)
 {
@@ -3857,6 +3822,7 @@ void Canvas::initTryAlignments()
         m_alignment_state(tID,sID) = Connected;
     }
     m_num_align_tries = 0;
+    m_max_actual_dG = -DBL_MAX;
 #ifdef newApplyAlignments
         applyAlignments();
 #else
@@ -3900,7 +3866,6 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
     double highCoord = sz<tz ? tz : sz;
     int lowID = sz<tz ? s->internalId() : t->internalId();
     int highID = sz<tz ? t->internalId() : s->internalId();
-    qDebug() << "pair:" << lowID << highID;
     // We predict a coincidence iff (the low shape is already aligned with and shares an
     // edge with some shape of higher coordinate) OR (the high shape is already aligned with
     // and shares an edge with some shape of lower coordinate).
@@ -3920,9 +3885,6 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
         if ( hj&a && hj&Connected && z < highCoord ) {
             coincidence = true; break;
         }
-    }
-    if (lowID==12&&highID==24 || lowID==24&&highID==12) {
-        qDebug() << "Result for 12 and 24:" << coincidence;
     }
     return coincidence;
 }
@@ -3981,24 +3943,16 @@ void Canvas::applyAlignments()
             }
         }
     }
-    qDebug() << "Checking" << ads.size() << "potential alignments.";
     // Compute predicted goal function changes.
     predictOrthoObjectiveChange(ads);
-    qDebug() << "List length is now" << ads.size();
     // Find most negative change.
     double dG = 0; AlignDesc *a = NULL;
-    QString foo = "";
     foreach (AlignDesc *b, ads) {
-        foo += QString(", %1").arg(b->goalDelta);
-        foo += QString(" for (%1").arg(b->connector->getAttachedShapes().first->internalId());
-        foo += QString(",%1)").arg(b->connector->getAttachedShapes().second->internalId());
         if (b->goalDelta < dG) {
             dG = b->goalDelta;
             a = b;
         }
     }
-    qDebug() << "Got minimum dG of" << dG;
-    qDebug() << "out of:\n" << foo;
     // Try another alignment only if it looks like one will
     // result in a decrease of the goal function.
     if (dG < 0) {
@@ -4031,10 +3985,12 @@ void Canvas::applyAlignmentsCallback()
     double Gp = computeOrthoObjective();
     double dG = Gp - G;
     qDebug() << "Assessing result of alignment. dG =" << dG;
+    m_max_actual_dG = max(m_max_actual_dG, dG);
+    qDebug() << "Max actual dG:" << m_max_actual_dG;
     if (dG < -m_apply_alignments_epsilon) {
         applyAlignments();
     }
-    qDebug() << m_alignment_state.toString();
+    //qDebug() << m_alignment_state.toString();
 }
 
 void Canvas::tryAlignments()
@@ -4216,7 +4172,6 @@ double LineSegment::obliquityScore()
 {
     // Put angle in range from 1 to 89.
     int a = angle > 90 ? angle - 90 : angle;
-    qDebug() << "a=" << a;
     // If close enough to orthogonal, then zero obliquity.
     int t = 3;
     if (a<=t || a>=90-t) return 0;
@@ -4298,7 +4253,6 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         // Obliquity change
         LineSegment seg(conn);
         double dOb = -seg.obliquityScore();
-        qDebug() << "obliquity:" << dOb << "for" << conn->getAttachedShapes().first->internalId() << "," << conn->getAttachedShapes().second->internalId();
 
         // Stress change
         /*
