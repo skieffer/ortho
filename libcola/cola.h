@@ -745,6 +745,7 @@ public:
     void setSnapGridWidth(double w) { m_snapGridX = w; }
     void setSnapGridHeight(double h) { m_snapGridY = h; }
     double getFinalStress(void) { return m_final_stress; }
+    void addEdgeNodeRepulsion(bool b) { m_addEdgeNodeRepulsion = b; }
 
 private:
     unsigned n; // number of nodes
@@ -807,6 +808,7 @@ private:
     CompoundConstraint *m_constraintToReject;
     bool m_addSnapStress;
     bool m_addGridSnapStress;
+    bool m_addEdgeNodeRepulsion;
     double m_snapGridX;
     double m_snapGridY;
     int m_snapStressFunction;
@@ -817,6 +819,7 @@ private:
     double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
+    double computeEdgeNodeRepulsionStress() const;
     double computeGridSnapStress() const;
     double computeSnapStress() const;
     double quadUStress() const;
@@ -827,6 +830,7 @@ private:
     double dualQuadraticStress() const;
     double invertedQuadraticStress() const;
     double quarticStress() const;
+    void computeEdgeNodeRepulsionForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void quadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);

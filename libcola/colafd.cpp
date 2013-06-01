@@ -121,7 +121,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       //  8: quadraic U-stress
       m_snapStressFunction(8),
       m_debugLineNo(0),
-      m_final_stress(0)
+      m_final_stress(0),
+      m_addEdgeNodeRepulsion(true)
 {
     if (done == NULL)
     {
@@ -1229,6 +1230,9 @@ void ConstrainedFDLayout::computeForces(
     if(m_addGridSnapStress) {
         computeGridSnapForces(dim,H,g);
     }
+    if(m_addEdgeNodeRepulsion) {
+        computeEdgeNodeRepulsionForces(dim,H,g);
+    }
     if(desiredPositions) {
         for(DesiredPositions::const_iterator p=desiredPositions->begin();
             p!=desiredPositions->end();++p) {
@@ -1307,10 +1311,13 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
         }
 #endif
     }
-// Axis-aligned edges repel nodes:
-#define axisAlignedRepel
-#ifdef axisAlignedRepel
-    double K = 20*k; // twice as strong as grid force
+}
+
+void ConstrainedFDLayout::computeEdgeNodeRepulsionForces(const vpsc::Dim dim, SparseMap &H, valarray<double> &g) {
+    double b = m_snap_strength;
+    double sig = m_snap_distance;
+    double k = b/(sig*sig);
+    double K = 20*k; // stronger than grid force
     foreach(Edge e, edges) {
         // Is e axis-aligned in the dimension we are handling?
         unsigned u = e.first, v = e.second;
@@ -1337,10 +1344,9 @@ void ConstrainedFDLayout::computeGridSnapForces(const vpsc::Dim dim, SparseMap &
             double dH = K;
             g[u]+=-dg;
             H(u,u)+=dH;
-            fprintf(stderr, "dg=%f, dH=%f\n",dg,dH);
+            //fprintf(stderr, "dg=%f, dH=%f\n",dg,dH);
         }
     }
-#endif
 }
 
 // Quadratic U-stress forces:
@@ -1683,6 +1689,10 @@ double ConstrainedFDLayout::computeStress() const {
         //qDebug() << "gs: " << gridSnapStress;
         stress += gridSnapStress;
     }
+    if(m_addEdgeNodeRepulsion) {
+        double edgeNodeRepulsionStress = computeEdgeNodeRepulsionStress();
+        stress += edgeNodeRepulsionStress;
+    }
     //qDebug() << "plus snap stress: " << stress;
     if(preIteration) {
         if ((*preIteration)()) {
@@ -1726,6 +1736,41 @@ double ConstrainedFDLayout::computeSnapStress() const {
     case 8:
         return quadUStress();
     }
+}
+
+double ConstrainedFDLayout::computeEdgeNodeRepulsionStress() const {
+    double aarStress = 0;
+    double sig = m_snap_distance;
+    double sig2 = sig*sig;
+    foreach(Edge e, edges) {
+        // Is e axis-aligned in either dimension?
+        unsigned u = e.first, v = e.second;
+        double dx=X[u]-X[v], dy=Y[u]-Y[v];
+        double eps = 5;
+        if (fabs(dx) > eps && fabs(dy) > eps) continue;
+        // Let dim be the dimension in which the force acts (so the opposite
+        // dimension to that in which e is aligned).
+        vpsc::Dim dim = fabs(dx)<=eps?vpsc::HORIZONTAL:vpsc::VERTICAL;
+        double ez, el, eh;
+        if (dim==vpsc::HORIZONTAL) {
+            ez = (X[u]+X[v])/2.0; el = min(Y[u],Y[v]); eh = max(Y[u],Y[v]);
+        } else {
+            ez = (Y[u]+Y[v])/2.0; el = min(X[u],X[v]); eh = max(X[u],X[v]);
+        }
+        // Consider each node.
+        for(unsigned w=0;w<n;w++) {
+            if (w==u || w==v) continue;
+            double z=dim==vpsc::HORIZONTAL?X[w]:Y[w];
+            double k=dim==vpsc::HORIZONTAL?Y[w]:X[w];
+            if (k<=el || eh<=k) continue;
+            double r = z - ez;
+            if (fabs(r) > sig) continue;
+            r = r>=0?r-sig:r+sig;
+            aarStress += r*r/sig2;
+        }
+    }
+    aarStress *= 20*m_snap_strength; // stronger than grid force
+    return aarStress;
 }
 
 // Grid snap stress; will use Quadratic U-stress:
@@ -1774,38 +1819,6 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
         stress+=sx+sy;
     }
     stress = m_snap_strength*stress;
-#ifdef axisAlignedRepel
-    double aarStress = 0;
-    foreach(Edge e, edges) {
-        // Is e axis-aligned in either dimension?
-        unsigned u = e.first, v = e.second;
-        double dx=X[u]-X[v], dy=Y[u]-Y[v];
-        double eps = 5;
-        if (fabs(dx) > eps && fabs(dy) > eps) continue;
-        // Let dim be the dimension in which the force acts (so the opposite
-        // dimension to that in which e is aligned).
-        vpsc::Dim dim = fabs(dx)<=eps?vpsc::HORIZONTAL:vpsc::VERTICAL;
-        double ez, el, eh;
-        if (dim==vpsc::HORIZONTAL) {
-            ez = (X[u]+X[v])/2.0; el = min(Y[u],Y[v]); eh = max(Y[u],Y[v]);
-        } else {
-            ez = (Y[u]+Y[v])/2.0; el = min(X[u],X[v]); eh = max(X[u],X[v]);
-        }
-        // Consider each node.
-        for(unsigned w=0;w<n;w++) {
-            if (w==u || w==v) continue;
-            double z=dim==vpsc::HORIZONTAL?X[w]:Y[w];
-            double k=dim==vpsc::HORIZONTAL?Y[w]:X[w];
-            if (k<=el || eh<=k) continue;
-            double r = z - ez;
-            if (fabs(r) > sig) continue;
-            r = r>=0?r-sig:r+sig;
-            aarStress += r*r/sig2;
-        }
-    }
-    aarStress *= 20*m_snap_strength; // twice as strong as grid force
-    stress += aarStress;
-#endif
     return stress;
 }
 

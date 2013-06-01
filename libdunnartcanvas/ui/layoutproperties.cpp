@@ -79,6 +79,11 @@ LayoutPropertiesDialog::LayoutPropertiesDialog(Canvas *canvas, QWidget *parent)
     connect(this, SIGNAL(optChangedGridSnap(bool)),
             gridSnapCheckBox, SLOT(setChecked(bool)));
 
+    connect(edgeNodeRepulsionCheckBox, SIGNAL(clicked(bool)),
+            this, SIGNAL(setOptEdgeNodeRepulsion(bool)));
+    connect(this, SIGNAL(optChangedEdgeNodeRepulsion(bool)),
+            edgeNodeRepulsionCheckBox, SLOT(setChecked(bool)));
+
     connect(relaxCheckBox, SIGNAL(clicked(bool)),
             this, SIGNAL(setOptRelax(bool)));
     connect(this, SIGNAL(optChangedRelax(bool)),
@@ -171,6 +176,14 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
             m_canvas, SLOT(setOptGridSnap(bool)));
     connect(m_canvas, SIGNAL(optChangedGridSnap(bool)),
             this, SIGNAL(optChangedGridSnap(bool)));
+
+    connect(m_canvas, SIGNAL(optChangedGridSnap(bool)),
+            edgeNodeRepulsionCheckBox, SLOT(setEnabled(bool)));
+
+    connect(this, SIGNAL(setOptEdgeNodeRepulsion(bool)),
+            m_canvas, SLOT(setOptEdgeNodeRepulsion(bool)));
+    connect(m_canvas, SIGNAL(optChangedEdgeNodeRepulsion(bool)),
+            this, SIGNAL(optChangedEdgeNodeRepulsion(bool)));
 
     connect(this, SIGNAL(setOptRelax(bool)),
             m_canvas, SLOT(setOptRelax(bool)));
@@ -283,6 +296,7 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
 
     snapToCheckBox->setChecked(m_canvas->optSnapTo());
     gridSnapCheckBox->setChecked(m_canvas->optGridSnap());
+    edgeNodeRepulsionCheckBox->setChecked(m_canvas->optEdgeNodeRepulsion());
     relaxCheckBox->setChecked(m_canvas->optRelax());
 
     flowDirectionDial->setSliderPosition(m_canvas->optFlowDirection());

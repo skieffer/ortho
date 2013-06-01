@@ -280,6 +280,7 @@ class Canvas : public QGraphicsScene
         double optObliquityBarMaximum(void) const;
         QColor optCanvasBackgroundColour(void) const;
         bool optDrawSeparationIndicators(void) const;
+        bool optEdgeNodeRepulsion(void) const;
 
         bool overlayRouterRawRoutes(void) const;
         bool overlayRouterDisplayRoutes(void) const;
@@ -387,6 +388,7 @@ class Canvas : public QGraphicsScene
         void setOptLayeredAlignmentPosition(const LayeredAlignment pos);
         void setOptCanvasBackgroundColour(const QColor colour);
         void setOptDrawSeparationIndicators(const bool value);
+        void setOptEdgeNodeRepulsion(const bool value);
 
         void processResponseTasks(void);
         void processUndoResponseTasks(void);
@@ -442,6 +444,7 @@ class Canvas : public QGraphicsScene
         void optChangedShapeNonoverlapPadding(int padding);
         void optChangedLayeredAlignmentPosition(LayeredAlignment pos);
         void optChangedDrawSeparationIndicators(bool checked);
+        void optChangedEdgeNodeRepulsion(bool checked);
         void newStressBarValue(int value);
         void newCrossingCount(int value);
         void newCoincidenceCount(int value);
@@ -539,6 +542,7 @@ class Canvas : public QGraphicsScene
         double m_apply_alignments_epsilon;
         double m_max_actual_dG;
         bool m_opt_draw_separation_indicators;
+        bool m_opt_edge_node_repulsion;
 
 
         double m_opt_ideal_edge_length_modifier;

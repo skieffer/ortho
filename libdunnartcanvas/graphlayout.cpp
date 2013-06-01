@@ -1309,6 +1309,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     {
         alg.addGridSnapStress(m_canvas->m_opt_grid_snap);
     }
+    alg.addEdgeNodeRepulsion(m_canvas->m_opt_edge_node_repulsion);
     alg.setSnapStrength(m_canvas->m_opt_snap_strength_modifier);
     alg.setSnapGridWidth(m_canvas->m_opt_snap_grid_width);
     alg.setSnapGridHeight(m_canvas->m_opt_snap_grid_height);
