@@ -446,7 +446,7 @@ QPainterPath Guideline::buildPainterPath(void)
 void Guideline::paint(QPainter *painter, 
         const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //return;
+    if (!canvas()->optDrawSeparationIndicators()) return; // should make separate switch for guidelines!
     Indicator::paint(painter, option, widget);
 }
 

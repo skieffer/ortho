@@ -205,7 +205,8 @@ Canvas::Canvas()
       m_most_recent_coincidence_count(0),
       m_stress_bar_maximum(5000),
       m_obliquity_bar_maximum(5000),
-      m_apply_alignments_epsilon(-DBL_MAX)
+      m_apply_alignments_epsilon(-DBL_MAX),
+      m_opt_draw_separation_indicators(true)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -1340,6 +1341,11 @@ bool Canvas::optGridSnap(void) const
     return m_opt_grid_snap;
 }
 
+bool Canvas::optDrawSeparationIndicators(void) const
+{
+    return m_opt_draw_separation_indicators;
+}
+
 bool Canvas::optRelax(void) const
 {
     return m_opt_relax;
@@ -1513,6 +1519,12 @@ void Canvas::setOptGridSnap(const bool value)
     setOptIdealEdgeLengthModifier(m_opt_snap_grid_width/100.0);
     emit optChangedGridSnap(m_opt_grid_snap);
     fully_restart_graph_layout();
+    this->update(combinedViewsRect());
+}
+
+void Canvas::setOptDrawSeparationIndicators(const bool value)
+{
+    m_opt_draw_separation_indicators = value;
     this->update(combinedViewsRect());
 }
 

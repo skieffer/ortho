@@ -52,6 +52,7 @@ class CreateSeparationDialog : public QDockWidget,
         void optChangedConnPenaltySegment(int value);
         void optChangedConnPenaltyFixedSharedPath(int value);
         void optChangedConnPerformNudging(bool checked);
+        void optChangedDrawSepIndicators(bool checked);
 
         // Used privately for passing on state changes from the
         // canvas to widgets in this dialog.
@@ -60,6 +61,7 @@ class CreateSeparationDialog : public QDockWidget,
         void setOptChangedConnPenaltySegment(const int value);
         void setOptChangedConnPenaltyFixedSharedPath(const int value);
         void setOptChangedConnPerformNudging(const bool checked);
+        void setOptDrawSepIndicators(const bool checked);
     private slots:
         void changeCanvas(Canvas *canvas);
     private:

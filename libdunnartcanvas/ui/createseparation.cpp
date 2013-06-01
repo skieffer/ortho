@@ -67,6 +67,12 @@ void CreateSeparationDialog::changeCanvas(Canvas *canvas)
 
     connect(m_signal_mapper, SIGNAL(mapped(int)),
             m_canvas, SLOT(separateSelection(int)));
+    connect(drawSepsCheckBox, SIGNAL(clicked(bool)),
+            this, SIGNAL(setOptDrawSepIndicators(bool)));
+    connect(this, SIGNAL(setOptDrawSepIndicators(bool)),
+            m_canvas, SLOT(setOptDrawSeparationIndicators(bool)));
+    connect(m_canvas, SIGNAL(optChangedDrawSeparationIndicators(bool)),
+            this, SIGNAL(optChangedDrawSepIndicators(bool)));
 }
 
 }

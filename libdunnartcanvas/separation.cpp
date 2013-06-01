@@ -475,7 +475,7 @@ QPainterPath Separation::buildPainterPath(void)
 void Separation::paint(QPainter *painter, 
         const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //return;
+    if (!canvas()->optDrawSeparationIndicators()) return;
 
     Indicator::paint(painter, option, widget);
 
