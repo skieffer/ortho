@@ -4028,7 +4028,6 @@ void Canvas::applyAlignmentsCallback()
         applyAlignments();
     }
     //qDebug() << m_alignment_state.toString();
-    qDebug() << "*";
 }
 
 void Canvas::tryAlignments()

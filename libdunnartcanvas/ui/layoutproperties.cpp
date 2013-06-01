@@ -177,8 +177,10 @@ void LayoutPropertiesDialog::changeCanvas(Canvas *canvas)
     connect(m_canvas, SIGNAL(optChangedGridSnap(bool)),
             this, SIGNAL(optChangedGridSnap(bool)));
 
+    /*
     connect(m_canvas, SIGNAL(optChangedGridSnap(bool)),
             edgeNodeRepulsionCheckBox, SLOT(setEnabled(bool)));
+    */
 
     connect(this, SIGNAL(setOptEdgeNodeRepulsion(bool)),
             m_canvas, SLOT(setOptEdgeNodeRepulsion(bool)));
