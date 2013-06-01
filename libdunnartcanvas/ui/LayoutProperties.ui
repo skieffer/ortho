@@ -30,16 +30,7 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,1">
-    <property name="leftMargin">
-     <number>4</number>
-    </property>
-    <property name="topMargin">
-     <number>4</number>
-    </property>
-    <property name="rightMargin">
-     <number>4</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>4</number>
     </property>
     <item>
@@ -133,16 +124,7 @@ Manual layout</string>
       </property>
       <widget class="QWidget" name="manualLayoutPage">
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="leftMargin">
-         <number>8</number>
-        </property>
-        <property name="topMargin">
-         <number>8</number>
-        </property>
-        <property name="rightMargin">
-         <number>8</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>8</number>
         </property>
         <item>
@@ -218,16 +200,7 @@ Manual layout</string>
         </sizepolicy>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="leftMargin">
-         <number>8</number>
-        </property>
-        <property name="topMargin">
-         <number>8</number>
-        </property>
-        <property name="rightMargin">
-         <number>8</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>8</number>
         </property>
         <item>
@@ -403,7 +376,7 @@ Manual layout</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="spacing">
-           <number>-1</number>
+           <number>6</number>
           </property>
           <property name="leftMargin">
            <number>20</number>
@@ -852,7 +825,7 @@ Manual layout</string>
       <item>
        <widget class="QProgressBar" name="stressBar">
         <property name="maximum">
-         <number>500</number>
+         <number>2000</number>
         </property>
         <property name="value">
          <number>0</number>

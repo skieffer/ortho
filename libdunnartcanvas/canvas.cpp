@@ -203,7 +203,7 @@ Canvas::Canvas()
       m_most_recent_ortho_obj_func(0),
       m_most_recent_crossing_count(0),
       m_most_recent_coincidence_count(0),
-      m_stress_bar_maximum(500),
+      m_stress_bar_maximum(5000),
       m_obliquity_bar_maximum(5000),
       m_apply_alignments_epsilon(-DBL_MAX)
 {
@@ -2410,7 +2410,7 @@ void Canvas::processLayoutFinishedEvent(void)
     if (gl->runLevel == 0)
     {
         gl->runLevel=1;
-        qDebug("runLevel=1");
+        //qDebug("runLevel=1");
         interrupt_graph_layout();
         changes = true;
     }
@@ -3866,24 +3866,29 @@ bool Canvas::predictCoincidence(Connector *conn, Dimension dim)
     double highCoord = sz<tz ? tz : sz;
     int lowID = sz<tz ? s->internalId() : t->internalId();
     int highID = sz<tz ? t->internalId() : s->internalId();
-    // We predict a coincidence iff (the low shape is already aligned with and shares an
-    // edge with some shape of higher coordinate) OR (the high shape is already aligned with
-    // and shares an edge with some shape of lower coordinate).
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict coincidence.
     bool coincidence = false;
     AlignmentFlags a = dim==HORIZ ? Horizontal : Vertical;
     for (int j = 0; j < m_max_shape_id; j++) {
+        if (j==lowID || j==highID) continue;
         if (!m_shapes_by_id.contains(j)) continue;
         ShapeObj *r = m_shapes_by_id.value(j);
-        double z = dim==HORIZ ? r->centrePos().x() : r->centrePos().y();
-        // low shape
         int lj = m_alignment_state(lowID, j);
-        if ( lj&a && lj&Connected && lowCoord < z ) {
-            coincidence = true; break;
-        }
-        // high shape
         int hj = m_alignment_state(highID, j);
-        if ( hj&a && hj&Connected && z < highCoord ) {
-            coincidence = true; break;
+        if (lj&a || hj&a) {
+            double z = dim==HORIZ ? r->centrePos().x() : r->centrePos().y();
+            // low shape
+            if ( lj&Connected && lowCoord < z ) {
+                coincidence = true; break;
+            }
+            // high shape
+            if ( hj&Connected && z < highCoord ) {
+                coincidence = true; break;
+            }
         }
     }
     return coincidence;
@@ -3959,6 +3964,7 @@ void Canvas::applyAlignments()
         // Get the shapes involved.
         ShapeObj *s = a->connector->getAttachedShapes().first;
         ShapeObj *t = a->connector->getAttachedShapes().second;
+        qDebug() << "%%%aligning:" << s->internalId() << t->internalId() << a->dim << s->centrePos().x() << s->centrePos().y() << t->centrePos().x() << t->centrePos().y();
         // Update various records.
         m_trying_alignments = true; // (enables callback trigger in Canvas::processLayoutFinishedEvent)
         m_num_align_tries++;
@@ -3970,10 +3976,16 @@ void Canvas::applyAlignments()
         // Create new guideline and restart graph layout.
         CanvasItemList items;
         items.append(s); items.append(t);
+        // First create a separation constraint to preserve their orthogonal ordering.
+        dtype dt = a->dim==VERT ? SEP_VERTICAL : SEP_HORIZONTAL;
+        double minDist = (s->width()+t->width())/2.0;
+        bool sort = true;
+        createSeparation(NULL,dt,items,minDist,sort);
+        // Now create alignment.
         atypes at = a->dim==VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
         Guideline *gdln = createAlignment(at,items);
         gdln->setTentative(true);
-        qDebug() << "Trying alignment...";
+        //qDebug() << "Trying alignment...";
         fully_restart_graph_layout();
     }
 }
@@ -3984,9 +3996,9 @@ void Canvas::applyAlignmentsCallback()
     double G  = m_previous_ortho_goal_value;
     double Gp = computeOrthoObjective();
     double dG = Gp - G;
-    qDebug() << "Assessing result of alignment. dG =" << dG;
+    //qDebug() << "Assessing result of alignment. dG =" << dG;
     m_max_actual_dG = max(m_max_actual_dG, dG);
-    qDebug() << "Max actual dG:" << m_max_actual_dG;
+    //qDebug() << "Max actual dG:" << m_max_actual_dG;
     if (dG < -m_apply_alignments_epsilon) {
         applyAlignments();
     }

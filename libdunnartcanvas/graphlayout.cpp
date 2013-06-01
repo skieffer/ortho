@@ -750,7 +750,7 @@ public:
         }
         if (interrupt)
         {
-            qDebug("User interrupt detected in PostIteration!");
+            //qDebug("User interrupt detected in PostIteration!");
             gl.m_layout_signal_mutex.lock();
             gl.interruptFromDunnart = true;
             if (gl.freeShiftFromDunnart)
@@ -1372,7 +1372,7 @@ void GraphLayout::run(const bool shouldReinitialise)
         // For now, only alignment constraints can be set as tentative, and thus only
         // they are rejectable.
         cola::AlignmentConstraint *ac = dynamic_cast<cola::AlignmentConstraint*>(reject);
-        qDebug() << "Want to reject guideline" << ac->m_guidelineID;
+        //qDebug() << "Want to reject guideline" << ac->m_guidelineID;
         m_ac_to_reject = ac;
     } else {
         //qDebug() << "No rejection candidate.";

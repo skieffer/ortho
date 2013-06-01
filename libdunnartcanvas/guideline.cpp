@@ -446,6 +446,7 @@ QPainterPath Guideline::buildPainterPath(void)
 void Guideline::paint(QPainter *painter, 
         const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    //return;
     Indicator::paint(painter, option, widget);
 }
 
