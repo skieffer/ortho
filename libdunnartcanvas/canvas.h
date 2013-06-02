@@ -73,6 +73,8 @@ class UndoMacro;
 class BCLayout;
 class ShapeObj;
 
+class ConstraintRejectedEvent;
+
 typedef QList<CanvasItem *> CanvasItemsList;
 
 class Actions {
@@ -341,6 +343,7 @@ class Canvas : public QGraphicsScene
         void initTryAlignments(void);
         void tryAlignments(void);
         void applyAlignments(void);
+        void rejectAlignments(void);
         void arrangePendants(void);
         void applyFM3(void);
         void layoutBCTrees(void);
@@ -527,6 +530,7 @@ class Canvas : public QGraphicsScene
         bool m_infer_tentative_alignments;
         bool m_why_is_it_triggered_twice;
         bool m_trying_alignments;
+        bool m_rejecting_alignments;
         int m_max_align_tries;
         int m_num_align_tries;
         int m_max_shape_id;
@@ -538,6 +542,8 @@ class Canvas : public QGraphicsScene
         Matrix2d<int> m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
         void applyAlignmentsCallback(void);
+        void initRejectAlignments(void);
+        void rejectAlignmentsCallback(ConstraintRejectedEvent *cre);
         double m_previous_ortho_goal_value;
         double m_apply_alignments_epsilon;
         double m_max_actual_dG;
@@ -672,6 +678,17 @@ class ConstraintRejectedEvent : public QEvent
         {
         }
         Guideline *m_guideline;
+};
+
+class TrialAlignmentEvent : public QEvent
+{
+public:
+    TrialAlignmentEvent(int flag) :
+        QEvent((QEvent::Type) (QEvent::User + 5)),
+        m_flag(flag)
+    {
+    }
+    int m_flag;
 };
 
 class Connector;

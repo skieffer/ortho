@@ -28,6 +28,7 @@
  * are satisfied by keeping the variables fixed relative to one another
  */
 
+#include <math.h>
 #include "libvpsc/blocks.h"
 #include "libvpsc/block.h"
 #include "libvpsc/constraint.h"
@@ -252,7 +253,7 @@ Constraint *Blocks::getMaxAbsLM() {
     for (size_t i = 0; i < length; ++i)
     {
         Constraint *c = m_blocks.at(i)->findMaxAbsLM();
-        if (c!=NULL && (max_abs_lm==NULL || c->lm>max_abs_lm->lm) ) max_abs_lm = c;
+        if (c!=NULL && (max_abs_lm==NULL || fabs(c->lm)>fabs(max_abs_lm->lm)) ) max_abs_lm = c;
     }
     return max_abs_lm;
 }

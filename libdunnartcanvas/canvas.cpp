@@ -957,32 +957,33 @@ void Canvas::customEvent(QEvent *event)
     {
         qDebug() << "Received ConstraintRejectedEvent.";
         ConstraintRejectedEvent *cre = dynamic_cast<ConstraintRejectedEvent *> (event);
-        Guideline *gdln = cre->m_guideline;
-        //stop_graph_layout();
-
-        //CanvasItem *item = m_dragged_item;
-
-        //GraphLayout* gl = m_graphlayout;
-        //gl->setLayoutSuspended(true);
-
-        //deleteItem(gdln);
-        stop_graph_layout();
-        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
-        CanvasItemSet dummySet;
-        gdln->deactivateAll(dummySet);
-        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
-        undoMacro->addCommand(cmd);
-
-
-        //setDraggedItem(item);
-
-        //gl->setRestartFromDunnart();
-        //gl->setLayoutSuspended(false);
-
-        //interrupt_graph_layout();
-
-        //GraphLayout* gl = m_graphlayout;
-        //gl->setInterruptFromDunnart();
+        if (m_rejecting_alignments) {
+            rejectAlignmentsCallback(cre);
+        } else {
+            Guideline *gdln = cre->m_guideline;
+            stop_graph_layout();
+            UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+            CanvasItemSet dummySet;
+            gdln->deactivateAll(dummySet);
+            QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+            undoMacro->addCommand(cmd);
+        }
+    }
+    else if (dynamic_cast<TrialAlignmentEvent*>(event))
+    {
+        TrialAlignmentEvent *tae = dynamic_cast<TrialAlignmentEvent*>(event);
+        int flag = tae->m_flag;
+        switch(flag) {
+        case 0:
+            applyAlignments();
+            break;
+        case 1:
+            initRejectAlignments();
+            break;
+        case 2:
+            rejectAlignments();
+            break;
+        }
     }
     else
     {
@@ -3800,6 +3801,7 @@ void Canvas::initTryAlignments()
     int maxID = 0;
     m_align_nbrs.clear();
     m_shapes_by_id.clear();
+    setOptRelax(false);
     QList<Connector*> conns;
     foreach (CanvasItem *item, items())
     {
@@ -4012,6 +4014,11 @@ void Canvas::applyAlignments()
         gdln->setTentative(true);
         //qDebug() << "Trying alignment...";
         fully_restart_graph_layout();
+    } else {
+        qDebug() << "Finished applying alignments.";
+        //qDebug() << m_alignment_state.toString();
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
     }
 }
 
@@ -4025,9 +4032,46 @@ void Canvas::applyAlignmentsCallback()
     m_max_actual_dG = max(m_max_actual_dG, dG);
     //qDebug() << "Max actual dG:" << m_max_actual_dG;
     if (dG < -m_apply_alignments_epsilon) {
-        applyAlignments();
+        // Will continue applying alignments.
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+
+    } else {
+        qDebug() << "Finished applying alignments.";
+        //qDebug() << m_alignment_state.toString();
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
     }
-    //qDebug() << m_alignment_state.toString();
+}
+
+void Canvas::initRejectAlignments()
+{
+    qDebug() << "Rejecting alignments...";
+    setOptRelaxThresholdModifier(0);
+    setOptRelax(true);
+    rejectAlignments();
+}
+
+void Canvas::rejectAlignments()
+{
+    computeOrthoObjective();
+    m_rejecting_alignments = true;
+    fully_restart_graph_layout();
+}
+
+void Canvas::rejectAlignmentsCallback(ConstraintRejectedEvent *cre)
+{
+    m_rejecting_alignments = false;
+    Guideline *gdln = cre->m_guideline;
+    stop_graph_layout();
+    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+    CanvasItemSet dummySet;
+    gdln->deactivateAll(dummySet);
+    QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+    undoMacro->addCommand(cmd);
+    // Run it again.
+    TrialAlignmentEvent *tae = new TrialAlignmentEvent(2);
+    QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
 }
 
 void Canvas::tryAlignments()
