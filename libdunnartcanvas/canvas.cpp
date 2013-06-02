@@ -4589,6 +4589,11 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         LineSegment seg(conn);
         double dOb = -seg.obliquityScore();
 
+        // Incidence score
+        int inc1 = m_align_nbrs.values(conn->getAttachedShapes().first).size();
+        int inc2 = m_align_nbrs.values(conn->getAttachedShapes().second).size();
+        double inc = inc1+inc2;
+
         // Stress change
         //double dStress = 0;
         /*
@@ -4604,6 +4609,18 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #define considerObliquity
 #ifdef  considerObliquity
         ad->goalDelta += o.wob*dOb;
+#endif
+
+//#define justIncidenceScore
+#ifdef  justIncidenceScore
+        ad->goalDelta = -inc;
+#endif
+
+//#define chainsOnly
+#ifdef  chainsOnly
+        double score = 0;
+        if (inc1!=2 || inc2!=2) score = 100000;
+        ad->goalDelta += score;
 #endif
 
     }
