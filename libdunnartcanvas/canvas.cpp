@@ -4601,7 +4601,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 
         // Sum up
         OrthoWeights o = m_ortho_weights;
-//#define considerObliquity
+#define considerObliquity
 #ifdef  considerObliquity
         ad->goalDelta += o.wob*dOb;
 #endif
