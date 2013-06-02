@@ -1665,11 +1665,13 @@ double ConstrainedFDLayout::computeStress() const {
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            //qDebug() << "d=" << d;
-            if(l>d && p>1) continue; // no repulsive forces required
-            // We add stress for node pair (u,v) only if l <= d, i.e.
-            // only if u and v are "too close". Thus, our stress function
-            // is such that "nodes repel".
+            if(l>d && p>1) continue; // no attractive forces required
+            // We add stress for node pair (u,v) if l <= d, i.e.
+            // if u and v are "too close", so that such nodes repel;
+            // if the nodes are "too distant" then we add stress only
+            // if p is 0 or 1, i.e. if there is not a path which will
+            // generate an attractive force between these nodes through
+            // the topology add-on.
             double d2=d*d;
             double rl=d-l;
             double s=rl*rl/d2;

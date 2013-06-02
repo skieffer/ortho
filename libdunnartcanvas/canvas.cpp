@@ -54,6 +54,7 @@
 #include "libtopology/orthogonal_topology.h"
 #include "libdunnartcanvas/graphdata.h"
 //#include "libcola/compound_constraints.h"
+#include "libcola/shortest_paths.h"
 
 
 namespace dunnart {
@@ -4029,7 +4030,7 @@ void Canvas::applyAlignmentsCallback()
     double Gp = computeOrthoObjective();
     double dG = Gp - G;
     //qDebug() << "Assessing result of alignment. dG =" << dG;
-    m_max_actual_dG = max(m_max_actual_dG, dG);
+    m_max_actual_dG = std::max(m_max_actual_dG, dG);
     //qDebug() << "Max actual dG:" << m_max_actual_dG;
     if (dG < -m_apply_alignments_epsilon) {
         // Will continue applying alignments.
@@ -4315,6 +4316,75 @@ double Canvas::predictOrthoObjectiveChange(Connector *conn, Dimension dim)
     return predictedDelta;
 }
 
+double Canvas::computeStress()
+{
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+
+    vpsc::Rectangles rs = graph->rs;
+    std::vector<cola::Edge> es = graph->edges;
+    double idealLength = 1.0;
+    std::valarray<double> eLengths;
+    graph->getEdgeLengths(eLengths);
+    unsigned n = rs.size();
+
+    std::valarray<double> X = std::valarray<double>(n);
+    std::valarray<double> Y = std::valarray<double>(n);
+    unsigned i=0;
+    for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
+        X[i]=(*ri)->getCentreX();
+        Y[i]=(*ri)->getCentreY();
+    }
+
+    // Compute D and G matrices.
+    double** D=new double*[n];
+    unsigned short** G=new unsigned short*[n];
+    for(unsigned i=0;i<n;i++) {
+        D[i]=new double[n];
+        G[i]=new unsigned short[n];
+    }
+
+    //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
+    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+
+    for(unsigned i=0;i<n;i++) {
+        for(unsigned j=0;j<n;j++) {
+            if(i==j) continue;
+            double& d=D[i][j];
+            unsigned short& p=G[i][j];
+            p=2;
+            if(d==DBL_MAX) {
+                // i and j are in disconnected subgraphs
+                p=0;
+            } else if(!&eLengths) {
+                D[i][j]*=idealLength;
+            }
+        }
+    }
+    for(vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
+        unsigned u=e->first, v=e->second;
+        G[u][v]=G[v][u]=1;
+    }
+
+    // Compute stress
+    double stress=0;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            if(p==0) continue;
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double l=sqrt(rx*rx+ry*ry);
+            double d=D[u][v];
+            if(l>d && p>1) continue;
+            double d2=d*d;
+            double rl=d-l;
+            double s=rl*rl/d2;
+            stress+=s;
+        }
+    }
+
+    return stress;
+}
+
 /*
 * This version handles a whole list of Connector-Dimension pairs at once.
 */
@@ -4365,7 +4435,11 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         }
         double dStress = stress-m_most_recent_stress;
         */
-        double dStress = 0;
+        double stress = computeStress();
+        double dStress = stress-m_most_recent_stress;
+        qDebug() << "computed stress" << stress;
+        qDebug() << "difference:" << dStress;
+        dStress = 0;
 
         // Sum up
         OrthoWeights o = m_ortho_weights;

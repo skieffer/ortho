@@ -549,6 +549,7 @@ class Canvas : public QGraphicsScene
         double m_max_actual_dG;
         bool m_opt_draw_separation_indicators;
         bool m_opt_edge_node_repulsion;
+        double computeStress(void);
 
 
         double m_opt_ideal_edge_length_modifier;
