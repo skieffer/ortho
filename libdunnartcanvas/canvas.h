@@ -551,6 +551,9 @@ class Canvas : public QGraphicsScene
         bool m_opt_edge_node_repulsion;
         double computeStress(void);
         void predictStressChange(QList<AlignDesc*> ads);
+        double m_reject_phase_previous_goal_value;
+        double m_reject_phase_previous_stress_value;
+        AlignDesc *m_reject_phase_previous_align;
 
 
         double m_opt_ideal_edge_length_modifier;

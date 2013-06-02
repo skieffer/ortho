@@ -4021,11 +4021,14 @@ void Canvas::applyAlignments()
         // Create new guideline and restart graph layout.
         CanvasItemList items;
         items.append(s); items.append(t);
+#define alliedSeps
+#ifdef  alliedSeps
         // First create a separation constraint to preserve their orthogonal ordering.
         dtype dt = a->dim==VERT ? SEP_VERTICAL : SEP_HORIZONTAL;
         double minDist = (s->width()+t->width())/2.0;
         bool sort = true;
         createSeparation(NULL,dt,items,minDist,sort);
+#endif
         // Now create alignment.
         atypes at = a->dim==VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
         Guideline *gdln = createAlignment(at,items);
@@ -4064,11 +4067,14 @@ void Canvas::applyAlignmentsCallback()
 
 void Canvas::initRejectAlignments()
 {
-//#define doRejectionPhase
+#define doRejectionPhase
 #ifdef  doRejectionPhase
     qDebug() << "Rejecting alignments...";
     setOptRelaxThresholdModifier(0);
     setOptRelax(true);
+    m_reject_phase_previous_goal_value = 0;
+    m_reject_phase_previous_stress_value = 0;
+    m_reject_phase_previous_align = NULL;
     rejectAlignments();
 #endif
 }
@@ -4083,16 +4089,45 @@ void Canvas::rejectAlignments()
 void Canvas::rejectAlignmentsCallback(ConstraintRejectedEvent *cre)
 {
     m_rejecting_alignments = false;
-    Guideline *gdln = cre->m_guideline;
-    stop_graph_layout();
-    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
-    CanvasItemSet dummySet;
-    gdln->deactivateAll(dummySet);
-    QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
-    undoMacro->addCommand(cmd);
-    // Run it again.
-    TrialAlignmentEvent *tae = new TrialAlignmentEvent(2);
-    QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+    bool proceed = true;
+    double currentGoal = computeOrthoObjective();
+    double currentStress = computeStress();
+    // Was there a previous run?
+    if (m_reject_phase_previous_align!=NULL) {
+        // Check whether it went well.
+        double threshold = -10;
+        double dG = currentGoal - m_reject_phase_previous_goal_value;
+        double dS = currentStress - m_reject_phase_previous_stress_value;
+        if (dG > threshold) {
+            // It did not go well enough.
+            // Restore the last alignment, and quit.
+            proceed = false;
+            AlignDesc *ad = m_reject_phase_previous_align;
+            Guideline *gdln = createAlignment(ad->alignType, ad->items);
+            gdln->setTentative(true);
+            fully_restart_graph_layout();
+        }
+    }
+
+    // Try again?
+    if (proceed) {
+        Guideline *gdln = cre->m_guideline;
+        // Save a record of the alignment.
+        CanvasItemSet itemSet;
+        gdln->addAttachedShapesToSet(itemSet);
+        atypes at = gdln->get_dir()==GUIDE_TYPE_VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
+        m_reject_phase_previous_align = new AlignDesc(at,itemSet.toList());
+        // Delete guideline.
+        stop_graph_layout();
+        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+        CanvasItemSet dummySet;
+        gdln->deactivateAll(dummySet);
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+        undoMacro->addCommand(cmd);
+        // Run it again.
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(2);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+    }
 }
 
 void Canvas::tryAlignments()
@@ -4562,7 +4597,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 
         // Sum up
         OrthoWeights o = m_ortho_weights;
-#define considerObliquity
+//#define considerObliquity
 #ifdef  considerObliquity
         ad->goalDelta += o.wob*dOb;
 #endif
