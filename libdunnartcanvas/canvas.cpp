@@ -3978,17 +3978,34 @@ void Canvas::applyAlignments()
     }
     // Compute predicted goal function changes.
     predictOrthoObjectiveChange(ads);
+
+#define chooseMostNegativeChange
+#ifdef  chooseMostNegativeChange
     // Find most negative change.
-    double dG = 0; AlignDesc *a = NULL;
+    double dG = DBL_MAX; AlignDesc *a = NULL;
     foreach (AlignDesc *b, ads) {
         if (b->goalDelta < dG) {
             dG = b->goalDelta;
             a = b;
         }
     }
+    //bool proceed = dG<0;
+    bool proceed = dG<1000000;
+#else
+    // Find largest estimated increase in goal function.
+    double dG = DBL_MIN; AlignDesc *a = NULL;
+    foreach (AlignDesc *b, ads) {
+        if (b->goalDelta > dG) {
+            dG = b->goalDelta;
+            a = b;
+        }
+    }
+    bool proceed = dG>-1000000;
+#endif
+
     // Try another alignment only if it looks like one will
     // result in a decrease of the goal function.
-    if (dG < 0) {
+    if (proceed) {
         // Get the shapes involved.
         ShapeObj *s = a->connector->getAttachedShapes().first;
         ShapeObj *t = a->connector->getAttachedShapes().second;
@@ -4047,10 +4064,13 @@ void Canvas::applyAlignmentsCallback()
 
 void Canvas::initRejectAlignments()
 {
+//#define doRejectionPhase
+#ifdef  doRejectionPhase
     qDebug() << "Rejecting alignments...";
     setOptRelaxThresholdModifier(0);
     setOptRelax(true);
     rejectAlignments();
+#endif
 }
 
 void Canvas::rejectAlignments()
@@ -4381,8 +4401,133 @@ double Canvas::computeStress()
             stress+=s;
         }
     }
+    // Note: we are missing any stress that would be added by a topologyAddon.
 
     return stress;
+}
+
+void Canvas::predictStressChange(QList<AlignDesc*> ads)
+{
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+
+    vpsc::Rectangles rs = graph->rs;
+    std::vector<cola::Edge> es = graph->edges;
+    double idealLength = 1.0;
+    std::valarray<double> eLengths;
+    graph->getEdgeLengths(eLengths);
+    unsigned n = rs.size();
+
+    std::valarray<double> X = std::valarray<double>(n);
+    std::valarray<double> Y = std::valarray<double>(n);
+    unsigned i=0;
+    for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
+        X[i]=(*ri)->getCentreX();
+        Y[i]=(*ri)->getCentreY();
+    }
+
+    // Compute D and G matrices.
+    double** D=new double*[n];
+    unsigned short** G=new unsigned short*[n];
+    for(unsigned i=0;i<n;i++) {
+        D[i]=new double[n];
+        G[i]=new unsigned short[n];
+    }
+
+    //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
+    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+
+    for(unsigned i=0;i<n;i++) {
+        for(unsigned j=0;j<n;j++) {
+            if(i==j) continue;
+            double& d=D[i][j];
+            unsigned short& p=G[i][j];
+            p=2;
+            if(d==DBL_MAX) {
+                // i and j are in disconnected subgraphs
+                p=0;
+            } else if(!&eLengths) {
+                D[i][j]*=idealLength;
+            }
+        }
+    }
+    for(vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
+        unsigned u=e->first, v=e->second;
+        G[u][v]=G[v][u]=1;
+    }
+
+    // Compute stress
+    double stress0=0;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            if(p==0) continue;
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double l=sqrt(rx*rx+ry*ry);
+            double d=D[u][v];
+            if(l>d && p>1) continue;
+            double d2=d*d;
+            double rl=d-l;
+            double s=rl*rl/d2;
+            stress0+=s;
+        }
+    }
+    // Note: we are missing any stress that would be added by a topologyAddon.
+
+    double minDelta=DBL_MAX, maxDelta=DBL_MIN;
+    foreach (AlignDesc *ad, ads) {
+        // Now compute stress if the alignment were to be put in effect.
+        Connector *conn = ad->connector;
+        Dimension dim   = ad->dim;
+        ShapeObj *s1 = conn->getAttachedShapes().first;
+        ShapeObj *s2 = conn->getAttachedShapes().second;
+        unsigned id1 = graph->getNodeID(s1);
+        unsigned id2 = graph->getNodeID(s2);
+        QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
+        // Translate coords according to proposed alignment.
+        double c1=0,c2=0;
+        if (dim == HORIZ) {
+            double yav = ( p1.y() + p2.y() ) / 2.0;
+            c1 = Y[id1]; c2 = Y[id2];
+            Y[id1] = yav; Y[id2] = yav;
+        } else { // dim == VERT
+            double xav = ( p1.x() + p2.x() ) / 2.0;
+            c1 = X[id1]; c2 = X[id2];
+            X[id1] = xav; X[id2] = xav;
+        }
+        // Recompute stress.
+        double astress = 0;
+        for(unsigned u=0;(u + 1)<n;u++) {
+            for(unsigned v=u+1;v<n;v++) {
+                unsigned short p=G[u][v];
+                if(p==0) continue;
+                double rx=X[u]-X[v], ry=Y[u]-Y[v];
+                double l=sqrt(rx*rx+ry*ry);
+                double d=D[u][v];
+                if(l>d && p>1) continue;
+                double d2=d*d;
+                double rl=d-l;
+                double s=rl*rl/d2;
+                astress+=s;
+            }
+        }
+        // Restore coords.
+        if (dim == HORIZ) {
+            Y[id1] = c1; Y[id2] = c2;
+        } else { // dim == VERT
+            X[id1] = c1; X[id2] = c2;
+        }
+
+        double dstress = astress-stress0;
+
+        //qDebug() << "dstress" << s1->internalId() << s2->internalId() << dstress;
+        minDelta = dstress<minDelta?dstress:minDelta;
+        maxDelta = dstress>maxDelta?dstress:maxDelta;
+
+        OrthoWeights o = m_ortho_weights;
+        ad->goalDelta = o.wst*dstress;
+    }
+    qDebug() << "max and min estimated stress change:" << maxDelta << minDelta;
+
 }
 
 /*
@@ -4390,7 +4535,7 @@ double Canvas::computeStress()
 */
 void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 {
-    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
+    predictStressChange(ads);
     foreach (AlignDesc *ad, ads) {
         Connector *conn = ad->connector;
         Dimension dim   = ad->dim;
@@ -4406,45 +4551,21 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         double dOb = -seg.obliquityScore();
 
         // Stress change
+        //double dStress = 0;
         /*
-        ShapeObj *s1 = conn->getAttachedShapes().first;
-        ShapeObj *s2 = conn->getAttachedShapes().second;
-        unsigned id1 = graph->getNodeID(s1);
-        unsigned id2 = graph->getNodeID(s2);
-        QPointF p1 = s1->centrePos(), p2 = s2->centrePos();
-        vpsc::Rectangle *r1 = graph->rs.at(id1);
-        vpsc::Rectangle *r2 = graph->rs.at(id2);
-        // Now translate rectangles according to proposed alignment.
-        double stress = 0;
-        if (dim == HORIZ) {
-            double yav = ( p1.y() + p2.y() ) / 2.0;
-            double c1 = r1->getCentreY(), c2 = r2->getCentreY();
-            r1->moveCentreY(yav);
-            r2->moveCentreY(yav);
-            stress = m_graphlayout->computeStressOfGraph(graph);
-            r1->moveCentreY(c1);
-            r2->moveCentreY(c2);
-        } else { // dim == VERT
-            double xav = ( p1.x() + p2.x() ) / 2.0;
-            double c1 = r1->getCentreX(), c2 = r2->getCentreX();
-            r1->moveCentreX(xav);
-            r2->moveCentreX(xav);
-            stress = m_graphlayout->computeStressOfGraph(graph);
-            r1->moveCentreX(c1);
-            r2->moveCentreX(c2);
-        }
-        double dStress = stress-m_most_recent_stress;
-        */
         double stress = computeStress();
         double dStress = stress-m_most_recent_stress;
         qDebug() << "computed stress" << stress;
         qDebug() << "difference:" << dStress;
-        dStress = 0;
+        */
+        //dStress = 0;
 
         // Sum up
         OrthoWeights o = m_ortho_weights;
-        double predictedDelta = o.wob*dOb + o.wst*dStress;
-        ad->goalDelta = predictedDelta;
+#define considerObliquity
+#ifdef  considerObliquity
+        ad->goalDelta += o.wob*dOb;
+#endif
 
     }
 }

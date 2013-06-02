@@ -550,6 +550,7 @@ class Canvas : public QGraphicsScene
         bool m_opt_draw_separation_indicators;
         bool m_opt_edge_node_repulsion;
         double computeStress(void);
+        void predictStressChange(QList<AlignDesc*> ads);
 
 
         double m_opt_ideal_edge_length_modifier;
