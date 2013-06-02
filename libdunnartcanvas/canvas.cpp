@@ -4095,13 +4095,15 @@ void Canvas::rejectAlignmentsCallback(ConstraintRejectedEvent *cre)
     // Was there a previous run?
     if (m_reject_phase_previous_align!=NULL) {
         // Check whether it went well.
-        double threshold = -10;
+        double threshold = 20;
         double dG = currentGoal - m_reject_phase_previous_goal_value;
         double dS = currentStress - m_reject_phase_previous_stress_value;
+        qDebug() << "Rejection dG" << dG << "dS" << dS;
         if (dG > threshold) {
             // It did not go well enough.
             // Restore the last alignment, and quit.
             proceed = false;
+            setOptRelax(false);
             AlignDesc *ad = m_reject_phase_previous_align;
             Guideline *gdln = createAlignment(ad->alignType, ad->items);
             gdln->setTentative(true);
@@ -4111,6 +4113,8 @@ void Canvas::rejectAlignmentsCallback(ConstraintRejectedEvent *cre)
 
     // Try again?
     if (proceed) {
+        m_reject_phase_previous_goal_value = currentGoal;
+        m_reject_phase_previous_stress_value = currentStress;
         Guideline *gdln = cre->m_guideline;
         // Save a record of the alignment.
         CanvasItemSet itemSet;
