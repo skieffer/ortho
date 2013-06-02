@@ -4616,14 +4616,33 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         ad->goalDelta = -inc;
 #endif
 
-//#define chainsOnly
-#ifdef  chainsOnly
+#define chainsFirst
+#ifdef  chainsFirst
         double score = 0;
-        if (inc1!=2 || inc2!=2) score = 100000;
+        int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
+        int npd2 = nonPendantDegree(conn->getAttachedShapes().second);
+        //if (npd1!=2 || npd2!=2) score = 100000;
+
+        score = 1000;
+        if (npd1>=2 && npd2>=2 && (npd1==2 || npd2==2)) score=0;
+        if (npd1==1 || npd2==1) score=DBL_MAX;
+
         ad->goalDelta += score;
 #endif
 
     }
+}
+
+/// How many shapes is shape s connected to which are not pendants?
+int Canvas::nonPendantDegree(ShapeObj *s)
+{
+    QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
+    int d = 0;
+    foreach (ShapeObj *t, nbrs) {
+        int n = m_align_nbrs.values(t).size();
+        if (n>1) d++;
+    }
+    return d;
 }
 
 /*
