@@ -65,6 +65,10 @@ void CreateAlignmentDialog::changeCanvas(Canvas *canvas)
         disconnect(m_canvas, 0, this, 0);
         disconnect(this, 0, m_canvas, 0);
         disconnect(m_signal_mapper, 0, m_canvas, 0);
+
+        disconnect(inferAlignButton, 0, m_canvas, 0);
+        disconnect(tryAlignButton, 0, m_canvas, 0);
+        disconnect(pendantsButton, 0,  m_canvas, 0);
     }
     m_canvas = canvas;
 
