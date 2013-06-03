@@ -738,7 +738,8 @@ public:
 
     vpsc::Blocks *getBlocks(void);
     vpsc::Constraint *getMaxAbsLMConstraint(void);
-    CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; };
+    CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; }
+    CompoundConstraint *getConstraintToRejectForUnsat(void) { return m_constraintToRejectForUnsat; }
     void setRelaxThreshold(double t) { m_tentative_constraint_threshold = t; }
     void addGridSnapStress(bool b) { m_addGridSnapStress = b; }
     void setSnapStrength(double s) { m_snap_strength = s; }
@@ -806,6 +807,7 @@ private:
     vpsc::IncSolver *m_solver;
     double m_tentative_constraint_threshold;
     CompoundConstraint *m_constraintToReject;
+    CompoundConstraint *m_constraintToRejectForUnsat;
     bool m_addSnapStress;
     bool m_addGridSnapStress;
     bool m_addEdgeNodeRepulsion;

@@ -198,6 +198,7 @@ bool IncSolver::solve() {
     ofstream f(LOGFILE,ios::app);
     f<<"solve_inc()..."<<endl;
 #endif
+    rejected_tentative_constraint = NULL;
     satisfy();
     double lastcost = DBL_MAX, cost = bs->cost();
     while(fabs(lastcost-cost)>0.0001) {
@@ -242,8 +243,27 @@ bool IncSolver::satisfy() {
         if(lb != rb) {
             lb->merge(rb,v);
         } else {
+            // Choose tentative constraint to reject in case of any unsatisfiability.
+            std::vector<Constraint*> path;
+            lb->getActivePathBetween(path,v->left,v->right,NULL);
+            path.push_back(v);
+            long maxTS = 0;
+            Constraint *mostTentative = NULL;
+            for (int i = 0; i < path.size(); i++) {
+                Constraint *c = path.at(i);
+                if (!c->tentative) continue;
+                long ts = c->tentativeTimestamp;
+                if (ts > maxTS) {
+                    maxTS = ts;
+                    mostTentative = c;
+                }
+            }
+            // Now proceed with trying to split block.
             if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
-                // cycle found, relax the violated, cyclic constraint
+                // cycle found
+                if (mostTentative!=NULL) {
+                    rejected_tentative_constraint=mostTentative;
+                }
                 v->unsatisfiable=true;
                 continue;
                 //UnsatisfiableException e;
@@ -262,6 +282,9 @@ bool IncSolver::satisfy() {
                     COLA_ASSERT(!splitConstraint->active);
                     inactive.push_back(splitConstraint);
                 } else {
+                    if (mostTentative!=NULL) {
+                        rejected_tentative_constraint=mostTentative;
+                    }
                     v->unsatisfiable=true;
                     continue;
                 }
@@ -275,6 +298,9 @@ bool IncSolver::satisfy() {
                     std::cerr << **r <<std::endl;
                 }
 #endif
+                if (mostTentative!=NULL) {
+                    rejected_tentative_constraint=mostTentative;
+                }
                 v->unsatisfiable=true;
                 continue;
             }

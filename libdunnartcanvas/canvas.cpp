@@ -208,7 +208,8 @@ Canvas::Canvas()
       m_obliquity_bar_maximum(5000),
       m_apply_alignments_epsilon(-DBL_MAX),
       m_opt_draw_separation_indicators(true),
-      m_opt_edge_node_repulsion(false)
+      m_opt_edge_node_repulsion(false),
+      m_tentative_guideline_timestamp(0)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -958,7 +959,9 @@ void Canvas::customEvent(QEvent *event)
     {
         qDebug() << "Received ConstraintRejectedEvent.";
         ConstraintRejectedEvent *cre = dynamic_cast<ConstraintRejectedEvent *> (event);
-        if (m_rejecting_alignments) {
+        if (cre->m_unsat) {
+            appliedAlignmentWasUnsat(cre);
+        } else if (m_rejecting_alignments) {
             rejectAlignmentsCallback(cre);
         } else {
             Guideline *gdln = cre->m_guideline;
@@ -4033,6 +4036,9 @@ void Canvas::applyAlignments()
         atypes at = a->dim==VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
         Guideline *gdln = createAlignment(at,items);
         gdln->setTentative(true);
+        long timestamp = ++m_tentative_guideline_timestamp;
+        qDebug() << "created guideline number" << timestamp;
+        gdln->setTimestamp(timestamp);
         //qDebug() << "Trying alignment...";
         fully_restart_graph_layout();
     } else {
@@ -4043,25 +4049,58 @@ void Canvas::applyAlignments()
     }
 }
 
+void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
+{
+    Guideline *reject = cre->m_guideline;
+    qDebug() << "Found UNSAT tentative constraint.";
+    // Delete guideline.
+    stop_graph_layout();
+    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+    CanvasItemSet dummySet;
+    reject->deactivateAll(dummySet);
+    QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
+    undoMacro->addCommand(cmd);
+    fully_restart_graph_layout();
+}
+
 void Canvas::applyAlignmentsCallback()
 {
-    m_trying_alignments = false;
-    double G  = m_previous_ortho_goal_value;
-    double Gp = computeOrthoObjective();
-    double dG = Gp - G;
-    //qDebug() << "Assessing result of alignment. dG =" << dG;
-    m_max_actual_dG = std::max(m_max_actual_dG, dG);
-    //qDebug() << "Max actual dG:" << m_max_actual_dG;
-    if (dG < -m_apply_alignments_epsilon) {
-        // Will continue applying alignments.
-        TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
-        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+    /*
+    // First check if any tentative alignments were marked for rejection, and
+    // if so, reject them and try the layout again.
+    Guideline *reject = m_graphlayout->getRejectedUnsatTentativeGuideline();
+    if (reject) {
+        qDebug() << "Found UNSAT tentative constraint.";
+        // Delete guideline.
+        stop_graph_layout();
+        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+        CanvasItemSet dummySet;
+        reject->deactivateAll(dummySet);
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
+        undoMacro->addCommand(cmd);
+        fully_restart_graph_layout();
+    }
+    else
+        */
+    {
+        m_trying_alignments = false;
+        double G  = m_previous_ortho_goal_value;
+        double Gp = computeOrthoObjective();
+        double dG = Gp - G;
+        //qDebug() << "Assessing result of alignment. dG =" << dG;
+        m_max_actual_dG = std::max(m_max_actual_dG, dG);
+        //qDebug() << "Max actual dG:" << m_max_actual_dG;
+        if (dG < -m_apply_alignments_epsilon) {
+            // Will continue applying alignments.
+            TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
+            QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
 
-    } else {
-        qDebug() << "Finished applying alignments.";
-        //qDebug() << m_alignment_state.toString();
-        TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
-        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+        } else {
+            qDebug() << "Finished applying alignments.";
+            //qDebug() << m_alignment_state.toString();
+            TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
+            QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+        }
     }
 }
 

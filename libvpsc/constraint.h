@@ -72,7 +72,10 @@ public:
     //! @brief Denote whether this constraint was unsatisifable (once the VPSC 
     //!        instance has been solved or satisfied).
 	bool unsatisfiable;
+    // For use with tentative constraints:
     bool tentative;
+    bool rejected;
+    long tentativeTimestamp;
     cola::CompoundConstraint* compoundOwner;
 };
 

@@ -104,6 +104,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_solver(NULL),
       m_tentative_constraint_threshold(0.1), // What value should it be?
       m_constraintToReject(NULL),
+      m_constraintToRejectForUnsat(NULL),
       m_addSnapStress(snapTo),
       m_addGridSnapStress(false),
       m_snapGridX(100.0),
@@ -254,6 +255,24 @@ void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
         const std::valarray<double>* eLengths) 
 {
+    /*
+    //DEBUG
+    QString msg = "============================================\n";
+    msg += "ConstrainedFDLayout computing path lengths.\n";
+    msg += "Edges:\n";
+    for (int i = 0; i < es.size(); i++) {
+        Edge e = es.at(i);
+        int u = e.first, v = e.second;
+        double L = (*eLengths)[i];
+        //qDebug() << u << v << L;
+        msg += QString("%1").arg(u);
+        msg += QString(" %1").arg(v);
+        msg += QString(" %1\n").arg(L);
+    }
+    msg += "============================================\n";
+    qDebug() << msg;
+    //ENDDEBUG
+    */
     shortest_paths::johnsons(n,D,es,eLengths);
     //dumpSquareMatrix<double>(n,D);
     for(unsigned i=0;i<n;i++) {
@@ -1116,6 +1135,11 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
             }
         } else {
             //qDebug() << "no max_abs_lm";
+        }
+        // Check if any tentative constraint was marked for rejection.
+        vpsc::Constraint *rejected = m_solver->rejected_tentative_constraint;
+        if (rejected) {
+            m_constraintToRejectForUnsat = rejected->compoundOwner;
         }
 
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);

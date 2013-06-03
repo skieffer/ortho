@@ -541,6 +541,7 @@ class Canvas : public QGraphicsScene
         //int **m_alignment_state;
         Matrix2d<int> m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
+        void appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre);
         void applyAlignmentsCallback(void);
         void initRejectAlignments(void);
         void rejectAlignmentsCallback(ConstraintRejectedEvent *cre);
@@ -557,6 +558,7 @@ class Canvas : public QGraphicsScene
         int nonPendantDegree(ShapeObj *s);
         int numHAligns(ShapeObj *s);
         int numVAligns(ShapeObj *s);
+        long m_tentative_guideline_timestamp;
 
 
         double m_opt_ideal_edge_length_modifier;
@@ -682,10 +684,12 @@ class ConstraintRejectedEvent : public QEvent
     public:
         ConstraintRejectedEvent() :
             QEvent((QEvent::Type) (QEvent::User + 4)),
-            m_guideline(NULL)
+            m_guideline(NULL),
+            m_unsat(false)
         {
         }
         Guideline *m_guideline;
+        bool m_unsat;
 };
 
 class TrialAlignmentEvent : public QEvent
