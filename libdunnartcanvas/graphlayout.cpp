@@ -57,7 +57,7 @@
 
 namespace dunnart {
 
-static const int ANIMATION_DURATION = 100;
+static const int ANIMATION_DURATION = 1;
 
 // The order that we process returned PosInfos in.  Order matters because the
 // guideline length with depend on the positions of the aligned shapes, etc.
@@ -93,7 +93,7 @@ class LayoutThread : public QThread
 GraphLayout::GraphLayout(Canvas *canvas) 
     : mode(ORGANIC),
       optimizationMethod(MAJORIZATION),
-      graph_layout_iterations(100),
+      graph_layout_iterations(10),
       runLevel(0),
       topologyNodesCount(10000),
       m_canvas(canvas),

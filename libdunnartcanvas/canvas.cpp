@@ -4067,7 +4067,7 @@ void Canvas::applyAlignmentsCallback()
 
 void Canvas::initRejectAlignments()
 {
-#define doRejectionPhase
+//#define doRejectionPhase
 #ifdef  doRejectionPhase
     qDebug() << "Rejecting alignments...";
     setOptRelaxThresholdModifier(0);
@@ -4578,6 +4578,8 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
     foreach (AlignDesc *ad, ads) {
         Connector *conn = ad->connector;
         Dimension dim   = ad->dim;
+        ShapeObj *s1    = conn->getAttachedShapes().first;
+        ShapeObj *s2    = conn->getAttachedShapes().second;
 
         // Would it create a coincidence?
         if (predictCoincidence(conn,dim)) {
@@ -4590,8 +4592,8 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         double dOb = -seg.obliquityScore();
 
         // Incidence score
-        int inc1 = m_align_nbrs.values(conn->getAttachedShapes().first).size();
-        int inc2 = m_align_nbrs.values(conn->getAttachedShapes().second).size();
+        int inc1 = m_align_nbrs.values(s1).size();
+        int inc2 = m_align_nbrs.values(s2).size();
         double inc = inc1+inc2;
 
         // Stress change
@@ -4626,11 +4628,49 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         score = 1000;
         if (npd1>=2 && npd2>=2 && (npd1==2 || npd2==2)) score=0;
         if (npd1==1 || npd2==1) score=DBL_MAX;
+        //if (npd1==1 && npd2==1) score=DBL_MAX;
 
         ad->goalDelta += score;
+
+        // Would this alignment make either endpoint into a degree-2 bend point?
+        if (npd1==2) {
+            if (dim==HORIZ && numVAligns(s1)>0 || dim==VERT && numHAligns(s1)>0) ad->goalDelta += 1000;
+        }
+        if (npd2==2) {
+            if (dim==HORIZ && numVAligns(s2)>0 || dim==VERT && numHAligns(s2)>0) ad->goalDelta += 1000;
+        }
+#endif
+
+//#define bendPointPenalty
+#ifdef  bendPointPenalty
+        // Would this alignment make either endpoint into a degree-2 bend point?
+        if (inc1==2) {
+            if (dim==HORIZ && numVAligns(s1)>0 || dim==VERT && numHAligns(s1)>0) ad->goalDelta += 1000;
+        }
+        if (inc2==2) {
+            if (dim==HORIZ && numVAligns(s2)>0 || dim==VERT && numHAligns(s2)>0) ad->goalDelta += 1000;
+        }
 #endif
 
     }
+}
+
+int Canvas::numHAligns(ShapeObj *s) {
+    int sid = s->internalId();
+    int n = 0;
+    for (int j = 0; j < m_max_shape_id; j++) {
+        if (m_alignment_state(sid,j) & Horizontal) n++;
+    }
+    return n;
+}
+
+int Canvas::numVAligns(ShapeObj *s) {
+    int sid = s->internalId();
+    int n = 0;
+    for (int j = 0; j < m_max_shape_id; j++) {
+        if (m_alignment_state(sid,j) & Vertical) n++;
+    }
+    return n;
 }
 
 /// How many shapes is shape s connected to which are not pendants?

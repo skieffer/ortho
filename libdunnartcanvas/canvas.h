@@ -555,6 +555,8 @@ class Canvas : public QGraphicsScene
         double m_reject_phase_previous_stress_value;
         AlignDesc *m_reject_phase_previous_align;
         int nonPendantDegree(ShapeObj *s);
+        int numHAligns(ShapeObj *s);
+        int numVAligns(ShapeObj *s);
 
 
         double m_opt_ideal_edge_length_modifier;
