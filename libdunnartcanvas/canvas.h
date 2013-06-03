@@ -555,7 +555,6 @@ class Canvas : public QGraphicsScene
         double m_reject_phase_previous_stress_value;
         AlignDesc *m_reject_phase_previous_align;
 
-
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
         double m_opt_snap_strength_modifier;

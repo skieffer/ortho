@@ -170,7 +170,21 @@ Canvas::Canvas()
       m_max_internal_id(0),
       m_gml_graph(NULL),
       m_use_gml_clusters(true),
+      m_most_recent_stress(0),
+      m_most_recent_ortho_obj_func(0),
+      m_most_recent_crossing_count(0),
+      m_most_recent_coincidence_count(0),
+      m_stress_bar_maximum(5000),
+      m_obliquity_bar_maximum(5000),
       m_connector_nudge_distance(0),
+      m_why_is_it_triggered_twice(true),
+      m_trying_alignments(false),
+      m_max_align_tries(180),
+      m_num_align_tries(0),
+      m_align_pairs_tried(NULL),
+      m_apply_alignments_epsilon(-DBL_MAX),
+      m_opt_draw_separation_indicators(true),
+      m_opt_edge_node_repulsion(false),
       m_opt_ideal_edge_length_modifier(1.0),
       m_opt_snap_distance_modifier(50),
       m_opt_snap_strength_modifier(20),
@@ -195,21 +209,7 @@ Canvas::Canvas()
       m_canvas_font(NULL),
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
       m_animation_group(NULL),
-      m_bclayout(NULL),
-      m_why_is_it_triggered_twice(true),
-      m_trying_alignments(false),
-      m_max_align_tries(180),
-      m_num_align_tries(0),
-      m_align_pairs_tried(NULL),
-      m_most_recent_stress(0),
-      m_most_recent_ortho_obj_func(0),
-      m_most_recent_crossing_count(0),
-      m_most_recent_coincidence_count(0),
-      m_stress_bar_maximum(5000),
-      m_obliquity_bar_maximum(5000),
-      m_apply_alignments_epsilon(-DBL_MAX),
-      m_opt_draw_separation_indicators(true),
-      m_opt_edge_node_repulsion(false)
+      m_bclayout(NULL)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -2957,9 +2957,6 @@ void Canvas::moveSelectionResizeHandle(const int index, const QPointF pos)
         ShapeObj *shape = dynamic_cast<ShapeObj *> (item);
         if (shape && !shape->sizeLocked())
         {
-            QRectF shapeBR = shape->boundingRect().adjusted(
-                    +BOUNDINGRECTPADDING, +BOUNDINGRECTPADDING,
-                    -BOUNDINGRECTPADDING, -BOUNDINGRECTPADDING);
             QPointF topLeft = m_selection_resize_info[ind].topLeft();
             QPointF bottomRight = m_selection_resize_info[ind].bottomRight();
 
@@ -4192,7 +4189,7 @@ void Canvas::tryAlignments()
                 }
             }
 
-            if (i==35&&j==71 || i==71&&j==35) {
+            if ((i==35&&j==71) || (i==71&&j==35)) {
                 qDebug() << "i,j" << i << j << "plan:" << plan;
             }
 
@@ -4420,7 +4417,7 @@ double Canvas::computeStress()
             }
         }
     }
-    for(vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
+    for(std::vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
         unsigned u=e->first, v=e->second;
         G[u][v]=G[v][u]=1;
     }
@@ -4490,7 +4487,7 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
             }
         }
     }
-    for(vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
+    for(std::vector<cola::Edge>::const_iterator e=es.begin();e!=es.end();++e) {
         unsigned u=e->first, v=e->second;
         G[u][v]=G[v][u]=1;
     }
