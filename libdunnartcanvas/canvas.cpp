@@ -177,6 +177,7 @@ Canvas::Canvas()
       m_opt_snap_grid_width(100.0),
       m_opt_snap_grid_height(100.0),
       m_opt_relax_threshold_modifier(0.1),
+      m_opt_shape_nonoverlap_padding(0.0),
       m_dragged_item(NULL),
       m_dragged_with_force(false),
       m_lone_selected_item(NULL),

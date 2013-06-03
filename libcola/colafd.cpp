@@ -47,6 +47,7 @@
 // may mess up C++ std library include on GCC 4.4
 #include "libcola/cola_log.h"
 
+using namespace std;
 using vpsc::XDIM;
 using vpsc::YDIM;
 
