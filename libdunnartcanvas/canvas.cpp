@@ -3807,6 +3807,7 @@ void Canvas::initTryAlignments()
     m_shapes_by_id.clear();
     setOptRelax(false);
     QList<Connector*> conns;
+    QList<Guideline*> guidelines;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
@@ -3822,6 +3823,10 @@ void Canvas::initTryAlignments()
             QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
             m_align_nbrs.insertMulti(endpts.first,endpts.second);
             m_align_nbrs.insertMulti(endpts.second,endpts.first);
+        }
+        else if (Guideline *g = dynamic_cast<Guideline*>(item))
+        {
+            guidelines.append(g);
         }
     }
     maxID++; // increment, so IDs themselves can be used as indices into array
@@ -3851,6 +3856,25 @@ void Canvas::initTryAlignments()
         int sID = s->internalId(), tID = t->internalId();
         m_alignment_state(sID,tID) = Connected;
         m_alignment_state(tID,sID) = Connected;
+    }
+    foreach (Guideline *gl, guidelines) {
+        AlignmentFlags af = gl->get_dir()==GUIDE_TYPE_VERT ? Vertical : Horizontal;
+        CanvasItemSet objSet;
+        gl->addAttachedShapesToSet(objSet);
+        QList<CanvasItem*> items = objSet.toList();
+        int n = items.size();
+        for (int i = 0; i+1 < n; i++) {
+            ShapeObj *s = dynamic_cast<ShapeObj*>(items.at(i));
+            if (!s) continue;
+            int sID = s->internalId();
+            for (int j = i+1; j<n; j++) {
+                ShapeObj *t = dynamic_cast<ShapeObj*>(items.at(j));
+                if (!t) continue;
+                int tID = t->internalId();
+                m_alignment_state(sID,tID) |= af;
+                m_alignment_state(tID,sID) |= af;
+            }
+        }
     }
     m_num_align_tries = 0;
     m_max_actual_dG = -DBL_MAX;
@@ -4065,42 +4089,23 @@ void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
 
 void Canvas::applyAlignmentsCallback()
 {
-    /*
-    // First check if any tentative alignments were marked for rejection, and
-    // if so, reject them and try the layout again.
-    Guideline *reject = m_graphlayout->getRejectedUnsatTentativeGuideline();
-    if (reject) {
-        qDebug() << "Found UNSAT tentative constraint.";
-        // Delete guideline.
-        stop_graph_layout();
-        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
-        CanvasItemSet dummySet;
-        reject->deactivateAll(dummySet);
-        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
-        undoMacro->addCommand(cmd);
-        fully_restart_graph_layout();
-    }
-    else
-        */
-    {
-        m_trying_alignments = false;
-        double G  = m_previous_ortho_goal_value;
-        double Gp = computeOrthoObjective();
-        double dG = Gp - G;
-        //qDebug() << "Assessing result of alignment. dG =" << dG;
-        m_max_actual_dG = std::max(m_max_actual_dG, dG);
-        //qDebug() << "Max actual dG:" << m_max_actual_dG;
-        if (dG < -m_apply_alignments_epsilon) {
-            // Will continue applying alignments.
-            TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
-            QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+    m_trying_alignments = false;
+    double G  = m_previous_ortho_goal_value;
+    double Gp = computeOrthoObjective();
+    double dG = Gp - G;
+    //qDebug() << "Assessing result of alignment. dG =" << dG;
+    m_max_actual_dG = std::max(m_max_actual_dG, dG);
+    //qDebug() << "Max actual dG:" << m_max_actual_dG;
+    if (dG < -m_apply_alignments_epsilon) {
+        // Will continue applying alignments.
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
 
-        } else {
-            qDebug() << "Finished applying alignments.";
-            //qDebug() << m_alignment_state.toString();
-            TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
-            QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
-        }
+    } else {
+        qDebug() << "Finished applying alignments.";
+        //qDebug() << m_alignment_state.toString();
+        TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
+        QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
     }
 }
 
