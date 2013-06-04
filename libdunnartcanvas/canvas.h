@@ -689,6 +689,7 @@ class ConstraintRejectedEvent : public QEvent
         {
         }
         Guideline *m_guideline;
+        ShapeObj *m_shape;
         bool m_unsat;
 };
 

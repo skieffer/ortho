@@ -1140,6 +1140,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         vpsc::Constraint *rejected = m_solver->rejected_tentative_constraint;
         if (rejected) {
             m_constraintToRejectForUnsat = rejected->compoundOwner;
+            m_alignedShapeVarIndexForUnsat = rejected->alignedShapeVarIndex;
         }
 
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);

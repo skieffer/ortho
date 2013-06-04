@@ -78,6 +78,7 @@ public:
     long tentativeTimestamp;
     bool temporarilyUnsatisfiable;
     cola::CompoundConstraint* compoundOwner;
+    unsigned alignedShapeVarIndex;
 };
 
 class CompareConstraints {

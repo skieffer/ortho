@@ -221,6 +221,7 @@ private:
     cola::AlignmentConstraint *m_ac_to_reject;
     cola::AlignmentConstraint *m_ac_to_reject_for_unsat;
     Guideline *m_guideline_to_reject_for_unsat;
+    ShapeObj *m_shape_to_reject_for_unsat;
     bool doRejection(void);
     void rejectUnsatTentativeConstraint(void);
 

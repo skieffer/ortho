@@ -980,6 +980,7 @@ void GraphLayout::rejectUnsatTentativeConstraint() {
 
         ConstraintRejectedEvent *cre = new ConstraintRejectedEvent();
         cre->m_guideline = gl;
+        cre->m_shape = m_shape_to_reject_for_unsat;
         cre->m_unsat = true;
         QCoreApplication::postEvent(m_canvas, cre, Qt::HighEventPriority);
     }
@@ -1403,6 +1404,8 @@ void GraphLayout::run(const bool shouldReinitialise)
         cola::AlignmentConstraint *ac = dynamic_cast<cola::AlignmentConstraint*>(rejectForUnsat);
         //qDebug() << "Want to reject guideline" << ac->m_guidelineID;
         m_ac_to_reject_for_unsat = ac;
+        unsigned i = alg.getShapeIndexToRejectForUnsat();
+        m_shape_to_reject_for_unsat = m_graph->getShape(i);
         rejectUnsatTentativeConstraint();
     } else {
         //qDebug() << "No rejection candidate.";

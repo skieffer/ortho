@@ -263,6 +263,7 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
             c->tentative = m_tentative;
             c->compoundOwner = this;
             c->tentativeTimestamp = m_timestamp;
+            c->alignedShapeVarIndex = info->varIndex;
             cs.push_back(c);
         }
     }

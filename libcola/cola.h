@@ -740,6 +740,7 @@ public:
     vpsc::Constraint *getMaxAbsLMConstraint(void);
     CompoundConstraint *getConstraintToReject(void) { return m_constraintToReject; }
     CompoundConstraint *getConstraintToRejectForUnsat(void) { return m_constraintToRejectForUnsat; }
+    unsigned getShapeIndexToRejectForUnsat(void) { return m_alignedShapeVarIndexForUnsat; }
     void setRelaxThreshold(double t) { m_tentative_constraint_threshold = t; }
     void addGridSnapStress(bool b) { m_addGridSnapStress = b; }
     void setSnapStrength(double s) { m_snap_strength = s; }
@@ -808,6 +809,7 @@ private:
     double m_tentative_constraint_threshold;
     CompoundConstraint *m_constraintToReject;
     CompoundConstraint *m_constraintToRejectForUnsat;
+    unsigned m_alignedShapeVarIndexForUnsat;
     bool m_addSnapStress;
     bool m_addGridSnapStress;
     bool m_addEdgeNodeRepulsion;

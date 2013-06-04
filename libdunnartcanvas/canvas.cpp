@@ -4075,6 +4075,9 @@ void Canvas::applyAlignments()
 
 void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
 {
+    // TODO: cre now has m_shape field pointing to the specific
+    // ShapeObj on the Guideline whose alignment constraint was rejected,
+    // so we should try just removing this shape from the guideline.
     Guideline *reject = cre->m_guideline;
     qDebug() << "Found UNSAT tentative constraint.";
     // Delete guideline.
