@@ -24,6 +24,7 @@
 #include <map>
 #include <cfloat>
 #include <set>
+#include <stdio.h>
 
 #include "libvpsc/constraint.h"
 #include "libvpsc/block.h"
@@ -235,9 +236,12 @@ bool IncSolver::satisfy() {
     //long splitCtr = 0;
     Constraint* v = NULL;
     //CBuffer buffer(inactive);
+    //fprintf(stderr,"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
     while ( (v = mostViolated(inactive)) && 
             (v->equality || ((v->slack() < ZERO_UPPERBOUND) && !v->active)) ) 
     {
+        v->temporarilyUnsatisfiable=false;
+        //fprintf(stderr,"v:%p\n",v);
         COLA_ASSERT(!v->active);
         Block *lb = v->left->block, *rb = v->right->block;
         if(lb != rb) {
@@ -263,8 +267,12 @@ bool IncSolver::satisfy() {
                 // cycle found
                 if (mostTentative!=NULL) {
                     rejected_tentative_constraint=mostTentative;
+                    v->temporarilyUnsatisfiable=true;
+                    //fprintf(stderr,"=================================================================================================\n");
+                    //fprintf(stderr,"Marked most tentative constraint for rejection. (1)\n");
+                } else {
+                    v->unsatisfiable=true;
                 }
-                v->unsatisfiable=true;
                 continue;
                 //UnsatisfiableException e;
                 //lb->getActiveDirectedPathBetween(e.path,v->right,v->left);
@@ -284,8 +292,12 @@ bool IncSolver::satisfy() {
                 } else {
                     if (mostTentative!=NULL) {
                         rejected_tentative_constraint=mostTentative;
+                        v->temporarilyUnsatisfiable=true;
+                        //fprintf(stderr,"=================================================================================================\n");
+                        //fprintf(stderr,"Marked most tentative constraint for rejection. (2)\n");
+                    } else {
+                        v->unsatisfiable=true;
                     }
-                    v->unsatisfiable=true;
                     continue;
                 }
             } catch(UnsatisfiableException e) {
@@ -300,8 +312,12 @@ bool IncSolver::satisfy() {
 #endif
                 if (mostTentative!=NULL) {
                     rejected_tentative_constraint=mostTentative;
+                    v->temporarilyUnsatisfiable=true;
+                    //fprintf(stderr,"=================================================================================================\n");
+                    //fprintf(stderr,"Marked most tentative constraint for rejection. (3)\n");
+                } else {
+                    v->unsatisfiable=true;
                 }
-                v->unsatisfiable=true;
                 continue;
             }
             if(v->slack()>=0) {
@@ -319,6 +335,7 @@ bool IncSolver::satisfy() {
         f<<"...remaining blocks="<<bs->size()<<", cost="<<bs->cost()<<endl;
 #endif
     }
+    //fprintf(stderr,"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
 #ifdef LIBVPSC_LOGGING
     f<<"  finished merges."<<endl;
 #endif

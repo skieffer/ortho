@@ -76,6 +76,7 @@ public:
     bool tentative;
     bool rejected;
     long tentativeTimestamp;
+    bool temporarilyUnsatisfiable;
     cola::CompoundConstraint* compoundOwner;
 };
 
