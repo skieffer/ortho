@@ -320,6 +320,25 @@ double Block::compute_dgdv(Variable *const v, Variable *const u,
     return dgdv/v->scale; // doesn't really matter anyway
 }
 
+double Block::compute_dgdv(Variable *const v, Variable *const u) {
+    double dgdv=v->dgdv();
+    for(Cit it=v->out.begin();it!=v->out.end();++it) {
+        Constraint *c=*it;
+        if(canFollowRight(c,u)) {
+            c->lm=compute_dgdv(c->right,v);
+            dgdv+=c->lm*c->left->scale;
+        }
+    }
+    for(Cit it=v->in.begin();it!=v->in.end();++it) {
+        Constraint *c=*it;
+        if(canFollowLeft(c,u)) {
+            c->lm=-compute_dgdv(c->left,v);
+            dgdv-=c->lm*c->right->scale;
+        }
+    }
+    return dgdv/v->scale;
+}
+
 // computes the derivative of v and the lagrange multipliers
 // of v's out constraints (as the recursive sum of those below.
 // Does not backtrack over u.

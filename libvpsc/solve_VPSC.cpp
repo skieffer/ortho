@@ -250,9 +250,11 @@ bool IncSolver::satisfy() {
             // Choose tentative constraint to reject in case of any unsatisfiability.
             std::vector<Constraint*> path;
             lb->getActivePathBetween(path,v->left,v->right,NULL);
+            Constraint *mostTentative = NULL;
+//#define timestampChoiceMethod
+#ifdef  timestampChoiceMethod
             path.push_back(v);
             long maxTS = 0;
-            Constraint *mostTentative = NULL;
             for (int i = 0; i < path.size(); i++) {
                 Constraint *c = path.at(i);
                 if (!c->tentative) continue;
@@ -262,6 +264,30 @@ bool IncSolver::satisfy() {
                     mostTentative = c;
                 }
             }
+#else
+
+            // Choose v if it is tentative, or else tentative constraint
+            // whose LM is largest in absolute value.
+            if (v->tentative) {
+                mostTentative = v;
+            } else {
+#define dfdvTentativeChoiceMethod
+#ifdef  dfdvTentativeChoiceMethod
+                lb->findMinLM();
+#else
+                lb->findMaxAbsLM();
+#endif
+                double maxAbsLM = 0;
+                for (int i = 0; i < path.size(); i++) {
+                    Constraint *c = path.at(i);
+                    if (!c->tentative) continue;
+                    if (fabs(c->lm) > maxAbsLM) {
+                        maxAbsLM = fabs(c->lm);
+                        mostTentative = c;
+                    }
+                }
+            }
+#endif
             // Now proceed with trying to split block.
             if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
                 // cycle found
