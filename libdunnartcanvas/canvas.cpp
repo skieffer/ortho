@@ -4362,7 +4362,8 @@ double LineSegment::obliquityScore()
     if (a<=t || a>=90-t) return 0;
     // Else base score on distance from 45 deg.
     double d = fabs(a-45); // 0 <= d <= 45-t
-    return 1 + d;
+    double deg45_cost = 1;
+    return deg45_cost + d;
 
 }
 
