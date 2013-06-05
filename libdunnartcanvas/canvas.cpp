@@ -3815,7 +3815,7 @@ void Canvas::initTryAlignments()
             int id = shape->idString().toInt();
             maxID = id > maxID ? id : maxID;
             m_shapes_by_id.insert(id,shape);
-            shape->setLabel(shape->idString());
+            //shape->setLabel(shape->idString());
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
@@ -4078,8 +4078,15 @@ void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
     // TODO: cre now has m_shape field pointing to the specific
     // ShapeObj on the Guideline whose alignment constraint was rejected,
     // so we should try just removing this shape from the guideline.
+    /* Refer to ShapeObj::buildAndExecContextMenu on this.
+      Looks like we need to figure out which Relationship object in
+      the ShapeObj's rels array corresponds to this Guideline, and then
+      call that Relationship's deactivate() method.
+      */
+    ShapeObj *shape = cre->m_shape;
     Guideline *reject = cre->m_guideline;
     qDebug() << "Found UNSAT tentative constraint.";
+    qDebug() << "Guideline:" << reject->idString() << "Shape:" << shape->idString();
     // Delete guideline.
     stop_graph_layout();
     UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
@@ -4622,7 +4629,9 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
 */
 void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 {
+    // First compute predicted change in stress.
     predictStressChange(ads);
+    // Now consider other predictions.
     foreach (AlignDesc *ad, ads) {
         Connector *conn = ad->connector;
         Dimension dim   = ad->dim;
