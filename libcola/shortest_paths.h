@@ -232,6 +232,20 @@ void johnsons(
         std::vector<Edge> const & es,
         std::valarray<T> const * eweights) 
 {
+    fprintf(stderr, "int n = %d;\n", n);
+    fprintf(stderr, "std::vector<Edge> es(%d);\n", es.size());
+    fprintf(stderr, "std::valarray<double> eweights(%d);\n", es.size());
+    for (unsigned k=0; k<es.size(); ++k)
+    {
+        fprintf(stderr, "es[%d] = std::make_pair(%d, %d);\n", k, es[k].first, es[k].second);
+        fprintf(stderr, "eweights[%d] = %.12f;\n", k, (*eweights)[k]);
+    }
+    fprintf(stderr, "double **D=new double*[n];\n");
+    fprintf(stderr, "for(unsigned i=0;i<n;i++) {\n");
+    fprintf(stderr, "    D[i]=new double[n];\n");
+    fprintf(stderr, "}\n");
+    fprintf(stderr, "shortest_paths::johnsons(n, D, es, &eweights);\n");
+
     std::vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
     for(unsigned k=0;k<n;k++) {

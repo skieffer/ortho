@@ -1246,6 +1246,9 @@ void GraphLayout::setOptimizationMethod(OptimizationMethod newOM)
 
 double GraphLayout::computeStressOfGraph(GraphData *graph)
 {
+    // Shouldn't be called according to Steve.
+    abort();
+
     PreIteration preIter(*this);
     PostIteration postIter(*this);
 

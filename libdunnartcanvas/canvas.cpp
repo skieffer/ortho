@@ -963,12 +963,15 @@ void Canvas::customEvent(QEvent *event)
             rejectAlignmentsCallback(cre);
         } else {
             Guideline *gdln = cre->m_guideline;
-            stop_graph_layout();
-            UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
-            CanvasItemSet dummySet;
-            gdln->deactivateAll(dummySet);
-            QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
-            undoMacro->addCommand(cmd);
+            if (gdln->canvas())
+            {
+                stop_graph_layout();
+                UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+                CanvasItemSet dummySet;
+                gdln->deactivateAll(dummySet);
+                QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+                undoMacro->addCommand(cmd);
+            }
         }
     }
     else if (dynamic_cast<TrialAlignmentEvent*>(event))
@@ -4114,18 +4117,21 @@ void Canvas::rejectAlignmentsCallback(ConstraintRejectedEvent *cre)
         m_reject_phase_previous_goal_value = currentGoal;
         m_reject_phase_previous_stress_value = currentStress;
         Guideline *gdln = cre->m_guideline;
-        // Save a record of the alignment.
-        CanvasItemSet itemSet;
-        gdln->addAttachedShapesToSet(itemSet);
-        atypes at = gdln->get_dir()==GUIDE_TYPE_VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
-        m_reject_phase_previous_align = new AlignDesc(at,itemSet.toList());
-        // Delete guideline.
-        stop_graph_layout();
-        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
-        CanvasItemSet dummySet;
-        gdln->deactivateAll(dummySet);
-        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
-        undoMacro->addCommand(cmd);
+        if (gdln->canvas())
+        {
+            // Save a record of the alignment.
+            CanvasItemSet itemSet;
+            gdln->addAttachedShapesToSet(itemSet);
+            atypes at = gdln->get_dir()==GUIDE_TYPE_VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
+            m_reject_phase_previous_align = new AlignDesc(at,itemSet.toList());
+            // Delete guideline.
+            stop_graph_layout();
+            UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+            CanvasItemSet dummySet;
+            gdln->deactivateAll(dummySet);
+            QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, gdln);
+            undoMacro->addCommand(cmd);
+        }
         // Run it again.
         TrialAlignmentEvent *tae = new TrialAlignmentEvent(2);
         QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
@@ -4621,6 +4627,9 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 */
 double Canvas::predictOrthoObjective(Connector *conn, Dimension dim)
 {
+    // Shouldn't be called according to Steve.
+    abort();
+
     // Obliquity
     QList<LineSegment*> segs;
     double obliquity = 0;
