@@ -107,12 +107,22 @@ struct Matrix2d
 {
     int rows, cols;
     std::vector<T> data;
-    Matrix2d() {}
+    Matrix2d() : rows(0), cols(0) {}
     Matrix2d(int rows, int cols) : rows(rows), cols(cols), data(rows*cols)
     { }
 
-    T operator()(int i, int j) const { return data[i*cols+j]; }
-    T& operator()(int i, int j) { return data[i*cols+j]; }
+    T operator()(int i, int j) const
+    {
+        Q_ASSERT(i < rows);
+        Q_ASSERT(j < cols);
+        return data[i*cols+j];
+    }
+    T& operator()(int i, int j)
+    {
+        Q_ASSERT(i < rows);
+        Q_ASSERT(j < cols);
+        return data[i*cols+j];
+    }
 
     QString toString() {
         QString s = "";
@@ -536,7 +546,7 @@ class Canvas : public QGraphicsScene
         int m_max_shape_id;
         bool * m_align_pairs_tried;
         QMap<ShapeObj*,ShapeObj*> m_align_nbrs;
-        QMap<int,ShapeObj*> m_shapes_by_id;
+        QMap<uint,ShapeObj*> m_shapes_by_id;
         bool sideIsClear(ShapeObj* s, int side, double tolerance, ShapeObj* except=NULL);
         //int **m_alignment_state;
         Matrix2d<int> m_alignment_state;

@@ -3800,7 +3800,7 @@ void Canvas::initTryAlignments()
 {
     // Determine the range of IDs of shapes.
     // Also build neighbour sets.
-    int maxID = 0;
+    uint maxID = 0;
     m_align_nbrs.clear();
     m_shapes_by_id.clear();
     setOptRelax(false);
@@ -3809,10 +3809,14 @@ void Canvas::initTryAlignments()
     {
         if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
         {
-            int id = shape->idString().toInt();
-            maxID = id > maxID ? id : maxID;
+            uint id = shape->internalId();
+            maxID = qMax(id, maxID);
             m_shapes_by_id.insert(id,shape);
-            shape->setLabel(shape->idString());
+
+            // Debugging, change shape labels to be IDs.
+            QString label;
+            label.setNum(id);
+            shape->setLabel(label);
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
@@ -3824,14 +3828,14 @@ void Canvas::initTryAlignments()
     }
     maxID++; // increment, so IDs themselves can be used as indices into array
     m_max_shape_id = maxID;
-    int size = maxID*maxID;
+    uint size = maxID*maxID;
 
     // Array that just says whether we've tried aligning a pair of nodes or not:
     if (m_align_pairs_tried) {
         delete[] m_align_pairs_tried;
     }
     m_align_pairs_tried = new bool[size];
-    for (int i = 0; i < size; i++) {
+    for (uint i = 0; i < size; i++) {
         m_align_pairs_tried[i] = false;
     }
 
@@ -3839,8 +3843,8 @@ void Canvas::initTryAlignments()
     // Canvas::AlignmentFlags
 
     m_alignment_state = Matrix2d<int>(maxID,maxID);
-    for (int i = 0; i < maxID; i++) {
-        for (int j = 0; j < maxID; j++) {
+    for (uint i = 0; i < maxID; i++) {
+        for (uint j = 0; j < maxID; j++) {
             m_alignment_state(i,j) = 0;
         }
     }
