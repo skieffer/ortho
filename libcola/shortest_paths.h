@@ -30,7 +30,6 @@
 #include <limits>
 
 #include "libcola/commondefs.h"
-#include <libvpsc/pairing_heap.h>
 #include <libvpsc/assertions.h>
 
 template <class T>
@@ -45,15 +44,11 @@ struct Node {
     Node* p; // predecessor    
     std::vector<Node<T>*> neighbours;
     std::vector<T> nweights;
-    PairNode<Node<T>*>* qnode;
 };
 template <typename T>
 struct CompareNodes {
     bool operator() (Node<T> *const &u, Node<T> *const &v) const {
-        if(u==v) return false; // with g++ 4.1.2 unless I have this explicit check
-                               // it returns true for this case when using -O3 optimization
-                               // CRAZY!
-        if(u->d < v->d) {
+        if(u->d > v->d) {
             return true;
         } 
         return false;
@@ -191,12 +186,18 @@ void dijkstra(
         vs[i].p=NULL;
     }
     vs[s].d=0;
-    PairingHeap<Node<T>*,CompareNodes<T> > Q;
+    std::vector<Node<T> *> Q;
     for(unsigned i=0;i<n;i++) {
-        vs[i].qnode = Q.insert(&vs[i]);
+        Q.push_back(&vs[i]);
     }
-    while(!Q.isEmpty()) {
-        Node<T> *u=Q.extractMin();
+    std::make_heap(Q.begin(), Q.end(), CompareNodes<T>());
+    
+    while(!Q.empty()) {
+        // Heap extractMin
+        Node<T> *u=Q.front();
+        std::pop_heap(Q.begin(), Q.end(), CompareNodes<T>());
+        Q.pop_back();
+
         d[u->id]=u->d;
         for(unsigned i=0;i<u->neighbours.size();i++) {
             Node<T> *v=u->neighbours[i];
@@ -205,9 +206,11 @@ void dijkstra(
                && v->d > u->d+w) {
                 v->p=u;
                 v->d=u->d+w;
-                Q.decreaseKey(v->qnode,v);
+                // Heap decreaseKey.  Heap is reordered below.
             }
         }
+        // Reorder heap
+        std::make_heap(Q.begin(), Q.end(), CompareNodes<T>());
     }
 }
 template <typename T>
@@ -232,20 +235,6 @@ void johnsons(
         std::vector<Edge> const & es,
         std::valarray<T> const * eweights) 
 {
-    fprintf(stderr, "int n = %d;\n", n);
-    fprintf(stderr, "std::vector<Edge> es(%d);\n", es.size());
-    fprintf(stderr, "std::valarray<double> eweights(%d);\n", es.size());
-    for (unsigned k=0; k<es.size(); ++k)
-    {
-        fprintf(stderr, "es[%d] = std::make_pair(%d, %d);\n", k, es[k].first, es[k].second);
-        fprintf(stderr, "eweights[%d] = %.12f;\n", k, (*eweights)[k]);
-    }
-    fprintf(stderr, "double **D=new double*[n];\n");
-    fprintf(stderr, "for(unsigned i=0;i<n;i++) {\n");
-    fprintf(stderr, "    D[i]=new double[n];\n");
-    fprintf(stderr, "}\n");
-    fprintf(stderr, "shortest_paths::johnsons(n, D, es, &eweights);\n");
-
     std::vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
     for(unsigned k=0;k<n;k++) {
