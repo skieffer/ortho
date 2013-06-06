@@ -43,7 +43,7 @@ void LogicalOperator::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     Q_UNUSED(widget)
 
     painter->fillPath(this->shape(), Qt::white );
-    painter->setRenderHint(QPainter::Antialiasing, true);
+    //painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen( QPen( Qt::black, 2.5) );
     painter->drawPath(this->shape());
 }

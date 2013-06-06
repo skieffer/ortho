@@ -1296,7 +1296,12 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         linearVForces(dim,H,g);
         break;
     case 8:
+#define useTailoredNodeSnapForces
+#ifdef  useTailoredNodeSnapForces
+        tailoredQuadUForces(dim,H,g);
+#else
         quadUForces(dim,H,g);
+#endif
         break;
     }
 }
@@ -1370,6 +1375,28 @@ void ConstrainedFDLayout::computeEdgeNodeRepulsionForces(const vpsc::Dim dim, Sp
             g[u]+=-dg;
             H(u,u)+=dH;
             //fprintf(stderr, "dg=%f, dH=%f\n",dg,dH);
+        }
+    }
+}
+
+// Quadratic U-stress forces tailored to each pair of nodes' dimensions:
+void ConstrainedFDLayout::tailoredQuadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    double b = m_snap_strength;
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+        vpsc::Rectangle *ru = boundingBoxes.at(u);;
+        vpsc::Rectangle *rv = boundingBoxes.at(v);
+        double sig=dim==vpsc::HORIZONTAL?(ru->width()+rv->width())/2:(ru->height()+rv->height())/2;
+        double k = b/(sig*sig);
+        if (-sig < d && d <= sig) {
+            double kd = k*d;
+            g[u]+=kd;
+            H(u,v)-=k;
+            H(u,u)+=k;
+            g[v]-=kd;
+            H(v,u)-=k;
+            H(v,v)+=k;
         }
     }
 }
@@ -1761,7 +1788,13 @@ double ConstrainedFDLayout::computeSnapStress() const {
     case 7:
         return linearVStress();
     case 8:
+
+#define useTailoredNodeSnapForces
+#ifdef  useTailoredNodeSnapForces
+        return tailoredQuadUStress();
+#else
         return quadUStress();
+#endif
     }
 }
 
@@ -1846,6 +1879,34 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
         stress+=sx+sy;
     }
     stress = m_snap_strength*stress;
+    return stress;
+}
+
+// Quadratic U-stress tailored to each pair of nodes' dimensions
+double ConstrainedFDLayout::tailoredQuadUStress() const {
+    double stress = 0;
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double dx=X[u]-X[v], dy=Y[u]-Y[v];
+        vpsc::Rectangle *ru = boundingBoxes.at(u);
+        double wu = ru->width(), hu = ru->height();
+        vpsc::Rectangle *rv = boundingBoxes.at(v);
+        double wv = rv->width(), hv = rv->height();
+        double sigX = (wu+wv)/2, sigY = (hu+hv)/2;
+
+        double sx = 0;
+        if (-sigX < dx && dx <= sigX) {
+            sx = dx*dx/(sigX*sigX);
+        }
+
+        double sy = 0;
+        if (-sigY < dy && dy <= sigY) {
+            sy = dy*dy/(sigY*sigY);
+        }
+
+        stress+=sx+sy;
+    }
+    stress *= m_snap_strength;
     return stress;
 }
 

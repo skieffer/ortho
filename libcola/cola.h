@@ -826,6 +826,7 @@ private:
     double computeEdgeNodeRepulsionStress() const;
     double computeGridSnapStress() const;
     double computeSnapStress() const;
+    double tailoredQuadUStress() const;
     double quadUStress() const;
     double smoothVStress() const;
     double linearVStress() const;
@@ -837,6 +838,7 @@ private:
     void computeEdgeNodeRepulsionForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void computeGridSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void computeSnapForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void tailoredQuadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void quadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void smoothVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     void linearVForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);

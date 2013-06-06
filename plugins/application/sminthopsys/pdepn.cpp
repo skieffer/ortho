@@ -84,7 +84,7 @@ void PDEPN::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         {
             painter->setFont(canvas()->canvasFont());
         }
-        painter->setRenderHint(QPainter::TextAntialiasing, true);
+        //painter->setRenderHint(QPainter::TextAntialiasing, true);
 //        painter->drawText(labelBoundingRect(), Qt::AlignLeft, cloneLabel);
 
 //        QRectF r(-width()/2, -height()/2*0.7, width(), height());
