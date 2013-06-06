@@ -2259,7 +2259,10 @@ void Canvas::startLayoutUpdateTimer(void)
         connect(m_layout_update_timer, SIGNAL(timeout()), this,
                 SLOT(processLayoutUpdateEvent()));
     }
-    m_layout_update_timer->start(updateEventDelay);
+    if (!m_layout_update_timer->isActive())
+    {
+        m_layout_update_timer->start(updateEventDelay);
+    }
 }
 
 
@@ -2363,8 +2366,6 @@ void Canvas::updateConnectorsForLayout(void)
 
 void Canvas::processLayoutUpdateEvent(void)
 {
-    m_layout_update_timer->stop();
-
     //qDebug("LayoutUpdateEvent");
 #ifdef FPSTIMER
     if (!m_convergence_timer_running)
@@ -2382,7 +2383,12 @@ void Canvas::processLayoutUpdateEvent(void)
         }
     }
 
-    m_graphlayout->processReturnPositions();
+    bool success = m_graphlayout->processReturnPositions();
+    if (success == false)
+    {
+        // finished processing for the moment.
+        m_layout_update_timer->stop();
+    }
     updateConnectorsForLayout();
 
     //qDebug("processLayoutUpdateEvent %7d", ++layoutUpdates);
@@ -2399,8 +2405,8 @@ void Canvas::processLayoutFinishedEvent(void)
     {
         double elapsedSecs = m_convergence_timer.elapsed() / 1000.0;
 
-        printf("************** Avg Framerate: %g\n", m_convergence_update_count / elapsedSecs);
-        printf("************** Time to converge: %g\n", elapsedSecs);
+        qDebug("************** Avg Framerate: %g\n", m_convergence_update_count / elapsedSecs);
+        qDebug("************** Time to converge: %g\n", elapsedSecs);
         m_convergence_update_count = 0;
         m_convergence_timer_running = false;
     }
