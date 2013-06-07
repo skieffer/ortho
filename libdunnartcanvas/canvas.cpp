@@ -425,7 +425,7 @@ void Canvas::postDiagramLoad(void)
         m_router->SimpleRouting = false;
         if (!m_batch_diagram_layout)
         {
-            reroute_connectors(this);
+            //reroute_connectors(this);
         }
         m_router->SimpleRouting = lastSimpleRouting;
     }
@@ -2548,6 +2548,8 @@ void Canvas::actionFinished(void)
     qDebug() << "Type: " << gd2013_type << "  Step: " << gd2013_step;
     if (gd2013_type == 1)
     {
+        m_opt_snap_strength_modifier = 150;
+
         if (gd2013_step == 1)
         {
             // Clear the output file.
@@ -2571,7 +2573,6 @@ void Canvas::actionFinished(void)
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "fd", 2);
             setOptGridSnap(true);
-            setOptSnapStrengthModifier(150.0);
             m_action_timer.start();
         }
         else if (gd2013_step == 4)
@@ -2616,21 +2617,21 @@ void Canvas::actionFinished(void)
         {
             setOptAutomaticGraphLayout(true);
         }
-         else if (gd2013_step == 2)
-        {
-            setOptPreventOverlaps(true);
-        }
-        else if (gd2013_step == 3)
+        else if (gd2013_step == 2)
         {
             initTryAlignments();
             m_action_timer.start();
         }
-        else if (gd2013_step == 4)
+        else if (gd2013_step == 3)
         {
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "aca");
             setOptGridSnap(true);
             m_action_timer.start();
+        }
+        else if (gd2013_step == 4)
+        {
+            setOptPreventOverlaps(true);
         }
         else if (gd2013_step == 5)
         {
@@ -4763,7 +4764,7 @@ double Canvas::computeStress()
     }
 
     //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
-    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+    shortest_paths::johnsons(n,D,es,&eLengths);
 
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -4833,7 +4834,7 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
     }
 
     //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
-    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+    shortest_paths::johnsons(n,D,es,&eLengths);
 
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -4981,7 +4982,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #endif
 
 #define bendPointPenalty
-#define SBGN
+//#define SBGN
 #ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
