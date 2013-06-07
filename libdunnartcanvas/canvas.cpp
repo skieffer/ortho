@@ -615,8 +615,9 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
 
 void Canvas::drawGridLines(QPainter *painter, const QRectF &rect)
 {
-    QPen pen;
-    pen.setColor(QColor(128,128,128,64));
+    QPen pen(QColor(128,128,128,128));
+    pen.setWidth(1);
+    pen.setCosmetic(true);
     painter->setPen(pen);
 
     double W = m_opt_snap_grid_width;
@@ -2553,7 +2554,6 @@ void Canvas::actionFinished(void)
                 return;
             }
             setOptAutomaticGraphLayout(true);
-            setOptIdealEdgeLengthModifier(2.0);
             m_action_timer.start();
         }
         else if (gd2013_step == 2)
@@ -2580,7 +2580,6 @@ void Canvas::actionFinished(void)
         if (gd2013_step == 1)
         {
             setOptAutomaticGraphLayout(true);
-            setOptIdealEdgeLengthModifier(2.0);
         }
         else if (gd2013_step == 2)
         {
@@ -2610,9 +2609,8 @@ void Canvas::actionFinished(void)
         if (gd2013_step == 1)
         {
             setOptAutomaticGraphLayout(true);
-            setOptIdealEdgeLengthModifier(2.0);
         }
-        else if (gd2013_step == 2)
+         else if (gd2013_step == 2)
         {
             setOptPreventOverlaps(true);
         }
@@ -4967,7 +4965,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #endif
 
 #define bendPointPenalty
-#define SBGN
+//#define SBGN
 #ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);

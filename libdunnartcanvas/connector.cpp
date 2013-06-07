@@ -1514,6 +1514,11 @@ void Connector::paint(QPainter *painter,
         m_colour = Qt::blue; break;
     }
 
+    if (canvas()->isRenderingForPrinting())
+    {
+        m_colour = Qt::black;
+    }
+
     QPen pen(m_colour);
     pen.setWidth(1);
     pen.setCosmetic(true);
