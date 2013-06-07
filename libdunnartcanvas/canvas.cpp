@@ -425,7 +425,7 @@ void Canvas::postDiagramLoad(void)
         m_router->SimpleRouting = false;
         if (!m_batch_diagram_layout)
         {
-            reroute_connectors(this);
+            //reroute_connectors(this);
         }
         m_router->SimpleRouting = lastSimpleRouting;
     }
@@ -2542,6 +2542,8 @@ void Canvas::actionFinished(void)
     qDebug() << "Type: " << gd2013_type << "  Step: " << gd2013_step;
     if (gd2013_type == 1)
     {
+        m_opt_snap_strength_modifier = 150;
+
         if (gd2013_step == 1)
         {
             // Clear the output file.
@@ -2565,7 +2567,6 @@ void Canvas::actionFinished(void)
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "fd", 2);
             setOptGridSnap(true);
-            setOptSnapStrengthModifier(150.0);
             m_action_timer.start();
         }
         else if (gd2013_step == 4)
@@ -2623,6 +2624,10 @@ void Canvas::actionFinished(void)
             m_action_timer.start();
         }
         else if (gd2013_step == 4)
+        {
+            setOptPreventOverlaps(true);
+        }
+        else if (gd2013_step == 5)
         {
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "aca+grid");
@@ -4965,7 +4970,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #endif
 
 #define bendPointPenalty
-#define SBGN
+//#define SBGN
 #ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
