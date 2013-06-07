@@ -307,6 +307,8 @@ Canvas::Canvas()
 
     m_bclayout = new BCLayout(this);
 
+    computeNeighbourhoods();
+
 #ifdef FPSTIMER
     m_convergence_update_count = 0;
     m_convergence_timer_running = false;
@@ -3806,6 +3808,28 @@ void Canvas::inferAndApplyAlignments()
     restart_graph_layout();
 }
 
+void Canvas::computeNeighbourhoods()
+{
+    m_align_nbrs.clear();
+    m_shapes_by_id.clear();
+    QList<Connector*> conns;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
+        {
+            uint id = shape->internalId();
+            m_shapes_by_id.insert(id,shape);
+        }
+        else if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            conns.append(conn);
+            QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
+            m_align_nbrs.insertMulti(endpts.first,endpts.second);
+            m_align_nbrs.insertMulti(endpts.second,endpts.first);
+        }
+    }
+}
+
 void Canvas::initTryAlignments()
 {
     // Determine the range of IDs of shapes.
@@ -4824,6 +4848,28 @@ double Canvas::predictOrthoObjective(Connector *conn, Dimension dim)
     return prediction;
 }
 
+class NeighbourAngleLessThan {
+public:
+    NeighbourAngleLessThan(ShapeObj *shape)
+        : m_centre_shape_for_angles(shape)
+    {
+
+    }
+
+    bool operator()(const ShapeObj *t, const ShapeObj *u)
+    {
+        ShapeObj *s = m_centre_shape_for_angles;
+        double sx = s->centrePos().x(), sy = s->centrePos().y();
+        double tx = t->centrePos().x(), ty = t->centrePos().y();
+        double ux = u->centrePos().x(), uy = u->centrePos().y();
+        double tAngle = atan2(ty-sy,tx-sx), uAngle = atan2(uy-sy,ux-sx);
+        return tAngle < uAngle;
+    }
+private:
+    ShapeObj *m_centre_shape_for_angles;
+};
+
+
 double Canvas::computeOrthoObjective()
 {
     // Build a LineSegment for each Connector.
@@ -4867,15 +4913,20 @@ double Canvas::computeOrthoObjective()
 
 
     // Angular resolution score
+    computeNeighbourhoods();
     double angres = 0;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
         {
             QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
-            // Sort nbrs by angle
-            // TODO
             int n = nbrs.size();
+            qDebug() << "Shape" << s->internalId() << "has" << n << "nbrs.";
+            if (n<2) continue;
+            // Sort nbrs by angle
+            NeighbourAngleLessThan compare(s);
+            qSort(nbrs.begin(), nbrs.end(), compare);
+
             double ideal = 2*3.1415926/n;
             for (int i = 0; i < n; i++) {
                 ShapeObj *t = nbrs.at(i);
@@ -4883,14 +4934,15 @@ double Canvas::computeOrthoObjective()
                 double sx = s->centrePos().x(), sy = s->centrePos().y();
                 double tx = t->centrePos().x(), ty = t->centrePos().y();
                 double ux = u->centrePos().x(), uy = u->centrePos().y();
-                double cos1 = (tx-sx)/sqrt( (tx-sx)*(tx-sx) + (ty-sy)*(ty-sy) );
-                double sin1 = sqrt(1-cos1*cos1);
-                double x=cos1*(ux-sx)+sin1*(uy-sy), y=cos1*(uy-sy)-sin1*(ux-sx);
-                double theta = atan2(y,x);
+                double vx = tx-sx, vy = ty-sy;
+                double wx = ux-sx, wy = uy-sy;
+                double c = (vx*wx+vy*wy)/( sqrt(vx*vx+vy*vy)*sqrt(wx*wx+wy*wy) );
+                double theta = acos(c);
                 angres += fabs(theta-ideal);
             }
         }
     }
+    qDebug() << "Angular resolution score:" << angres;
 
 
     // Clean up
@@ -4904,11 +4956,6 @@ double Canvas::computeOrthoObjective()
     emit newOrthoGoalBarValue( (int)(round(score)) );
     m_most_recent_ortho_obj_func = score;
     return score;
-}
-
-bool Canvas::neighbourAngleLessThan(ShapeObj *a, ShapeObj *b)
-{
-    return false;
 }
 
 void Canvas::arrangePendants()
