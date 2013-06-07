@@ -93,7 +93,7 @@ class LayoutThread : public QThread
 GraphLayout::GraphLayout(Canvas *canvas) 
     : mode(ORGANIC),
       optimizationMethod(MAJORIZATION),
-      graph_layout_iterations(10),
+      graph_layout_iterations(40),
       runLevel(0),
       topologyNodesCount(10000),
       m_canvas(canvas),
@@ -859,7 +859,7 @@ public:
 
         if(unsatisfiedConstraintsExist) return true;
         //printf("Stress=%f\n",new_stress);
-        //SDL_Delay(3000);
+        setMaxIterations((gl.m_canvas->tryingAlignments()) ? 3 : gl.graph_layout_iterations);
         bool converged = TestConvergence::operator()(new_stress,X,Y);
         /*
         if(iterations<10) { // sometimes layout stops too early without this

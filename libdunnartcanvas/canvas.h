@@ -332,6 +332,10 @@ class Canvas : public QGraphicsScene
                 const bool calculatePosition = false);
         void exportDiagramToFile(QString filename);
         void paperExport(QString diagram, QString type, int actions = 1);
+        bool tryingAlignments(void) const
+        {
+            return m_trying_alignments;
+        }
 
         bool gd2013_batch_mode;
         uint gd2013_step;
