@@ -2553,8 +2553,8 @@ void Canvas::actionFinished(void)
             {
                 return;
             }
-            setOptAutomaticGraphLayout(true);
             m_action_timer.start();
+            setOptAutomaticGraphLayout(true);
         }
         else if (gd2013_step == 2)
         {
@@ -2563,7 +2563,7 @@ void Canvas::actionFinished(void)
         else if (gd2013_step == 3)
         {
             QFileInfo file(filename());
-            paperExport(file.completeBaseName(), "fd", 3);
+            paperExport(file.completeBaseName(), "fd", 2);
             setOptGridSnap(true);
             setOptSnapStrengthModifier(150.0);
             m_action_timer.start();

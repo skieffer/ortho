@@ -199,6 +199,11 @@ public:
         : tolerance(tol),
           maxiterations(maxiterations)
     { reset(); }
+    void setMaxIterations(const unsigned maxits)
+    {
+        maxiterations = maxits;
+    }
+
     virtual ~TestConvergence() {}
 
 public:
@@ -226,7 +231,7 @@ public:
         iterations = 0;
     }
     const double tolerance;
-    const unsigned maxiterations;
+    unsigned maxiterations;
     unsigned iterations;
 };
 
