@@ -210,11 +210,12 @@ Canvas::Canvas()
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
       m_animation_group(NULL),
       m_bclayout(NULL),
-      m_why_is_it_triggered_twice(true),
-      m_trying_alignments(false),
-      m_max_align_tries(180),
-      m_num_align_tries(0),
-      m_align_pairs_tried(NULL),
+      //m_why_is_it_triggered_twice(true),
+      //m_trying_alignments(false),
+      //m_max_align_tries(180),
+      //m_num_align_tries(0),
+      //m_align_pairs_tried(NULL),
+      /*
       m_most_recent_stress(0),
       m_most_recent_ortho_obj_func(0),
       m_most_recent_crossing_count(0),
@@ -224,6 +225,7 @@ Canvas::Canvas()
       m_apply_alignments_epsilon(-DBL_MAX),
       m_opt_draw_separation_indicators(true),
       m_opt_edge_node_repulsion(false),
+            */
       m_tentative_guideline_timestamp(0)
 {
     m_ideal_connector_length = 100;
