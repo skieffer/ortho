@@ -33,7 +33,7 @@ CONFIG(debug, release|debug) {
 	DEFINES *= NDEBUG
 	macx {
 		# QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.5.sdk
-		CONFIG += x86_64 x86
+		CONFIG += x86_64
 	}
 }
 
@@ -44,7 +44,9 @@ CONFIG(noassertions) {
 QMAKE_CXXFLAGS_RELEASE -= -Os -O2
 QMAKE_CXXFLAGS_RELEASE += -O3
 
-QMAKE_CXXFLAGS_DEBUG += -O0
+# QMAKE_CXXFLAGS_DEBUG += -O0
+# QMAKE_CXXFLAGS_DEBUG += -O1 -fsanitize=address -fno-omit-frame-pointer -g
+# QMAKE_LFLAGS_DEBUG += -O1 -fsanitize=address -fno-omit-frame-pointer -g
 
 contains(TEMPLATE, lib) {
   macx {

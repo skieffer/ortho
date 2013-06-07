@@ -13,7 +13,7 @@ include(../application_plugin_options.pri)
 
 PKGCONFIG += libsbml
 
-
+LIBS += -L$$DESTDIR -logdf
 
 HEADERS += findBranchesDialog.h \
            freepathway.h \

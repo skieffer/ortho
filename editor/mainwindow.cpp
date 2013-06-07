@@ -562,63 +562,7 @@ void MainWindow::documentExport(void)
         return;
     }
 
-    QFileInfo file(filename);
-    if (file.suffix() == "svg")
-    {
-        QSvgGenerator generator;
-        generator.setFileName(filename);
-
-        generator.setSize(currCanvas->pageRect().size().toSize());
-        QRectF targetRect(QPointF(0, 0), QSizeF(currCanvas->sceneRect().size()));
-
-        QRectF viewbox(currCanvas->pageRect().topLeft() -
-                currCanvas->sceneRect().topLeft(),
-                currCanvas->pageRect().size());
-        generator.setViewBox(viewbox);
-
-        generator.setTitle(QFileInfo(filename).fileName());
-        generator.setDescription(tr("This file was exported from Dunnart.  "
-                                    "http://www.dunnart.org/"));
-
-        QPainter painter;
-        if (painter.begin(&generator))
-        {
-            painter.setRenderHint(QPainter::Antialiasing);
-            currCanvas->setRenderingForPrinting(true);
-            currCanvas->render(&painter, targetRect,
-                    currCanvas->sceneRect(),
-                    Qt::IgnoreAspectRatio);
-            currCanvas->setRenderingForPrinting(false);
-
-            painter.end();
-        }
-        else
-        {
-            qDebug("Export SVG painter failed to begin.");
-        }
-    }
-    else
-    {
-        // Use QPrinter for PDF and PS.
-        QPrinter printer;
-        printer.setOutputFileName(filename);
-        printer.setPaperSize(currCanvas->pageRect().size(),
-                QPrinter::Millimeter);
-        QPainter painter;
-        if (painter.begin(&printer))
-        {
-            painter.setRenderHint(QPainter::Antialiasing);
-            currCanvas->setRenderingForPrinting(true);
-            currCanvas->render(&painter, QRectF(),
-                    currCanvas->pageRect().adjusted(+3, +3, -3, -3),
-                    Qt::IgnoreAspectRatio);
-            currCanvas->setRenderingForPrinting(false);
-        }
-        else
-        {
-            qDebug("Export PDF/PS painter failed to begin.");
-        }
-    }
+    currCanvas->exportDiagramToFile(filename);
 }
 
 void MainWindow::documentPrint(void)

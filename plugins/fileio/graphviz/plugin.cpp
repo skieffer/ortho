@@ -274,7 +274,7 @@ class GraphvizFileIOPlugin : public QObject, public FileIOPluginInterface
                         }
                     }
                     newConn->setDirected(directed);
-
+#if 0
                     char *len = agget(e, (char *) "len");
                     if (len)
                     {
@@ -285,7 +285,7 @@ class GraphvizFileIOPlugin : public QObject, public FileIOPluginInterface
                         // neato default 1.0
                         newConn->setIdealLength(1.0 * dpi);
                     }
-
+#endif
                     canvas->addItem(newConn);
                 }
             }

@@ -330,8 +330,17 @@ class Canvas : public QGraphicsScene
         bool forceOrthogonalConnectors(void) const;
         void repositionAndShowSelectionResizeHandles(
                 const bool calculatePosition = false);
+        void exportDiagramToFile(QString filename);
+        void paperExport(QString diagram, QString type, int actions = 1);
+
+        bool gd2013_batch_mode;
+        uint gd2013_step;
+        uint gd2013_type;
+        QTimer *m_action_finished_timer;
+        QElapsedTimer m_action_timer;
 
     public slots:
+        void actionFinished(void);
         void bringToFront(void);
         void sendToBack(void);
         void deselectAll(void);
@@ -500,6 +509,7 @@ class Canvas : public QGraphicsScene
                               Dimension dim, qreal tolerance=1.0);
         void getRestrConnComp(QMap<ShapeObj*,ShapeObj*> nbrs, ShapeObj *sh,
                               QSet<ShapeObj*> &R, QSet<ShapeObj*> &C);
+
 
         double m_visual_page_buffer;
         QString m_filename;

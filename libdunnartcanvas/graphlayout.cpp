@@ -956,7 +956,7 @@ bool GraphLayout::doRejection() {
 
         ConstraintRejectedEvent *cre = new ConstraintRejectedEvent();
         cre->m_guideline = gl;
-        QCoreApplication::postEvent(m_canvas, cre, Qt::HighEventPriority);
+        QCoreApplication::postEvent(m_canvas, cre, Qt::LowEventPriority);
         rejected = true;
     }
     return rejected;
