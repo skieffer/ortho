@@ -155,6 +155,7 @@ class GraphvizFileIOPlugin : public QObject, public FileIOPluginInterface
 
             Agraph_t *g = agread(fp, NULL);
 
+            uint nodeCount = 0;
             Agnode_t *v;
             QMap<QString, dunnart::ShapeObj *> nodeShapeMap;
             std::set<Agedge_t *, CmpEdges> processedEdges;
@@ -208,6 +209,15 @@ class GraphvizFileIOPlugin : public QObject, public FileIOPluginInterface
                         // TODO Do something with Z value.
                     }
                 }
+                else
+                {
+                    x = nodeCount;
+                    y = nodeCount;
+                    if ((nodeCount % 4) < 2)
+                        x *= -1;
+                    if ((nodeCount % 2) == 1)
+                        y *= -1;
+                }
 
                 // Look for and process width and height properties.
                 char *widthStr = agget(v, (char *) "width");
@@ -245,8 +255,8 @@ class GraphvizFileIOPlugin : public QObject, public FileIOPluginInterface
                 nodeShapeMap[QString(agnameof(v))] = newShape;
 
                 canvas->addItem(newShape);
+                ++nodeCount;
             }
-
             Agedge_t *e;
             for (v = agfstnode(g); v; v = agnxtnode(g,v))
             {
