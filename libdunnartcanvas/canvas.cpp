@@ -4747,7 +4747,7 @@ double Canvas::computeStress()
     }
 
     //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
-    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+    shortest_paths::johnsons(n,D,es,&eLengths);
 
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -4817,7 +4817,7 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
     }
 
     //shortest_paths::johnsons(n,D,es,&eLengths); // Getting weird crash on this one.
-    shortest_paths::floyd_warshall(n,D,es,&eLengths);
+    shortest_paths::johnsons(n,D,es,&eLengths);
 
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -5168,7 +5168,7 @@ double Canvas::computeOrthoObjective()
         {
             QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
             int n = nbrs.size();
-            qDebug() << "Shape" << s->internalId() << "has" << n << "nbrs.";
+            //qDebug() << "Shape" << s->internalId() << "has" << n << "nbrs.";
             if (n<2) continue;
             // Sort nbrs by angle
             NeighbourAngleLessThan compare(s);
