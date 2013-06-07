@@ -4966,8 +4966,9 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         ad->goalDelta = -inc;
 #endif
 
-#define chainsFirst
-#ifdef  chainsFirst
+#define bendPointPenalty
+#define SBGN
+#ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
         int npd2 = nonPendantDegree(conn->getAttachedShapes().second);
@@ -4987,10 +4988,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         if (npd2==2) {
             if (dim==HORIZ && numVAligns(s2)>0 || dim==VERT && numHAligns(s2)>0) ad->goalDelta += 1000;
         }
-#endif
-
-//#define bendPointPenalty
-#ifdef  bendPointPenalty
+#else
         // Would this alignment make either endpoint into a degree-2 bend point?
         if (inc1==2) {
             if (dim==HORIZ && numVAligns(s1)>0 || dim==VERT && numHAligns(s1)>0) ad->goalDelta += 1000;
