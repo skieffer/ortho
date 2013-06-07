@@ -2610,23 +2610,19 @@ void Canvas::actionFinished(void)
         {
             setOptAutomaticGraphLayout(true);
         }
-         else if (gd2013_step == 2)
-        {
-            setOptPreventOverlaps(true);
-        }
-        else if (gd2013_step == 3)
+        else if (gd2013_step == 2)
         {
             initTryAlignments();
             m_action_timer.start();
         }
-        else if (gd2013_step == 4)
+        else if (gd2013_step == 3)
         {
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "aca");
             setOptGridSnap(true);
             m_action_timer.start();
         }
-        else if (gd2013_step == 5)
+        else if (gd2013_step == 4)
         {
             QFileInfo file(filename());
             paperExport(file.completeBaseName(), "aca+grid");
