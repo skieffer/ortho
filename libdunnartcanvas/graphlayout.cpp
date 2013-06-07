@@ -99,7 +99,6 @@ GraphLayout::GraphLayout(Canvas *canvas)
       m_canvas(canvas),
       m_graph(NULL),
       m_is_running(false),
-      retPositionsHandled(true),
       outputDebugFiles(false),
       positionChangesFromDunnart(false),
       interruptFromDunnart(true),
@@ -278,13 +277,7 @@ struct ShapePosInfo : PosInfo {
             //qDebug("Moving shape: (%g,%g)  %g\n", centreX, centreY,
             //        diff.manhattanLength());
 
-            // Do shape movement as an animation.
-            ShapePositionAnimation *animation =
-                    new ShapePositionAnimation(shapePtr);
-            animation->setDuration(ANIMATION_DURATION);
-            animation->setStartValue(shapePtr->centrePos());
-            animation->setEndValue(shapeRect.center());
-            canvas->m_animation_group->addAnimation(animation);
+            shapePtr->CanvasItem::setPos(shapeRect.center());
         }
     }
     void fixGraphLayoutPosition(GraphData*, cola::Locks&, cola::Resizes&);
@@ -593,7 +586,6 @@ void GraphLayout::setInterruptFromDunnart(void)
     // invalid CanvasItems.
     m_return_positions_mutex.lock();
     clearReturnPosInfos();
-    retPositionsHandled = true;
     m_canvas->m_animation_group->clear();
     m_return_positions_mutex.unlock();
 }
@@ -726,26 +718,15 @@ public:
                 valarray<double> & X, valarray<double> & Y)
     {
         gl.m_canvas->updateStress(new_stress);
-        bool ready = false;
-        
-        while (!ready)
-        {
-            gl.m_return_positions_mutex.lock();
-            ready = gl.retPositionsHandled;
-            gl.m_return_positions_mutex.unlock();
-
-            gl.m_layout_signal_mutex.lock();
-            bool finish = gl.askedToFinish;
-            gl.m_layout_signal_mutex.unlock();
-            if (finish)
-            {
-                return true;
-            }
-        }
 
         gl.m_layout_signal_mutex.lock();
         bool interrupt = gl.interruptFromDunnart | gl.freeShiftFromDunnart;
+        bool finish = gl.askedToFinish;
         gl.m_layout_signal_mutex.unlock();
+        if (finish)
+        {
+            return true;
+        }
         if(interrupt||gl.restartFromDunnart) {
             reset();
         }
@@ -763,13 +744,25 @@ public:
         }
 
         gl.m_return_positions_mutex.lock();
-        gl.clearReturnPosInfos();
+        Q_ASSERT(gl.returnPosInfosList.size() > 0);
+        if (gl.returnPosInfosList.size() <= 3)
+        {
+            gl.returnPosInfosList.push_back(PosInfos());
+        }
+        else
+        {
+            PosInfos& returnPositions = gl.returnPosInfosList.back();
+            for_each(returnPositions.begin(), returnPositions.end(), delete_object());
+            returnPositions.clear();
+        }
+        PosInfos &returnPositions = gl.returnPosInfosList.back();
+        gl.m_return_positions_mutex.unlock();
         for (unsigned i = 0; i < n; i++) {
             ShapeObj* shape = gl.m_graph->getShape(i);
             if (shape && (gl.fixedShapeLookup.find(shape) == 
                           gl.fixedShapeLookup.end())) 
             {
-                gl.retPositions.push_back(
+                returnPositions.push_back(
                         new ShapePosInfo(shape, X[i], Y[i]));
             }
         }
@@ -791,7 +784,7 @@ public:
                 pbY = pc->getActualRightMargin(vpsc::VERTICAL);
             }
             if(PosInfo* pi = returnPosInfoFactory(c)) {
-                gl.retPositions.push_back(pi);
+                returnPositions.push_back(pi);
             }
         }
         bool unsatisfiedConstraintsExist=false;
@@ -810,7 +803,7 @@ public:
         }
         gl.unsatisfiableY.clear();
         if(pageBoundChange) {
-            gl.retPositions.push_back(
+            returnPositions.push_back(
                     new PageBoundsPosInfo(pbx,pbX,pby,pbY));
         }
 
@@ -824,16 +817,16 @@ public:
                 assert(e->lastSegment->end->node->id
                         <gl.m_graph->topologyNodesCount);
                 if(!e->cycle()) {
-                    gl.retPositions.push_back( new
+                    returnPositions.push_back( new
                             ConnPosInfo(gl.m_graph,
                                 (Connector*)gl.m_graph->conn_vec[e->id], e));
                 } else {
                     Cluster* c=gl.m_graph->dunnartClusters[e->id];
-                    gl.retPositions.push_back( new ClusterPosInfo(gl, c, e) );
+                    returnPositions.push_back( new ClusterPosInfo(gl, c, e) );
                 }
                 //for(unsigned j=0;j<gl.graph->topologyRoutes[i]->debugLines.size();j++) {
                     //straightener::DebugLine &l=gl.graph->topologyRoutes[i]->debugLines[j];
-                    //gl.retPositions.push_back(
+                    //returnPositions.push_back(
                             //new TraceLinePosInfo(l.x0,l.y0,l.x1,l.y1,l.colour));
                 //}
                 //gl.graph->topologyRoutes[i]->debugLines.clear();
@@ -843,7 +836,7 @@ public:
                 Cluster* c = gl.m_graph->dunnartClusters[i];
                 if (c && c->rectangular)
                 {
-                    gl.retPositions.push_back( new ClusterPosInfo(c) );
+                    returnPositions.push_back( new ClusterPosInfo(c) );
                 }
             }
             if (gl.m_canvas->optPreserveTopology())
@@ -853,7 +846,7 @@ public:
                     unsigned u=e.first, v=e.second;
                     if(u>=gl.m_graph->topologyNodesCount
                        ||v>=gl.m_graph->topologyNodesCount) {
-                        gl.retPositions.push_back( new
+                        returnPositions.push_back( new
                             ConnPosInfo(gl.m_graph,
                                 (Connector*)gl.m_graph->conn_vec[i], e,
                                 X[u],Y[u],X[v],Y[v]));
@@ -861,7 +854,6 @@ public:
                 }
             }
         } 
-        gl.m_return_positions_mutex.unlock();
         QCoreApplication::postEvent(gl.m_canvas, new LayoutUpdateEvent(),
                 Qt::LowEventPriority);
 
@@ -964,7 +956,7 @@ bool GraphLayout::doRejection() {
 
         ConstraintRejectedEvent *cre = new ConstraintRejectedEvent();
         cre->m_guideline = gl;
-        QCoreApplication::postEvent(m_canvas, cre, Qt::HighEventPriority);
+        QCoreApplication::postEvent(m_canvas, cre, Qt::LowEventPriority);
         rejected = true;
     }
     return rejected;
@@ -1025,17 +1017,22 @@ struct CmpPosInfoPtrs
 /**
  * called by the GUI thread to handle changes in position of objects from the layout thread
  */
-int GraphLayout::processReturnPositions()
+bool GraphLayout::processReturnPositions()
 {
     PosInfos returnPositions;
 
+    returnPositions = returnPosInfosList.front();
     m_return_positions_mutex.lock();
-    returnPositions = retPositions;
-    retPositions.clear();
-    retPositionsHandled = true;
+    if (returnPosInfosList.size() < 2)
+    {
+        m_return_positions_mutex.unlock();
+        return false;
+    }
+    returnPosInfosList.pop_front();
+    //qDebug() << "Events " << retPositions.size();
     m_return_positions_mutex.unlock();
 
-    int movesCount = returnPositions.size();
+
     //qDebug() << "processReturnPositions: retPositions.size() = " <<
     //        returnPositions.size();
     returnPositions.sort(CmpPosInfoPtrs());
@@ -1067,16 +1064,9 @@ int GraphLayout::processReturnPositions()
     }
     m_canvas->m_processing_layout_updates = false;
 
-    // Finish every animation step off with ObjectsRepositionedAnimation
-    // which can be used to redraw connectors.  Then start the animation.
-    ObjectsRepositionedAnimation *animation =
-            new ObjectsRepositionedAnimation(m_canvas);
-    m_canvas->m_animation_group->addAnimation(animation);
-    m_canvas->m_animation_group->start();
-
     ConstraintDebug("********END***********\n\n");
     //redraw_connectors(m_canvas);
-    return movesCount;
+    return true;
 }
 
 
@@ -1090,10 +1080,18 @@ void GraphLayout::lockShape(ShapeObj* shape)
 
 void GraphLayout::clearReturnPosInfos(void)
 {
-    retPositionsHandled = false;
-    for_each(retPositions.begin(), retPositions.end(), delete_object());
-    retPositions.clear();
+    while (returnPosInfosList.size() > 1)
+    {
+        PosInfos& returnPositions = returnPosInfosList.back();
+        for_each(returnPositions.begin(), returnPositions.end(), delete_object());
+        returnPosInfosList.pop_back();
+    }
+
+    PosInfos& returnPositions = returnPosInfosList.front();
+    for_each(returnPositions.begin(), returnPositions.end(), delete_object());
+    returnPositions.clear();
 }
+
 
 void GraphLayout::addPinnedShapesToFixedList(void)
 {
@@ -1430,12 +1428,12 @@ void GraphLayout::showUnsatisfiable(cola::UnsatisfiableConstraintInfo* i)
     ShapeObj *s1 = m_graph->getShape(i->vlid);
     ShapeObj *s2 = m_graph->getShape(i->vrid);
     if(s1 && s2) {
-        retPositions.push_back(
+        returnPosInfosList.back().push_back(
                 new TraceLinePosInfo(
                     s1->centrePos(), s2->centrePos(), 0));
     }
     
-    retPositions.push_back(new ConflictPosInfo(s1, s2));
+    returnPosInfosList.back().push_back(new ConflictPosInfo(s1, s2));
 }
 
 ShapePosInfo *GraphLayout::makeShapePosInfo(ShapeObj *shape, double x, double y) {

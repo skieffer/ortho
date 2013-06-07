@@ -158,6 +158,10 @@ class SelectionResizeHandle : public Handle {
 
 Canvas::Canvas()
     : QGraphicsScene(),
+      gd2013_batch_mode(false),
+      gd2013_step(0),
+      gd2013_type(0),
+      m_action_finished_timer(NULL),
       m_visual_page_buffer(3.0),
       m_layout_update_timer(NULL),
       m_layout_finish_timer(NULL),
@@ -2283,7 +2287,10 @@ void Canvas::startLayoutUpdateTimer(void)
         connect(m_layout_update_timer, SIGNAL(timeout()), this,
                 SLOT(processLayoutUpdateEvent()));
     }
-    m_layout_update_timer->start(updateEventDelay);
+    if (!m_layout_update_timer->isActive())
+    {
+        m_layout_update_timer->start(updateEventDelay);
+    }
 }
 
 
@@ -2387,7 +2394,10 @@ void Canvas::updateConnectorsForLayout(void)
 
 void Canvas::processLayoutUpdateEvent(void)
 {
-    m_layout_update_timer->stop();
+    if (m_action_finished_timer)
+    {
+        m_action_finished_timer->start();
+    }
 
     //qDebug("LayoutUpdateEvent");
 #ifdef FPSTIMER
@@ -2406,12 +2416,25 @@ void Canvas::processLayoutUpdateEvent(void)
         }
     }
 
-    m_graphlayout->processReturnPositions();
+    bool success = m_graphlayout->processReturnPositions();
+    if (success == false)
+    {
+        // finished processing for the moment.
+        m_layout_update_timer->stop();
+    }
     updateConnectorsForLayout();
 
     //qDebug("processLayoutUpdateEvent %7d", ++layoutUpdates);
 }
 
+
+static QRectF expandRect(const QRectF& origRect, double amount)
+{
+    return (origRect.isEmpty()) ?
+            origRect : origRect.adjusted(-amount, -amount, amount, amount);
+}
+
+#define ACTION_TIMER_DELAY 500
 
 void Canvas::processLayoutFinishedEvent(void)
 {
@@ -2423,8 +2446,8 @@ void Canvas::processLayoutFinishedEvent(void)
     {
         double elapsedSecs = m_convergence_timer.elapsed() / 1000.0;
 
-        printf("************** Avg Framerate: %g\n", m_convergence_update_count / elapsedSecs);
-        printf("************** Time to converge: %g\n", elapsedSecs);
+        qDebug("************** Avg Framerate: %g\n", m_convergence_update_count / elapsedSecs);
+        qDebug("************** Time to converge: %g\n", elapsedSecs);
         m_convergence_update_count = 0;
         m_convergence_timer_running = false;
     }
@@ -2491,11 +2514,6 @@ void Canvas::processLayoutFinishedEvent(void)
         exit(EXIT_SUCCESS);
     }
 
-    if (!changes)
-    {
-        computeOrthoObjective();
-    }
-
     if (m_trying_alignments) {
 #define newApplyAlignments
 #ifdef newApplyAlignments
@@ -2504,8 +2522,241 @@ void Canvas::processLayoutFinishedEvent(void)
         tryAlignments();
 #endif
     }
+    else if (gd2013_batch_mode)
+    {
+        if (!m_action_finished_timer)
+        {
+            m_action_finished_timer = new QTimer(this);
+            connect(m_action_finished_timer, SIGNAL(timeout()), this,
+                    SLOT(actionFinished()));
+        }
+        m_action_finished_timer->start(ACTION_TIMER_DELAY);
+    }
 }
 
+void Canvas::actionFinished(void)
+{
+    m_action_finished_timer->stop();
+    ++gd2013_step;
+    qDebug() << "Type: " << gd2013_type << "  Step: " << gd2013_step;
+    if (gd2013_type == 1)
+    {
+        if (gd2013_step == 1)
+        {
+            // Clear the output file.
+            QFileInfo fileBase(filename());
+            QString outputFile = QString("/Users/mjwybrow/Desktop/Orthogonal-paper/%1.txt").arg(fileBase.completeBaseName());
+
+            QFile file(outputFile);
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            {
+                return;
+            }
+            setOptAutomaticGraphLayout(true);
+            setOptIdealEdgeLengthModifier(2.0);
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 2)
+        {
+            setOptPreventOverlaps(true);
+        }
+        else if (gd2013_step == 3)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "fd", 3);
+            setOptGridSnap(true);
+            setOptSnapStrengthModifier(150.0);
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 4)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "grid");
+            exit(0);
+        }
+    }
+    if (gd2013_type == 2)
+    {
+        if (gd2013_step == 1)
+        {
+            setOptAutomaticGraphLayout(true);
+            setOptIdealEdgeLengthModifier(2.0);
+        }
+        else if (gd2013_step == 2)
+        {
+            setOptPreventOverlaps(true);
+        }
+        else if (gd2013_step == 3)
+        {
+            setOptSnapTo(true);
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 4)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "node");
+            setOptGridSnap(true);
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 5)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "node+grid");
+            exit(0);
+        }
+    }
+    if (gd2013_type == 3)
+    {
+        if (gd2013_step == 1)
+        {
+            setOptAutomaticGraphLayout(true);
+            setOptIdealEdgeLengthModifier(2.0);
+        }
+        else if (gd2013_step == 2)
+        {
+            setOptPreventOverlaps(true);
+        }
+        else if (gd2013_step == 3)
+        {
+            initTryAlignments();
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 4)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "aca");
+            setOptGridSnap(true);
+            m_action_timer.start();
+        }
+        else if (gd2013_step == 5)
+        {
+            QFileInfo file(filename());
+            paperExport(file.completeBaseName(), "aca+grid");
+            exit(0);
+        }
+    }
+}
+
+void Canvas::paperExport(QString diagram, QString type, int actions)
+{
+    double elapsedSecs = (m_action_timer.elapsed() -
+            (ACTION_TIMER_DELAY * actions)) / 1000.0;
+
+    QString fileBase = QString("%1-%2").arg(diagram).arg(type);
+    setPageRect(
+            expandRect(diagramBoundingRect(
+                    items()), 8));
+    QString outputFile = QString("/Users/mjwybrow/Desktop/Orthogonal-paper/%1.pdf").arg(fileBase);
+    qDebug() << outputFile;
+//            saveDiagram("");
+    exportDiagramToFile(outputFile);
+    outputFile = QString("/Users/mjwybrow/Desktop/Orthogonal-paper/%1.svg").arg(fileBase);
+    saveDiagram(outputFile);
+
+    outputFile = QString("/Users/mjwybrow/Desktop/Orthogonal-paper/%1.txt").arg(diagram);
+    QFile file(outputFile);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text))
+    {
+        return;
+    }
+
+    uint nodes = 0;
+    uint edges = 0;
+
+    foreach (CanvasItem *item, items())
+    {
+        ShapeObj *node = dynamic_cast<ShapeObj *> (item);
+        Connector *edge = dynamic_cast<Connector *> (item);
+
+        if (node)
+        {
+            ++nodes;
+        }
+        else if (edge)
+        {
+            ++edges;
+        }
+    }
+
+    computeOrthoObjective();
+
+    QTextStream out(&file);
+#if 1
+    out << fileBase << ","
+        << nodes << ","
+        << edges << ","
+        << elapsedSecs << ","
+        << m_most_recent_stress << ","
+        << m_most_recent_coincidence_count << ","
+        << m_most_recent_crossing_count << ","
+        << m_most_recent_ortho_obj_func << "\n";
+#else
+    out << "\n" << fileBase << "\n\n";
+    out << "Nodes:\t\t" << nodes << "\n";
+    out << "Edges:\t\t" << edges << "\n";
+    out << "Time:\t\t" << elapsedSecs << "\n";
+    out << "Stress:\t\t" << m_most_recent_stress << "\n";
+    out << "Coincidences:\t" << m_most_recent_coincidence_count << "\n";
+    out << "Crossings:\t" << m_most_recent_crossing_count << "\n";
+    out << "Score:\t\t" << m_most_recent_ortho_obj_func << "\n";
+#endif
+}
+
+void Canvas::exportDiagramToFile(QString filename)
+{
+    QFileInfo file(filename);
+    if (file.suffix() == "svg")
+    {
+        QSvgGenerator generator;
+        generator.setFileName(filename);
+
+        generator.setSize(pageRect().size().toSize());
+        QRectF targetRect(QPointF(0, 0), QSizeF(sceneRect().size()));
+
+        QRectF viewbox(pageRect().topLeft() - sceneRect().topLeft(),
+                pageRect().size());
+        generator.setViewBox(viewbox);
+
+        generator.setTitle(QFileInfo(filename).fileName());
+        generator.setDescription(tr("This file was exported from Dunnart.  "
+                                    "http://www.dunnart.org/"));
+
+        QPainter painter;
+        if (painter.begin(&generator))
+        {
+            painter.setRenderHint(QPainter::Antialiasing);
+            setRenderingForPrinting(true);
+            render(&painter, targetRect, sceneRect(), Qt::IgnoreAspectRatio);
+            setRenderingForPrinting(false);
+
+            painter.end();
+        }
+        else
+        {
+            qDebug("Export SVG painter failed to begin.");
+        }
+    }
+    else
+    {
+        // Use QPrinter for PDF and PS.
+        QPrinter printer;
+        printer.setOutputFileName(filename);
+        printer.setPaperSize(pageRect().size(), QPrinter::Millimeter);
+        QPainter painter;
+        if (painter.begin(&printer))
+        {
+            painter.setRenderHint(QPainter::Antialiasing);
+            setRenderingForPrinting(true);
+            render(&painter, QRectF(), pageRect().adjusted(+3, +3, -3, -3),
+                    Qt::IgnoreAspectRatio);
+            setRenderingForPrinting(false);
+        }
+        else
+        {
+            qDebug("Export PDF/PS painter failed to begin.");
+        }
+    }
+}
 
 QSvgRenderer *Canvas::svgRenderer(void) const
 {

@@ -173,7 +173,7 @@ public:
     void initialise(void);
     //! called by GUI thread to update object positions in handling
     //  USEREVENT_LAYOUT_UPDATES event
-    int processReturnPositions(void);
+    bool processReturnPositions(void);
     //! choose layout mode (default is ORGANIC)
     void setLayoutMode(Mode newMode);
     //! choose optimization method (default is MAJORIZATION)
@@ -197,9 +197,8 @@ private:
     GraphData *m_graph;
     bool m_is_running;
     // The following are lists of PosInfo used to communicate between the GUI
-    PosInfos retPositions;
+    std::list<PosInfos> returnPosInfosList;
     PosInfos fixedPositions;
-    bool retPositionsHandled;
     bool outputDebugFiles;
     // The following control IPC between layout and GUI threads
     QMutex m_return_positions_mutex;

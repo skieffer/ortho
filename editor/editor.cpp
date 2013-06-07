@@ -74,7 +74,8 @@ int main(int argc, char *argv[])
     namespaces.setPrefix("xlink", "http://www.w3.org/1999/xlink");
 
     bool save_svg_and_exit = false;
-
+    bool gd2013 = false;
+    uint gd2013_type = 0;
     MainWindow window(&app);
 
     QIcon appIcon(":/resources/nuvola_icons/kfig.png");
@@ -82,13 +83,14 @@ int main(int argc, char *argv[])
     window.setWindowIcon(appIcon);
 
     int c = -1;
-    char args[] = "bhvw:xyz:";
+    char args[] = "b:hvw:xyz:";
     while ((c = mj_getopt(argc, argv, args)) != -1)
     {
         switch (c)
         {
             case 'b':
-                //QT window.canvas()->m_batch_diagram_layout = true;
+                gd2013 = true;
+                gd2013_type = atoi(mj_optarg);
                 break;
             case 'x':
                 save_svg_and_exit = true;
@@ -131,6 +133,8 @@ int main(int argc, char *argv[])
         int o = mj_optind;
         
         window.loadDiagram(QString(argv[o]));
+        window.canvas()->gd2013_batch_mode = true;
+        window.canvas()->gd2013_type = gd2013_type;
         ++mj_optind;
         ++diagrams;
     }
