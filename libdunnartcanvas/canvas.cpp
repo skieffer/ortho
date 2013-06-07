@@ -209,7 +209,24 @@ Canvas::Canvas()
       m_canvas_font(NULL),
       m_canvas_font_size(DEFAULT_CANVAS_FONT_SIZE),
       m_animation_group(NULL),
-      m_bclayout(NULL)
+      m_bclayout(NULL),
+      //m_why_is_it_triggered_twice(true),
+      //m_trying_alignments(false),
+      //m_max_align_tries(180),
+      //m_num_align_tries(0),
+      //m_align_pairs_tried(NULL),
+      /*
+      m_most_recent_stress(0),
+      m_most_recent_ortho_obj_func(0),
+      m_most_recent_crossing_count(0),
+      m_most_recent_coincidence_count(0),
+      m_stress_bar_maximum(5000),
+      m_obliquity_bar_maximum(5000),
+      m_apply_alignments_epsilon(-DBL_MAX),
+      m_opt_draw_separation_indicators(true),
+      m_opt_edge_node_repulsion(false),
+            */
+      m_tentative_guideline_timestamp(0)
 {
     m_ideal_connector_length = 100;
     m_flow_separation_modifier = 0.5;
@@ -569,7 +586,7 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
 {
     if ( m_rendering_for_printing )
     {
-        // Don't draw any background at all.
+        if (m_opt_grid_snap) drawGridLines(painter, rect);
         return;
     }
 
@@ -587,33 +604,36 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
     painter->drawRect(m_expanded_page);
 
     // Draw snap grid lines
-    if (m_opt_grid_snap) {
-        QPen pen;
-        pen.setColor(QColor(128,128,128,64));
-        painter->setPen(pen);
+    if (m_opt_grid_snap) drawGridLines(painter, rect);
+}
 
-        double W = m_opt_snap_grid_width;
-        double H = m_opt_snap_grid_height;
+void Canvas::drawGridLines(QPainter *painter, const QRectF &rect)
+{
+    QPen pen;
+    pen.setColor(QColor(128,128,128,64));
+    painter->setPen(pen);
 
-        int n0 = ceil(rect.left()/W);
-        int n1 = floor(rect.right()/W);
-        int n = n1 - n0 + 1;
-        double x = n0*W;
+    double W = m_opt_snap_grid_width;
+    double H = m_opt_snap_grid_height;
 
-        for (int j = 0; j < n; j++) {
-            painter->drawLine(x,rect.top(),x,rect.bottom());
-            x += W;
-        }
+    int n0 = ceil(rect.left()/W);
+    int n1 = floor(rect.right()/W);
+    int n = n1 - n0 + 1;
+    double x = n0*W;
 
-        int m0 = ceil(rect.top()/H);
-        int m1 = floor(rect.bottom()/H);
-        int m = m1 - m0 + 1;
-        double y = m0*H;
+    for (int j = 0; j < n; j++) {
+        painter->drawLine(x,rect.top(),x,rect.bottom());
+        x += W;
+    }
 
-        for (int i = 0; i < m; i++) {
-            painter->drawLine(rect.left(),y,rect.right(),y);
-            y += H;
-        }
+    int m0 = ceil(rect.top()/H);
+    int m1 = floor(rect.bottom()/H);
+    int m = m1 - m0 + 1;
+    double y = m0*H;
+
+    for (int i = 0; i < m; i++) {
+        painter->drawLine(rect.left(),y,rect.right(),y);
+        y += H;
     }
 }
 
@@ -956,7 +976,9 @@ void Canvas::customEvent(QEvent *event)
     {
         qDebug() << "Received ConstraintRejectedEvent.";
         ConstraintRejectedEvent *cre = dynamic_cast<ConstraintRejectedEvent *> (event);
-        if (m_rejecting_alignments) {
+        if (cre->m_unsat) {
+            appliedAlignmentWasUnsat(cre);
+        } else if (m_rejecting_alignments) {
             rejectAlignmentsCallback(cre);
         } else {
             Guideline *gdln = cre->m_guideline;
@@ -3799,6 +3821,7 @@ void Canvas::initTryAlignments()
     m_shapes_by_id.clear();
     setOptRelax(false);
     QList<Connector*> conns;
+    QList<Guideline*> guidelines;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *shape = dynamic_cast<ShapeObj*>(item))
@@ -3806,11 +3829,12 @@ void Canvas::initTryAlignments()
             uint id = shape->internalId();
             maxID = qMax(id, maxID);
             m_shapes_by_id.insert(id,shape);
-
+#if 0
             // Debugging, change shape labels to be IDs.
             QString label;
             label.setNum(id);
             shape->setLabel(label);
+#endif
         }
         else if (Connector *conn = dynamic_cast<Connector*>(item))
         {
@@ -3818,6 +3842,10 @@ void Canvas::initTryAlignments()
             QPair<ShapeObj*, ShapeObj*> endpts = conn->getAttachedShapes();
             m_align_nbrs.insertMulti(endpts.first,endpts.second);
             m_align_nbrs.insertMulti(endpts.second,endpts.first);
+        }
+        else if (Guideline *g = dynamic_cast<Guideline*>(item))
+        {
+            guidelines.append(g);
         }
     }
     maxID++; // increment, so IDs themselves can be used as indices into array
@@ -3847,6 +3875,25 @@ void Canvas::initTryAlignments()
         int sID = s->internalId(), tID = t->internalId();
         m_alignment_state(sID,tID) = Connected;
         m_alignment_state(tID,sID) = Connected;
+    }
+    foreach (Guideline *gl, guidelines) {
+        AlignmentFlags af = gl->get_dir()==GUIDE_TYPE_VERT ? Vertical : Horizontal;
+        CanvasItemSet objSet;
+        gl->addAttachedShapesToSet(objSet);
+        QList<CanvasItem*> items = objSet.toList();
+        int n = items.size();
+        for (int i = 0; i+1 < n; i++) {
+            ShapeObj *s = dynamic_cast<ShapeObj*>(items.at(i));
+            if (!s) continue;
+            int sID = s->internalId();
+            for (int j = i+1; j<n; j++) {
+                ShapeObj *t = dynamic_cast<ShapeObj*>(items.at(j));
+                if (!t) continue;
+                int tID = t->internalId();
+                m_alignment_state(sID,tID) |= af;
+                m_alignment_state(tID,sID) |= af;
+            }
+        }
     }
     m_num_align_tries = 0;
     m_max_actual_dG = -DBL_MAX;
@@ -4032,6 +4079,9 @@ void Canvas::applyAlignments()
         atypes at = a->dim==VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
         Guideline *gdln = createAlignment(at,items);
         gdln->setTentative(true);
+        long timestamp = ++m_tentative_guideline_timestamp;
+        qDebug() << "created guideline number" << timestamp;
+        gdln->setTimestamp(timestamp);
         //qDebug() << "Trying alignment...";
         fully_restart_graph_layout();
     } else {
@@ -4040,6 +4090,30 @@ void Canvas::applyAlignments()
         TrialAlignmentEvent *tae = new TrialAlignmentEvent(1);
         QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
     }
+}
+
+void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
+{
+    // TODO: cre now has m_shape field pointing to the specific
+    // ShapeObj on the Guideline whose alignment constraint was rejected,
+    // so we should try just removing this shape from the guideline.
+    /* Refer to ShapeObj::buildAndExecContextMenu on this.
+      Looks like we need to figure out which Relationship object in
+      the ShapeObj's rels array corresponds to this Guideline, and then
+      call that Relationship's deactivate() method.
+      */
+    ShapeObj *shape = cre->m_shape;
+    Guideline *reject = cre->m_guideline;
+    qDebug() << "Found UNSAT tentative constraint.";
+    qDebug() << "Guideline:" << reject->idString() << "Shape:" << shape->idString();
+    // Delete guideline.
+    stop_graph_layout();
+    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+    CanvasItemSet dummySet;
+    reject->deactivateAll(dummySet);
+    QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
+    undoMacro->addCommand(cmd);
+    fully_restart_graph_layout();
 }
 
 void Canvas::applyAlignmentsCallback()
@@ -4066,7 +4140,7 @@ void Canvas::applyAlignmentsCallback()
 
 void Canvas::initRejectAlignments()
 {
-#define doRejectionPhase
+//#define doRejectionPhase
 #ifdef  doRejectionPhase
     qDebug() << "Rejecting alignments...";
     setOptRelaxThresholdModifier(0);
@@ -4320,7 +4394,8 @@ double LineSegment::obliquityScore()
     if (a<=t || a>=90-t) return 0;
     // Else base score on distance from 45 deg.
     double d = fabs(a-45); // 0 <= d <= 45-t
-    return 1 + d;
+    double deg45_cost = 1;
+    return deg45_cost + d;
 
 }
 
@@ -4576,10 +4651,14 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
 */
 void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 {
+    // First compute predicted change in stress.
     predictStressChange(ads);
+    // Now consider other predictions.
     foreach (AlignDesc *ad, ads) {
         Connector *conn = ad->connector;
         Dimension dim   = ad->dim;
+        ShapeObj *s1    = conn->getAttachedShapes().first;
+        ShapeObj *s2    = conn->getAttachedShapes().second;
 
         // Would it create a coincidence?
         if (predictCoincidence(conn,dim)) {
@@ -4590,6 +4669,11 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
         // Obliquity change
         LineSegment seg(conn);
         double dOb = -seg.obliquityScore();
+
+        // Incidence score
+        int inc1 = m_align_nbrs.values(s1).size();
+        int inc2 = m_align_nbrs.values(s2).size();
+        double inc = inc1+inc2;
 
         // Stress change
         //double dStress = 0;
@@ -4603,12 +4687,81 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 
         // Sum up
         OrthoWeights o = m_ortho_weights;
-//#define considerObliquity
+#define considerObliquity
 #ifdef  considerObliquity
         ad->goalDelta += o.wob*dOb;
 #endif
 
+//#define justIncidenceScore
+#ifdef  justIncidenceScore
+        ad->goalDelta = -inc;
+#endif
+
+#define chainsFirst
+#ifdef  chainsFirst
+        double score = 0;
+        int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
+        int npd2 = nonPendantDegree(conn->getAttachedShapes().second);
+        //if (npd1!=2 || npd2!=2) score = 100000;
+
+        score = 1000;
+        if (npd1>=2 && npd2>=2 && (npd1==2 || npd2==2)) score=0;
+        if (npd1==1 || npd2==1) score=DBL_MAX;
+        //if (npd1==1 && npd2==1) score=DBL_MAX;
+
+        ad->goalDelta += score;
+
+        // Would this alignment make either endpoint into a degree-2 bend point?
+        if (npd1==2) {
+            if (dim==HORIZ && numVAligns(s1)>0 || dim==VERT && numHAligns(s1)>0) ad->goalDelta += 1000;
+        }
+        if (npd2==2) {
+            if (dim==HORIZ && numVAligns(s2)>0 || dim==VERT && numHAligns(s2)>0) ad->goalDelta += 1000;
+        }
+#endif
+
+//#define bendPointPenalty
+#ifdef  bendPointPenalty
+        // Would this alignment make either endpoint into a degree-2 bend point?
+        if (inc1==2) {
+            if (dim==HORIZ && numVAligns(s1)>0 || dim==VERT && numHAligns(s1)>0) ad->goalDelta += 1000;
+        }
+        if (inc2==2) {
+            if (dim==HORIZ && numVAligns(s2)>0 || dim==VERT && numHAligns(s2)>0) ad->goalDelta += 1000;
+        }
+#endif
+
     }
+}
+
+int Canvas::numHAligns(ShapeObj *s) {
+    int sid = s->internalId();
+    int n = 0;
+    for (int j = 0; j < m_max_shape_id; j++) {
+        if (m_alignment_state(sid,j) & Horizontal) n++;
+    }
+    return n;
+}
+
+int Canvas::numVAligns(ShapeObj *s) {
+    int sid = s->internalId();
+    int n = 0;
+    for (int j = 0; j < m_max_shape_id; j++) {
+        if (m_alignment_state(sid,j) & Vertical) n++;
+    }
+    return n;
+}
+
+/// How many shapes is shape s connected to which are not pendants?
+int Canvas::nonPendantDegree(ShapeObj *s)
+{
+    QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
+    int d = 0;
+    foreach (ShapeObj *t, nbrs) {
+        int n = m_align_nbrs.values(t).size();
+        if (n>1) d++;
+    }
+    return d;
 }
 
 /*
@@ -4717,6 +4870,35 @@ double Canvas::computeOrthoObjective()
     emit newCrossingCount(crossings);
     emit newCoincidenceCount(coincidences);
 
+
+
+    // Angular resolution score
+    double angres = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
+        {
+            QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
+            // Sort nbrs by angle
+            // TODO
+            int n = nbrs.size();
+            double ideal = 2*3.1415926/n;
+            for (int i = 0; i < n; i++) {
+                ShapeObj *t = nbrs.at(i);
+                ShapeObj *u = nbrs.at((i+1)%n);
+                double sx = s->centrePos().x(), sy = s->centrePos().y();
+                double tx = t->centrePos().x(), ty = t->centrePos().y();
+                double ux = u->centrePos().x(), uy = u->centrePos().y();
+                double cos1 = (tx-sx)/sqrt( (tx-sx)*(tx-sx) + (ty-sy)*(ty-sy) );
+                double sin1 = sqrt(1-cos1*cos1);
+                double x=cos1*(ux-sx)+sin1*(uy-sy), y=cos1*(uy-sy)-sin1*(ux-sx);
+                double theta = atan2(y,x);
+                angres += fabs(theta-ideal);
+            }
+        }
+    }
+
+
     // Clean up
     foreach (LineSegment *s, segs) delete s;
     segs.clear();
@@ -4728,6 +4910,11 @@ double Canvas::computeOrthoObjective()
     emit newOrthoGoalBarValue( (int)(round(score)) );
     m_most_recent_ortho_obj_func = score;
     return score;
+}
+
+bool Canvas::neighbourAngleLessThan(ShapeObj *a, ShapeObj *b)
+{
+    return false;
 }
 
 void Canvas::arrangePendants()

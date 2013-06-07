@@ -73,6 +73,8 @@ class Guideline: public Indicator
 
         bool isTentative(void);
         void setTentative(const bool t);
+        long getTimestamp(void) { return m_timestamp; }
+        void setTimestamp(long t) { m_timestamp = t; }
 
         QDomElement to_QDomElement(const unsigned int subset, 
                 QDomDocument& doc);
@@ -114,6 +116,7 @@ class Guideline: public Indicator
         QRectF bounding_box_;
 
         bool m_tentative;
+        long m_timestamp;
 };
 
 

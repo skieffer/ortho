@@ -24,6 +24,7 @@
 #include <map>
 #include <cfloat>
 #include <set>
+#include <stdio.h>
 
 #include "libvpsc/constraint.h"
 #include "libvpsc/block.h"
@@ -198,6 +199,7 @@ bool IncSolver::solve() {
     ofstream f(LOGFILE,ios::app);
     f<<"solve_inc()..."<<endl;
 #endif
+    rejected_tentative_constraint = NULL;
     satisfy();
     double lastcost = DBL_MAX, cost = bs->cost();
     while(fabs(lastcost-cost)>0.0001) {
@@ -234,17 +236,69 @@ bool IncSolver::satisfy() {
     //long splitCtr = 0;
     Constraint* v = NULL;
     //CBuffer buffer(inactive);
+    //fprintf(stderr,"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
     while ( (v = mostViolated(inactive)) && 
             (v->equality || ((v->slack() < ZERO_UPPERBOUND) && !v->active)) ) 
     {
+        v->temporarilyUnsatisfiable=false;
+        //fprintf(stderr,"v:%p\n",v);
         COLA_ASSERT(!v->active);
         Block *lb = v->left->block, *rb = v->right->block;
         if(lb != rb) {
             lb->merge(rb,v);
         } else {
+            // Choose tentative constraint to reject in case of any unsatisfiability.
+            std::vector<Constraint*> path;
+            lb->getActivePathBetween(path,v->left,v->right,NULL);
+            Constraint *mostTentative = NULL;
+//#define timestampChoiceMethod
+#ifdef  timestampChoiceMethod
+            path.push_back(v);
+            long maxTS = 0;
+            for (int i = 0; i < path.size(); i++) {
+                Constraint *c = path.at(i);
+                if (!c->tentative) continue;
+                long ts = c->tentativeTimestamp;
+                if (ts > maxTS) {
+                    maxTS = ts;
+                    mostTentative = c;
+                }
+            }
+#else
+
+            // Choose v if it is tentative, or else tentative constraint
+            // whose LM is largest in absolute value.
+            if (v->tentative) {
+                mostTentative = v;
+            } else {
+#define dfdvTentativeChoiceMethod
+#ifdef  dfdvTentativeChoiceMethod
+                lb->findMinLM();
+#else
+                lb->findMaxAbsLM();
+#endif
+                double maxAbsLM = 0;
+                for (int i = 0; i < path.size(); i++) {
+                    Constraint *c = path.at(i);
+                    if (!c->tentative) continue;
+                    if (fabs(c->lm) > maxAbsLM) {
+                        maxAbsLM = fabs(c->lm);
+                        mostTentative = c;
+                    }
+                }
+            }
+#endif
+            // Now proceed with trying to split block.
             if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
-                // cycle found, relax the violated, cyclic constraint
-                v->unsatisfiable=true;
+                // cycle found
+                if (mostTentative!=NULL) {
+                    rejected_tentative_constraint=mostTentative;
+                    v->temporarilyUnsatisfiable=true;
+                    //fprintf(stderr,"=================================================================================================\n");
+                    //fprintf(stderr,"Marked most tentative constraint for rejection. (1)\n");
+                } else {
+                    v->unsatisfiable=true;
+                }
                 continue;
                 //UnsatisfiableException e;
                 //lb->getActiveDirectedPathBetween(e.path,v->right,v->left);
@@ -262,7 +316,14 @@ bool IncSolver::satisfy() {
                     COLA_ASSERT(!splitConstraint->active);
                     inactive.push_back(splitConstraint);
                 } else {
-                    v->unsatisfiable=true;
+                    if (mostTentative!=NULL) {
+                        rejected_tentative_constraint=mostTentative;
+                        v->temporarilyUnsatisfiable=true;
+                        //fprintf(stderr,"=================================================================================================\n");
+                        //fprintf(stderr,"Marked most tentative constraint for rejection. (2)\n");
+                    } else {
+                        v->unsatisfiable=true;
+                    }
                     continue;
                 }
             } catch(UnsatisfiableException e) {
@@ -275,7 +336,14 @@ bool IncSolver::satisfy() {
                     std::cerr << **r <<std::endl;
                 }
 #endif
-                v->unsatisfiable=true;
+                if (mostTentative!=NULL) {
+                    rejected_tentative_constraint=mostTentative;
+                    v->temporarilyUnsatisfiable=true;
+                    //fprintf(stderr,"=================================================================================================\n");
+                    //fprintf(stderr,"Marked most tentative constraint for rejection. (3)\n");
+                } else {
+                    v->unsatisfiable=true;
+                }
                 continue;
             }
             if(v->slack()>=0) {
@@ -293,6 +361,7 @@ bool IncSolver::satisfy() {
         f<<"...remaining blocks="<<bs->size()<<", cost="<<bs->cost()<<endl;
 #endif
     }
+    //fprintf(stderr,"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
 #ifdef LIBVPSC_LOGGING
     f<<"  finished merges."<<endl;
 #endif

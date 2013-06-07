@@ -97,6 +97,7 @@ private:
 	void reset_active_lm(Variable* const v, Variable* const u);
 	void list_active(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u);
+    double compute_dgdv(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
     double compute_dgdv(Variable* const v, Variable* const u, Constraint *&max_abs_lm);
 	bool split_path(Variable*, Variable* const, Variable* const, 

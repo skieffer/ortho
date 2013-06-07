@@ -41,6 +41,7 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   equality(equality),
   unsatisfiable(false),
   tentative(false),
+  temporarilyUnsatisfiable(false),
   compoundOwner(NULL)
 {
     // In hindsight I think it's probably better to build the constraint DAG
@@ -63,7 +64,7 @@ Constraint::~Constraint() {
     //right->in.erase(i);
 }
 double Constraint::slack() const { 
-    return unsatisfiable ? DBL_MAX
+    return (unsatisfiable || temporarilyUnsatisfiable) ? DBL_MAX
            : right->scale * right->position() 
          - gap - left->scale * left->position(); 
 }

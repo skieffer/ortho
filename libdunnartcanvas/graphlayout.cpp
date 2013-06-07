@@ -57,7 +57,7 @@
 
 namespace dunnart {
 
-static const int ANIMATION_DURATION = 100;
+static const int ANIMATION_DURATION = 1;
 
 // The order that we process returned PosInfos in.  Order matters because the
 // guideline length with depend on the positions of the aligned shapes, etc.
@@ -93,7 +93,7 @@ class LayoutThread : public QThread
 GraphLayout::GraphLayout(Canvas *canvas) 
     : mode(ORGANIC),
       optimizationMethod(MAJORIZATION),
-      graph_layout_iterations(100),
+      graph_layout_iterations(10),
       runLevel(0),
       topologyNodesCount(10000),
       m_canvas(canvas),
@@ -107,7 +107,8 @@ GraphLayout::GraphLayout(Canvas *canvas)
       askedToFinish(false),
       m_layout_thread(NULL),
       m_tentative_constraint_threshold(10.0), // no longer used here
-      m_ac_to_reject(NULL)
+      m_ac_to_reject(NULL),
+      m_ac_to_reject_for_unsat(NULL)
 {
     m_layout_thread = new LayoutThread(this);
     m_layout_thread->start();
@@ -961,6 +962,22 @@ bool GraphLayout::doRejection() {
     return rejected;
 }
 
+void GraphLayout::rejectUnsatTentativeConstraint() {
+    if (m_ac_to_reject_for_unsat!=NULL) {
+        qDebug() << "Will try to reject UNSAT tentative constraint.";
+        Indicator *ind = m_graph->getIndicator(m_ac_to_reject_for_unsat);
+        Guideline *gl = dynamic_cast<Guideline*>(ind);
+        qDebug() << "Its guideline is" << gl->idString();
+        //m_canvas->deleteItem(gl);
+
+        ConstraintRejectedEvent *cre = new ConstraintRejectedEvent();
+        cre->m_guideline = gl;
+        cre->m_shape = m_shape_to_reject_for_unsat;
+        cre->m_unsat = true;
+        QCoreApplication::postEvent(m_canvas, cre, Qt::HighEventPriority);
+    }
+}
+
 // Animation that is used to redraw connectors.
 class ObjectsRepositionedAnimation : public QAbstractAnimation
 {
@@ -1379,6 +1396,21 @@ void GraphLayout::run(const bool shouldReinitialise)
     } else {
         //qDebug() << "No rejection candidate.";
         m_ac_to_reject = NULL;
+    }
+
+    cola::CompoundConstraint *rejectForUnsat = alg.getConstraintToRejectForUnsat();
+    if (rejectForUnsat!=NULL) {
+        // For now, only alignment constraints can be set as tentative, and thus only
+        // they are rejectable.
+        cola::AlignmentConstraint *ac = dynamic_cast<cola::AlignmentConstraint*>(rejectForUnsat);
+        //qDebug() << "Want to reject guideline" << ac->m_guidelineID;
+        m_ac_to_reject_for_unsat = ac;
+        unsigned i = alg.getShapeIndexToRejectForUnsat();
+        m_shape_to_reject_for_unsat = m_graph->getShape(i);
+        rejectUnsatTentativeConstraint();
+    } else {
+        //qDebug() << "No rejection candidate.";
+        m_ac_to_reject_for_unsat = NULL;
     }
 }
 

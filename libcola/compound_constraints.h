@@ -374,6 +374,9 @@ class AlignmentConstraint : public CompoundConstraint
         void setTentative(bool t) { m_tentative = t; }
         bool isTentative(void) { return m_tentative; }
 
+        void setTimestamp(long t) { m_timestamp = t; }
+        long getTimestamp(void) { return m_timestamp; }
+
         int m_guidelineID;
         
         /// Generic pointer to an indicator object being used to represent 
@@ -386,6 +389,7 @@ class AlignmentConstraint : public CompoundConstraint
         double _position;
         bool _isFixed;
         bool m_tentative;
+        long m_timestamp;
 };
 
 

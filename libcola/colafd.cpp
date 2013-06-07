@@ -105,6 +105,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_solver(NULL),
       m_tentative_constraint_threshold(0.1), // What value should it be?
       m_constraintToReject(NULL),
+      m_constraintToRejectForUnsat(NULL),
       m_addSnapStress(snapTo),
       m_addGridSnapStress(false),
       m_snapGridX(100.0),
@@ -255,6 +256,24 @@ void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
         const std::valarray<double>* eLengths) 
 {
+    /*
+    //DEBUG
+    QString msg = "============================================\n";
+    msg += "ConstrainedFDLayout computing path lengths.\n";
+    msg += "Edges:\n";
+    for (int i = 0; i < es.size(); i++) {
+        Edge e = es.at(i);
+        int u = e.first, v = e.second;
+        double L = (*eLengths)[i];
+        //qDebug() << u << v << L;
+        msg += QString("%1").arg(u);
+        msg += QString(" %1").arg(v);
+        msg += QString(" %1\n").arg(L);
+    }
+    msg += "============================================\n";
+    qDebug() << msg;
+    //ENDDEBUG
+    */
     shortest_paths::johnsons(n,D,es,eLengths);
     //dumpSquareMatrix<double>(n,D);
     for(unsigned i=0;i<n;i++) {
@@ -1118,6 +1137,12 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         } else {
             //qDebug() << "no max_abs_lm";
         }
+        // Check if any tentative constraint was marked for rejection.
+        vpsc::Constraint *rejected = m_solver->rejected_tentative_constraint;
+        if (rejected) {
+            m_constraintToRejectForUnsat = rejected->compoundOwner;
+            m_alignedShapeVarIndexForUnsat = rejected->alignedShapeVarIndex;
+        }
 
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c3: " << writeVADVect(coords);
 
@@ -1272,7 +1297,12 @@ void ConstrainedFDLayout::computeSnapForces(const vpsc::Dim dim, SparseMap &H, s
         linearVForces(dim,H,g);
         break;
     case 8:
+#define useTailoredNodeSnapForces
+#ifdef  useTailoredNodeSnapForces
+        tailoredQuadUForces(dim,H,g);
+#else
         quadUForces(dim,H,g);
+#endif
         break;
     }
 }
@@ -1346,6 +1376,28 @@ void ConstrainedFDLayout::computeEdgeNodeRepulsionForces(const vpsc::Dim dim, Sp
             g[u]+=-dg;
             H(u,u)+=dH;
             //fprintf(stderr, "dg=%f, dH=%f\n",dg,dH);
+        }
+    }
+}
+
+// Quadratic U-stress forces tailored to each pair of nodes' dimensions:
+void ConstrainedFDLayout::tailoredQuadUForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g) {
+    double b = m_snap_strength;
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double d=dim==vpsc::HORIZONTAL?X[u]-X[v]:Y[u]-Y[v];
+        vpsc::Rectangle *ru = boundingBoxes.at(u);;
+        vpsc::Rectangle *rv = boundingBoxes.at(v);
+        double sig=dim==vpsc::HORIZONTAL?(ru->width()+rv->width())/2:(ru->height()+rv->height())/2;
+        double k = b/(sig*sig);
+        if (-sig < d && d <= sig) {
+            double kd = k*d;
+            g[u]+=kd;
+            H(u,v)-=k;
+            H(u,u)+=k;
+            g[v]-=kd;
+            H(v,u)-=k;
+            H(v,v)+=k;
         }
     }
 }
@@ -1737,7 +1789,13 @@ double ConstrainedFDLayout::computeSnapStress() const {
     case 7:
         return linearVStress();
     case 8:
+
+#define useTailoredNodeSnapForces
+#ifdef  useTailoredNodeSnapForces
+        return tailoredQuadUStress();
+#else
         return quadUStress();
+#endif
     }
 }
 
@@ -1822,6 +1880,34 @@ double ConstrainedFDLayout::computeGridSnapStress() const {
         stress+=sx+sy;
     }
     stress = m_snap_strength*stress;
+    return stress;
+}
+
+// Quadratic U-stress tailored to each pair of nodes' dimensions
+double ConstrainedFDLayout::tailoredQuadUStress() const {
+    double stress = 0;
+    foreach(Edge e, edges) {
+        unsigned u = e.first, v = e.second;
+        double dx=X[u]-X[v], dy=Y[u]-Y[v];
+        vpsc::Rectangle *ru = boundingBoxes.at(u);
+        double wu = ru->width(), hu = ru->height();
+        vpsc::Rectangle *rv = boundingBoxes.at(v);
+        double wv = rv->width(), hv = rv->height();
+        double sigX = (wu+wv)/2, sigY = (hu+hv)/2;
+
+        double sx = 0;
+        if (-sigX < dx && dx <= sigX) {
+            sx = dx*dx/(sigX*sigX);
+        }
+
+        double sy = 0;
+        if (-sigY < dy && dy <= sigY) {
+            sy = dy*dy/(sigY*sigY);
+        }
+
+        stress+=sx+sy;
+    }
+    stress *= m_snap_strength;
     return stress;
 }
 

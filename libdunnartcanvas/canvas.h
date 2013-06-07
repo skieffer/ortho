@@ -475,6 +475,7 @@ class Canvas : public QGraphicsScene
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
     private:
+        void drawGridLines(QPainter *painter, const QRectF& rect);
         bool loadDiagram(const QString& filename);
         bool idIsUnique(QString id) const;
         void recursiveMapIDs(QDomNode start, const QString& ns, int pass);
@@ -552,6 +553,7 @@ class Canvas : public QGraphicsScene
         //int **m_alignment_state;
         Matrix2d<int> m_alignment_state;
         void updateAlignmentStates(ShapeObj *s, ShapeObj *t, AlignmentFlags a);
+        void appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre);
         void applyAlignmentsCallback(void);
         void initRejectAlignments(void);
         void rejectAlignmentsCallback(ConstraintRejectedEvent *cre);
@@ -565,6 +567,11 @@ class Canvas : public QGraphicsScene
         double m_reject_phase_previous_goal_value;
         double m_reject_phase_previous_stress_value;
         AlignDesc *m_reject_phase_previous_align;
+        int nonPendantDegree(ShapeObj *s);
+        int numHAligns(ShapeObj *s);
+        int numVAligns(ShapeObj *s);
+        long m_tentative_guideline_timestamp;
+        bool neighbourAngleLessThan(ShapeObj *a, ShapeObj *b);
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
@@ -684,10 +691,13 @@ class ConstraintRejectedEvent : public QEvent
     public:
         ConstraintRejectedEvent() :
             QEvent((QEvent::Type) (QEvent::User + 4)),
-            m_guideline(NULL)
+            m_guideline(NULL),
+            m_unsat(false)
         {
         }
         Guideline *m_guideline;
+        ShapeObj *m_shape;
+        bool m_unsat;
 };
 
 class TrialAlignmentEvent : public QEvent
