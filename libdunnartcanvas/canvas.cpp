@@ -572,7 +572,7 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
 {
     if ( m_rendering_for_printing )
     {
-        // Don't draw any background at all.
+        if (m_opt_grid_snap) drawGridLines(painter, rect);
         return;
     }
 
@@ -590,33 +590,36 @@ void Canvas::drawBackground(QPainter *painter, const QRectF& rect)
     painter->drawRect(m_expanded_page);
 
     // Draw snap grid lines
-    if (m_opt_grid_snap) {
-        QPen pen;
-        pen.setColor(QColor(128,128,128,64));
-        painter->setPen(pen);
+    if (m_opt_grid_snap) drawGridLines(painter, rect);
+}
 
-        double W = m_opt_snap_grid_width;
-        double H = m_opt_snap_grid_height;
+void Canvas::drawGridLines(QPainter *painter, const QRectF &rect)
+{
+    QPen pen;
+    pen.setColor(QColor(128,128,128,64));
+    painter->setPen(pen);
 
-        int n0 = ceil(rect.left()/W);
-        int n1 = floor(rect.right()/W);
-        int n = n1 - n0 + 1;
-        double x = n0*W;
+    double W = m_opt_snap_grid_width;
+    double H = m_opt_snap_grid_height;
 
-        for (int j = 0; j < n; j++) {
-            painter->drawLine(x,rect.top(),x,rect.bottom());
-            x += W;
-        }
+    int n0 = ceil(rect.left()/W);
+    int n1 = floor(rect.right()/W);
+    int n = n1 - n0 + 1;
+    double x = n0*W;
 
-        int m0 = ceil(rect.top()/H);
-        int m1 = floor(rect.bottom()/H);
-        int m = m1 - m0 + 1;
-        double y = m0*H;
+    for (int j = 0; j < n; j++) {
+        painter->drawLine(x,rect.top(),x,rect.bottom());
+        x += W;
+    }
 
-        for (int i = 0; i < m; i++) {
-            painter->drawLine(rect.left(),y,rect.right(),y);
-            y += H;
-        }
+    int m0 = ceil(rect.top()/H);
+    int m1 = floor(rect.bottom()/H);
+    int m = m1 - m0 + 1;
+    double y = m0*H;
+
+    for (int i = 0; i < m; i++) {
+        painter->drawLine(rect.left(),y,rect.right(),y);
+        y += H;
     }
 }
 
@@ -4844,6 +4847,35 @@ double Canvas::computeOrthoObjective()
     m_most_recent_coincidence_count = coincidences;
     emit newCrossingCount(crossings);
     emit newCoincidenceCount(coincidences);
+
+
+
+    // Angular resolution
+    double angres = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
+        {
+            QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
+            // Sort nbrs by angle
+            // TODO
+            int n = nbrs.size();
+            double ideal = 2*3.1415926/n;
+            for (int i = 0; i < n; i++) {
+                ShapeObj *t = nbrs.at(i);
+                ShapeObj *u = nbrs.at((i+1)%n);
+                double sx = s->centrePos().x(), sy = s->centrePos().y();
+                double tx = t->centrePos().x(), ty = t->centrePos().y();
+                double ux = u->centrePos().x(), uy = u->centrePos().y();
+                double cos1 = (tx-sx)/sqrt( (tx-sx)*(tx-sx) + (ty-sy)*(ty-sy) );
+                double sin1 = sqrt(1-cos1*cos1);
+                double x=cos1*(ux-sx)+sin1*(uy-sy), y=cos1*(uy-sy)-sin1*(ux-sx);
+                double theta = atan2(y,x);
+                angres += fabs(theta-ideal);
+            }
+        }
+    }
+
 
     // Clean up
     foreach (LineSegment *s, segs) delete s;

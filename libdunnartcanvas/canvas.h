@@ -464,6 +464,7 @@ class Canvas : public QGraphicsScene
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
     private:
+        void drawGridLines(QPainter *painter, const QRectF& rect);
         bool loadDiagram(const QString& filename);
         bool idIsUnique(QString id) const;
         void recursiveMapIDs(QDomNode start, const QString& ns, int pass);
