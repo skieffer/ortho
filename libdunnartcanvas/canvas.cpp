@@ -4272,7 +4272,7 @@ bool Canvas::sideIsClear(ShapeObj *s, int side, double tolerance, ShapeObj* exce
 void Canvas::applyAlignments()
 {
     m_trying_alignments = false;
-    m_previous_ortho_goal_value = computeOrthoObjective();
+    //m_previous_ortho_goal_value = computeOrthoObjective();
     // Build list of potential alignments.
     QList<AlignDesc*> ads;
     foreach (CanvasItem *item, items())
@@ -4385,6 +4385,10 @@ void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
 
 void Canvas::applyAlignmentsCallback()
 {
+    TrialAlignmentEvent *tae = new TrialAlignmentEvent(0);
+    QCoreApplication::postEvent(this, tae, Qt::LowEventPriority);
+    return;
+
     m_trying_alignments = false;
     double G  = m_previous_ortho_goal_value;
     double Gp = computeOrthoObjective();
@@ -4965,7 +4969,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #endif
 
 #define bendPointPenalty
-//#define SBGN
+#define SBGN
 #ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);
