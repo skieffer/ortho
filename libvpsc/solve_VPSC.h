@@ -74,6 +74,7 @@ public:
     Variables const & getVariables() { return vs; }
     Blocks *getBlocks(void) { return bs; }
     Constraint* max_abs_lm;
+    Constraint* rejected_tentative_constraint;
 protected:
 	Blocks *bs;
 	unsigned m;

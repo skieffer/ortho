@@ -1515,6 +1515,8 @@ void Connector::paint(QPainter *painter,
     }
 
     QPen pen(m_colour);
+    pen.setWidth(1);
+    pen.setCosmetic(true);
     if (m_is_dotted)
     {
         QVector<qreal> dashes;

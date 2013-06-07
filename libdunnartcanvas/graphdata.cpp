@@ -1195,6 +1195,7 @@ void GraphData::guideToAlignmentConstraint(Guideline* guide) {
             new cola::AlignmentConstraint(dim, guide->position());
     ac->setTentative(guide->isTentative());
     ac->m_guidelineID = guide->idString().toInt();
+    ac->setTimestamp(guide->getTimestamp());
     //qDebug() << "Guide" << guide->idString() << (guide->isTentative()?"is":"is NOT") << "tentative.";
     ccMap[guide]=ac;
     ac->indicator=(void*)guide;

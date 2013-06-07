@@ -187,6 +187,9 @@ public:
     void processShapePosInfos(QList<ShapePosInfo*> posinfos);
     double computeStressOfGraph(GraphData *graph);
 
+    cola::AlignmentConstraint *getRejectedUnsatTentativeConstraint(void) { return m_ac_to_reject_for_unsat; }
+    Guideline *getRejectedUnsatTentativeGuideline(void) { return m_guideline_to_reject_for_unsat; }
+
 private:
     Canvas *m_canvas;
 
@@ -216,7 +219,11 @@ private:
     LayoutThread *m_layout_thread;
     double m_tentative_constraint_threshold;
     cola::AlignmentConstraint *m_ac_to_reject;
+    cola::AlignmentConstraint *m_ac_to_reject_for_unsat;
+    Guideline *m_guideline_to_reject_for_unsat;
+    ShapeObj *m_shape_to_reject_for_unsat;
     bool doRejection(void);
+    void rejectUnsatTentativeConstraint(void);
 
     cola::UnsatisfiableConstraintInfos unsatisfiableX, unsatisfiableY;
     void run(const bool shouldReinitialise);

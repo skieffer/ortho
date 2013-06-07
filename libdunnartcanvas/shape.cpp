@@ -347,7 +347,11 @@ void ShapeObj::paint(QPainter *painter,
     }
 #endif
 
-    painter->setPen(strokeColour());
+    QPen pen(strokeColour());
+    pen.setWidth(1);
+    pen.setCosmetic(true);
+    painter->setPen(pen);
+
     painter->setBrush(QBrush(fillColour()));
     
     painter->drawPath(painterPath());
@@ -828,7 +832,7 @@ void ShapeObj::paintShapeDecorations(QPainter *painter)
     }
 }
 
-#if 0
+#if 1
 static int wrapQString(const QString& text, int width, 
         const QFontMetrics& metrics, QStringList& lines)
 {
