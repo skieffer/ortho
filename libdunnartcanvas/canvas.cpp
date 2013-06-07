@@ -2514,6 +2514,12 @@ void Canvas::processLayoutFinishedEvent(void)
         //QT saveDiagramAsSVG(this, filename());
         exit(EXIT_SUCCESS);
     }
+//#define showObjectiveBars
+#ifdef  showObjectiveBars
+    if (!changes) {
+        computeOrthoObjective();
+    }
+#endif
 
     if (m_trying_alignments) {
 #define newApplyAlignments
@@ -2687,6 +2693,9 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
         << m_most_recent_stress << ","
         << m_most_recent_coincidence_count << ","
         << m_most_recent_crossing_count << ","
+        << m_most_recent_angle_res_score << ","
+        << m_most_recent_avg_grid_distance << ","
+        << m_most_recent_edge_node_overlap_count << ","
         << m_most_recent_ortho_obj_func << "\n";
 #else
     out << "\n" << fileBase << "\n\n";
@@ -2696,6 +2705,9 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
     out << "Stress:\t\t" << m_most_recent_stress << "\n";
     out << "Coincidences:\t" << m_most_recent_coincidence_count << "\n";
     out << "Crossings:\t" << m_most_recent_crossing_count << "\n";
+    out << "Angular Resolution:\t" << m_most_recent_angle_res_score << "\n";
+    out << "Average Grid Distance:\t" << m_most_recent_avg_grid_distance << "\n";
+    out << "Edge-Node Overlaps:\t" << m_most_recent_edge_node_overlap_count << "\n";
     out << "Score:\t\t" << m_most_recent_ortho_obj_func << "\n";
 #endif
 }
@@ -4322,7 +4334,7 @@ void Canvas::applyAlignments()
         // Get the shapes involved.
         ShapeObj *s = a->connector->getAttachedShapes().first;
         ShapeObj *t = a->connector->getAttachedShapes().second;
-        qDebug() << "%%%aligning:" << s->internalId() << t->internalId() << a->dim << s->centrePos().x() << s->centrePos().y() << t->centrePos().x() << t->centrePos().y();
+        //qDebug() << "%%%aligning:" << s->internalId() << t->internalId() << a->dim << s->centrePos().x() << s->centrePos().y() << t->centrePos().x() << t->centrePos().y();
         // Update various records.
         m_trying_alignments = true; // (enables callback trigger in Canvas::processLayoutFinishedEvent)
         m_num_align_tries++;
@@ -4347,7 +4359,7 @@ void Canvas::applyAlignments()
         Guideline *gdln = createAlignment(at,items);
         gdln->setTentative(true);
         long timestamp = ++m_tentative_guideline_timestamp;
-        qDebug() << "created guideline number" << timestamp;
+        //qDebug() << "created guideline number" << timestamp;
         gdln->setTimestamp(timestamp);
         //qDebug() << "Trying alignment...";
         fully_restart_graph_layout();
@@ -4913,7 +4925,7 @@ void Canvas::predictStressChange(QList<AlignDesc*> ads)
         OrthoWeights o = m_ortho_weights;
         ad->goalDelta = o.wst*dstress;
     }
-    qDebug() << "max and min estimated stress change:" << maxDelta << minDelta;
+    //qDebug() << "max and min estimated stress change:" << maxDelta << minDelta;
 
 }
 
@@ -5163,14 +5175,15 @@ double Canvas::computeOrthoObjective()
 
     // Angular resolution score
     computeNeighbourhoods();
-    double angres = 0;
+    double angres = 0; int nodeCount = 0;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
         {
+            nodeCount++;
             QList<ShapeObj*> nbrs = m_align_nbrs.values(s);
             int n = nbrs.size();
-            qDebug() << "Shape" << s->internalId() << "has" << n << "nbrs.";
+            //qDebug() << "Shape" << s->internalId() << "has" << n << "nbrs.";
             if (n<2) continue;
             // Sort nbrs by angle
             NeighbourAngleLessThan compare(s);
@@ -5185,21 +5198,28 @@ double Canvas::computeOrthoObjective()
                 double ux = u->centrePos().x(), uy = u->centrePos().y();
                 double vx = tx-sx, vy = ty-sy;
                 double wx = ux-sx, wy = uy-sy;
-                double c = (vx*wx+vy*wy)/( sqrt(vx*vx+vy*vy)*sqrt(wx*wx+wy*wy) );
+                double L = sqrt(vx*vx+vy*vy)*sqrt(wx*wx+wy*wy);
+                if (L==0) continue;
+                double c = (vx*wx+vy*wy)/L;
+                if (c <= -1) c=-0.9999999;
+                if (c >= 1)  c=0.9999999;
+                //if (fabs(c) > 1) qDebug() << "acos arg outside [-1,1]!" << c;
                 double theta = acos(c);
                 angres += fabs(theta-ideal);
             }
         }
     }
+    angres/=nodeCount;
+    m_most_recent_angle_res_score = angres;
     qDebug() << "Angular resolution score:" << angres;
 
     // Grid distance score
-    double avggriddist = 0; int n = 0;
+    double avggriddist = 0; nodeCount = 0;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
         {
-            n++;
+            nodeCount++;
             double W = m_opt_snap_grid_width, H = m_opt_snap_grid_height;
             double sx = s->centrePos().x(), sy = s->centrePos().y();
             double qx,rx,qy,ry;
@@ -5210,9 +5230,49 @@ double Canvas::computeOrthoObjective()
             avggriddist += sqrt(dx*dx+dy*dy);
         }
     }
-    avggriddist/=n;
+    avggriddist/=nodeCount;
+    m_most_recent_avg_grid_distance = avggriddist;
     qDebug() << "Average grid distance:" << avggriddist;
 
+    // Edge-node intersection
+    int edgeNodeCrossings = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            ShapeObj *s = conn->getAttachedShapes().first, *t = conn->getAttachedShapes().second;
+            double sx=s->centrePos().x(), sy=s->centrePos().y();
+            double tx=t->centrePos().x(), ty=t->centrePos().y();
+            Avoid::Point sp(sx,sy);
+            Avoid::Point tp(tx,ty);
+            //qDebug() << "sp,tp" << sx << sy << tx << ty;
+            foreach (CanvasItem *item2, items())
+            {
+                if (ShapeObj *u = dynamic_cast<ShapeObj*>(item2))
+                {
+                    if (u==s || u==t) continue;
+                    QRectF r = u->boundingRect();
+                    r.moveCenter(u->centrePos());
+                    double ax=r.left(), ay=r.top();
+                    double bx=r.right(), by=r.bottom();
+                    //qDebug() << "tl,br" << ax << ay << bx << by;
+                    Avoid::Point tl(ax,ay);
+                    Avoid::Point tr(bx,ay);
+                    Avoid::Point bl(ax,by);
+                    Avoid::Point br(bx,by);
+                    if (Avoid::segmentIntersect(sp,tp,tl,tr) ||
+                        Avoid::segmentIntersect(sp,tp,tr,br) ||
+                        Avoid::segmentIntersect(sp,tp,br,bl) ||
+                        Avoid::segmentIntersect(sp,tp,bl,tl)
+                            ) {
+                        edgeNodeCrossings++;
+                    }
+                }
+            }
+        }
+    }
+    m_most_recent_edge_node_overlap_count = edgeNodeCrossings;
+    qDebug() << "Edge-node overlaps:" << edgeNodeCrossings;
 
     // Clean up
     foreach (LineSegment *s, segs) delete s;

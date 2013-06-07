@@ -588,6 +588,9 @@ class Canvas : public QGraphicsScene
         //bool neighbourAngleLessThan(ShapeObj *t, ShapeObj *u);
         ShapeObj *m_centre_shape_for_angles;
         void computeNeighbourhoods(void);
+        double m_most_recent_angle_res_score;
+        double m_most_recent_avg_grid_distance;
+        int m_most_recent_edge_node_overlap_count;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;

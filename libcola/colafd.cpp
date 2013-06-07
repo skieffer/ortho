@@ -1830,7 +1830,7 @@ double ConstrainedFDLayout::computeEdgeNodeRepulsionStress() const {
             aarStress += r*r/sig2;
         }
     }
-    aarStress *= 20*m_snap_strength; // stronger than grid force
+    aarStress *= 20*m_snap_strength;
     return aarStress;
 }
 
