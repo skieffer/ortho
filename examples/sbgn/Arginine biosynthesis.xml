@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Created by MetaCrop v1.0, Copyright 2005-2007 IPK Gatersleben --><sbml xmlns="http://www.sbml.org/sbml/level2" version="1" level="2">
+
+<model id="model_19" name="Arginine biosynthesis">
+
+<listOfUnitDefinitions>
+
+  <unitDefinition id="volume">
+
+    <listOfUnits>
+
+       <unit kind="litre" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+  <unitDefinition id="substance">
+
+    <listOfUnits>
+
+      <unit kind="mole" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+</listOfUnitDefinitions>
+
+<listOfCompartments>
+
+<compartment id="default" name="default" />
+
+<compartment id="compartment_1" name="unknown" />
+
+</listOfCompartments>
+
+<listOfSpecies>
+
+<species id="spec11loc1" name="ATP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec13loc1" name="ADP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec14loc1" name="P" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec20loc1" name="PP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec51loc1" name="NADP+" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec52loc1" name="NADPH" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec93loc1" name="acetyl-CoA" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec96loc1" name="CoA" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec98loc1" name="2-oxoglutarate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec104loc1" name="fumarate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec106loc1" name="CO2" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec167loc1" name="L-glutamate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec180loc1" name="acetate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec202loc1" name="L-glutamine" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec237loc1" name="L-aspartate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec241loc1" name="AMP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec312loc1" name="N-acetyl-L-glutamate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec313loc1" name="N-acetyl-5-glutamyl phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec314loc1" name="N-acetyl-L-glutamate 5-semialdehyde" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec315loc1" name="N2-acetyl-ornithine" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec316loc1" name="ornithine" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec318loc1" name="L-citrulline" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec319loc1" name="carbamoyl phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec320loc1" name="L-argininosuccinate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec323loc1" name="L-arginine" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+</listOfSpecies>
+
+<listOfReactions>
+
+<reaction id="reaction_160_1" name="amino-acid N-acetyltransferase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec93loc1">
+
+</speciesReference>
+
+<speciesReference species="spec167loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec96loc1">
+
+</speciesReference>
+
+<speciesReference species="spec312loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_161_1" name="acetylglutamate kinase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec312loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec13loc1">
+
+</speciesReference>
+
+<speciesReference species="spec313loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_162_1" name="N-acetyl-gamma-glutamyl-phosphate reductase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec51loc1">
+
+</speciesReference>
+
+<speciesReference species="spec314loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec52loc1">
+
+</speciesReference>
+
+<speciesReference species="spec313loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_163_1" name="acetylornithine transaminase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec98loc1">
+
+</speciesReference>
+
+<speciesReference species="spec315loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec167loc1">
+
+</speciesReference>
+
+<speciesReference species="spec314loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_165_1" name="ornithine carbamoyltransferase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec316loc1">
+
+</speciesReference>
+
+<speciesReference species="spec319loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec318loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_166_1" name="argininosuccinate synthase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec237loc1">
+
+</speciesReference>
+
+<speciesReference species="spec318loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec20loc1">
+
+</speciesReference>
+
+<speciesReference species="spec241loc1">
+
+</speciesReference>
+
+<speciesReference species="spec320loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_167_1" name="argininosuccinate lyase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec320loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec104loc1">
+
+</speciesReference>
+
+<speciesReference species="spec323loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_214_1" name="aminoacylase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec315loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec180loc1">
+
+</speciesReference>
+
+<speciesReference species="spec316loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_251_1" name="carbamoyl-phosphate synthase (glutamine-hydrolysing)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec106loc1">
+
+</speciesReference>
+
+<speciesReference species="spec202loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec13loc1">
+
+</speciesReference>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec167loc1">
+
+</speciesReference>
+
+<speciesReference species="spec319loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+</listOfReactions>
+
+</model></sbml>
+

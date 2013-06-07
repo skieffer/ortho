@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Created by MetaCrop v1.0, Copyright 2005-2007 IPK Gatersleben --><sbml xmlns="http://www.sbml.org/sbml/level2" version="1" level="2">
+<model id="model_37" name="Calvin cycle">
+<listOfUnitDefinitions>
+  <unitDefinition id="volume">
+    <listOfUnits>
+       <unit kind="litre" scale="-3" multiplier="1" offset="0"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="substance">
+    <listOfUnits>
+      <unit kind="mole" scale="-3" multiplier="1" offset="0"/>
+    </listOfUnits>
+  </unitDefinition>
+</listOfUnitDefinitions>
+<listOfCompartments>
+<compartment id="default" name="default" />
+<compartment id="compartment_1" name="plastid" />
+</listOfCompartments>
+<listOfSpecies>
+<species id="spec11loc1" name="ATP" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec13loc1" name="ADP" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec14loc1" name="P" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec15loc1" name="fructose 6-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec26loc1" name="fructose 1,6-bisphosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec28loc1" name="dihydroxyacetone phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec29loc1" name="glyceraldehyde 3-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec33loc1" name="1,3 - Bisphospho - glycerate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec35loc1" name="3-phospho-glycerate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec51loc1" name="NADP+" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec52loc1" name="NADPH" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec106loc1" name="CO2" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec145loc1" name=" D-ribulose 5-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec146loc1" name="xylulose 5-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec147loc1" name="D-ribose 5-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec148loc1" name="sedoheptulose 7-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec150loc1" name="D-ribulose 5-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec641loc1" name="D-ribulose 1,5-bisphosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec642loc1" name="3-phosphoglycerate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec643loc1" name="erythrose 4-phosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+<species id="spec644loc1" name="sedoheptulose 1,7-bisphosphate" compartment="compartment_1" initialAmount="0.0">
+</species>
+</listOfSpecies>
+<listOfReactions>
+<reaction id="reaction_18_1" name="triose phosphate isomerase" reversible="true">
+<listOfReactants>
+<speciesReference species="spec28loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec29loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_21_1" name="fructose-bisphosphate aldolase (FBP - GAP)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec26loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec28loc1">
+</speciesReference>
+<speciesReference species="spec29loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_22_1" name="glyceraldehyde-3-phosphate dehydrogenase (NADP+) (phosphorylating)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec14loc1">
+</speciesReference>
+<speciesReference species="spec29loc1">
+</speciesReference>
+<speciesReference species="spec51loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec33loc1">
+</speciesReference>
+<speciesReference species="spec52loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_48_1" name="phosphoglycerate kinase (pPGlyK)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec13loc1">
+</speciesReference>
+<speciesReference species="spec33loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec11loc1">
+</speciesReference>
+<speciesReference species="spec35loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_87_1" name="ribulose-phosphate 3-epimerase" reversible="true">
+<listOfReactants>
+<speciesReference species="spec145loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec146loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_88_1" name="ribose-5-phosphate isomerase" reversible="true">
+<listOfReactants>
+<speciesReference species="spec147loc1">
+</speciesReference>
+<speciesReference species="spec150loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec150loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_89_1" name="transketolase (sedoheptulose 7-P - ribose 5-P)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec29loc1">
+</speciesReference>
+<speciesReference species="spec148loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec146loc1">
+</speciesReference>
+<speciesReference species="spec147loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_223_1" name="fructose-1,6-bisphosphatase" reversible="false">
+<listOfReactants>
+<speciesReference species="spec26loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec14loc1">
+</speciesReference>
+<speciesReference species="spec15loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_352_1" name="ribulose-bisphosphate carboxylase" reversible="false">
+<listOfReactants>
+<speciesReference species="spec106loc1">
+</speciesReference>
+<speciesReference species="spec641loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec642loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_353_1" name="transketolase (fructose 6-P - erythrose 4-P)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec15loc1">
+</speciesReference>
+<speciesReference species="spec29loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec146loc1">
+</speciesReference>
+<speciesReference species="spec643loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_354_1" name="fructose-bisphosphate aldolase (SBP -> E4P)" reversible="true">
+<listOfReactants>
+<speciesReference species="spec644loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec28loc1">
+</speciesReference>
+<speciesReference species="spec643loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_355_1" name="sedoheptulose-bisphosphatase" reversible="false">
+<listOfReactants>
+<speciesReference species="spec644loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec14loc1">
+</speciesReference>
+<speciesReference species="spec148loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+<reaction id="reaction_356_1" name="phosphoribulokinase" reversible="false">
+<listOfReactants>
+<speciesReference species="spec11loc1">
+</speciesReference>
+<speciesReference species="spec150loc1">
+</speciesReference>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="spec13loc1">
+</speciesReference>
+<speciesReference species="spec641loc1">
+</speciesReference>
+</listOfProducts>
+</reaction>
+</listOfReactions>
+</model></sbml>
+

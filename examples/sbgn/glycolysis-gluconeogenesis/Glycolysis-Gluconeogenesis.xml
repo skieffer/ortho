@@ -1,0 +1,1707 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Created by MetaCrop v1.0, Copyright 2005-2007 IPK Gatersleben --><sbml xmlns="http://www.sbml.org/sbml/level2" version="1" level="2">
+
+<model id="model_34" name="Glycolysis, Gluconeogenesis">
+
+<listOfFunctionDefinitions>
+
+<functionDefinition id="function_13">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<lambda>
+<bvar>
+<ci> vmax </ci>
+</bvar>
+<bvar>
+<ci> Ff6P </ci>
+</bvar>
+<bvar>
+<ci> ATP </ci>
+</bvar>
+<bvar>
+<ci> kmFf6P </ci>
+</bvar>
+<bvar>
+<ci> kmATP </ci>
+</bvar>
+<bvar>
+<ci> ADP </ci>
+</bvar>
+<bvar>
+<ci> kiADP </ci>
+</bvar>
+<apply>
+<divide/>
+<apply>
+<times/>
+<ci> vmax </ci>
+<apply>
+<divide/>
+<apply>
+<times/>
+<ci> Ff6P </ci>
+<ci> ATP </ci>
+</apply>
+<apply>
+<times/>
+<ci> kmFf6P </ci>
+<ci> kmATP </ci>
+</apply>
+</apply>
+</apply>
+<apply>
+<times/>
+<apply>
+<plus/>
+<cn> 1 </cn>
+<apply>
+<divide/>
+<ci> ADP </ci>
+<ci> kiADP </ci>
+</apply>
+</apply>
+<apply>
+<plus/>
+<cn> 1 </cn>
+<apply>
+<divide/>
+<ci> ATP </ci>
+<ci> kmATP </ci>
+</apply>
+</apply>
+<apply>
+<plus/>
+<cn> 1 </cn>
+<apply>
+<divide/>
+<ci> Ff6P </ci>
+<ci> kmFf6P </ci>
+</apply>
+</apply>
+</apply>
+</apply>
+</lambda>
+</math>
+</functionDefinition>
+
+<functionDefinition id="function_4">
+ <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+   <bvar>
+    <ci>Vf</ci>
+   </bvar>
+   <bvar>
+    <ci>substratea</ci>
+   </bvar>
+   <bvar>
+    <ci>productp</ci>
+   </bvar>
+   <bvar>
+    <ci>Keq</ci>
+   </bvar>
+   <bvar>
+    <ci>Kma</ci>
+   </bvar>
+   <bvar>
+    <ci>Kmp</ci>
+   </bvar>
+  <apply>
+    <divide />
+   <apply>
+     <times />
+      <ci>Vf</ci>
+      <apply>
+        <minus />
+        <ci>substratea</ci>
+        <apply>
+          <divide />
+          <ci>productp</ci>
+          <ci>Keq</ci>
+         </apply>
+        </apply>
+       </apply>
+      <apply>
+        <plus />
+        <ci>substratea</ci>
+      <apply>
+       <times />
+       <ci>Kma</ci>
+       <apply>
+        <plus />
+        <cn>1</cn>
+       <apply>
+        <divide />
+        <ci>productp</ci>
+        <ci>Kmp</ci>
+       </apply>
+      </apply>
+     </apply>
+    </apply>
+   </apply>
+  </lambda>
+ </math>
+</functionDefinition>
+
+</listOfFunctionDefinitions>
+
+<listOfUnitDefinitions>
+
+  <unitDefinition id="volume">
+
+    <listOfUnits>
+
+       <unit kind="litre" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+  <unitDefinition id="substance">
+
+    <listOfUnits>
+
+      <unit kind="mole" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+</listOfUnitDefinitions>
+
+<listOfCompartments>
+
+<compartment id="compartment_1" name="plastid" />
+
+<compartment id="compartment_2" name="cytosol" />
+
+<compartment id="compartment_3" name="mitochondrion" />
+
+
+</listOfCompartments>
+
+<listOfSpecies>
+
+<species id="spec11loc1" name="ATP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec11loc2" name="ATP" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec13loc1" name="ADP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec13loc2" name="ADP" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec14loc1" name="P" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec14loc2" name="P" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec15loc1" name="fructose 6-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec15loc2" name="fructose 6-phosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec17loc1" name="glucose 1-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec17loc2" name="glucose 1-phosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec18loc1" name="glucose 6-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec18loc2" name="glucose 6-phosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec20loc1" name="PP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec20loc2" name="PP" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec26loc1" name="fructose 1,6-bisphosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec26loc2" name="fructose 1,6-bisphosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec28loc1" name="dihydroxyacetone phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec28loc2" name="dihydroxyacetone phosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec29loc1" name="glyceraldehyde 3-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec29loc2" name="glyceraldehyde 3-phosphate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec30loc2" name="NAD+" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec30loc3" name="NAD+" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec31loc2" name="NADH" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec31loc3" name="NADH" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+
+<species id="spec33loc1" name="1,3 - Bisphospho - glycerate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec33loc2" name="1,3 - Bisphospho - glycerate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec34loc1" name="2-Phospho-glycerate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec34loc2" name="2-Phospho-glycerate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec35loc1" name="3-phospho-glycerate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec35loc2" name="3-phospho-glycerate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec36loc1" name="phosphoenolpyruvate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec36loc2" name="phosphoenolpyruvate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec37loc1" name="pyruvate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec37loc2" name="pyruvate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec37loc3" name="pyruvate" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec51loc1" name="NADP+" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec52loc1" name="NADPH" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec51loc2" name="NADP+" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec52loc2" name="NADPH" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec94loc2" name="oxaloacetate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec94loc3" name="oxaloacetate" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec103loc1" name="malate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec103loc2" name="malate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec103loc3" name="malate" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+
+<species id="spec106loc1" name="CO2" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec106loc2" name="CO2" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec106loc3" name="CO2" compartment="compartment_3" initialAmount="0.0">
+
+</species>
+
+
+<species id="spec167loc1" name="L-glutamate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec167loc2" name="L-glutamate" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+<species id="spec241loc1" name="AMP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+
+
+<species id="spec241loc2" name="AMP" compartment="compartment_2" initialAmount="0.0">
+
+</species>
+
+</listOfSpecies>
+
+<listOfReactions>
+
+<reaction id="reaction_22_1" name="glyceraldehyde-3-phosphate dehydrogenase (NADP+) (phosphorylating)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec29loc1">
+
+</speciesReference>
+
+<speciesReference species="spec51loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec33loc1">
+
+</speciesReference>
+
+<speciesReference species="spec52loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_23_2" name="glyceraldehyde-3-phosphate dehydrogenase (phosphorylating)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec29loc2">
+
+</speciesReference>
+
+<speciesReference species="spec30loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec31loc2">
+
+</speciesReference>
+
+<speciesReference species="spec33loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_24_2" name="glyceraldehyde-3-phosphate dehydrogenase (NADP)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec29loc2">
+
+</speciesReference>
+
+<speciesReference species="spec51loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec35loc2">
+
+</speciesReference>
+
+<speciesReference species="spec52loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_31_1" name="diphosphate-fructose-6-phosphate 1-phosphotransferase " reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec15loc1">
+
+</speciesReference>
+
+<speciesReference species="spec20loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec26loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_34_1" name="phosphoenolpyruvat/phosphat transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec36loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_35_1" name="phosphoglucomutase (pPGM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec17loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec18loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_1</ci>
+
+<apply>
+
+<ci>function_4</ci>
+
+<ci>Vf</ci>
+
+<ci>Keq</ci>
+
+<ci>Kma</ci>
+
+<ci>Kmp</ci>
+
+<ci>spec17loc1</ci>
+
+<ci>spec18loc1</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="1.43" />
+
+<parameter id="Kma" value="0.059" />
+
+<parameter id="Keq" value="1" />
+
+<parameter id="Kmp" value="1" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_40_2" name="6-phosphofructokinase (cPFK)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc2">
+
+</speciesReference>
+
+<speciesReference species="spec15loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec13loc2">
+
+</speciesReference>
+
+<speciesReference species="spec26loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_41_1" name="6-phosphofructokinase (pPFK)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec15loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec13loc1">
+
+</speciesReference>
+
+<speciesReference species="spec26loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_43_1" name="fructose-bisphosphate aldolase (pALD)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec26loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec28loc1">
+
+</speciesReference>
+
+<speciesReference species="spec29loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_44_2" name="phosphoglucomutase (cPGM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec17loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec18loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_2</ci>
+
+<apply>
+
+<ci>function_4</ci>
+
+<ci>Vf</ci>
+
+<ci>Keq</ci>
+
+<ci>Kma</ci>
+
+<ci>Kmp</ci>
+
+<ci>spec17loc2</ci>
+
+<ci>spec18loc2</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="1.747" />
+
+<parameter id="Kma" value="0.1" />
+
+<parameter id="Keq" value="1" />
+
+<parameter id="Kmp" value="1" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_45_2" name="phosphoglucose isomerase (cPGI)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec15loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec18loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_2</ci>
+
+<apply>
+
+<ci>function_4</ci>
+
+<ci>Vf</ci>
+
+<ci>Keq</ci>
+
+<ci>Kma</ci>
+
+<ci>Kmp</ci>
+
+<ci>spec15loc2</ci>
+
+<ci>spec18loc2</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="1.116" />
+
+<parameter id="Kma" value="0.175" />
+
+<parameter id="Keq" value="1" />
+
+<parameter id="Kmp" value="0.44" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_46_1" name="phosphoglucose isomerase (pPGI)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec15loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec18loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_1</ci>
+
+<apply>
+
+<ci>function_4</ci>
+
+<ci>Vf</ci>
+
+<ci>Keq</ci>
+
+<ci>Kma</ci>
+
+<ci>Kmp</ci>
+
+<ci>spec15loc1</ci>
+
+<ci>spec18loc1</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="1" />
+
+<parameter id="Kma" value="0.12" />
+
+<parameter id="Keq" value="1" />
+
+<parameter id="Kmp" value="0.44" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_47_2" name="phosphoglycerate kinase (cPGlyK)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec13loc2">
+
+</speciesReference>
+
+<speciesReference species="spec33loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec11loc2">
+
+</speciesReference>
+
+<speciesReference species="spec35loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_48_1" name="phosphoglycerate kinase (pPGlyK)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec13loc1">
+
+</speciesReference>
+
+<speciesReference species="spec33loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec35loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_49_2" name="phosphoglycerate mutase (cPGlyM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec35loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec34loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_50_1" name="phosphoglycerate mutase (pPGlyM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec35loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec34loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_51_2" name="phosphopyruvate hydratase (cENOLASE)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec34loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_52_1" name="phosphopyruvate hydratase (pENOLASE)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec34loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec36loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_53_2" name="pyruvate kinase (cPK)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec13loc2">
+
+</speciesReference>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec11loc2">
+
+</speciesReference>
+
+<speciesReference species="spec37loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_54_1" name="pyruvate kinase (pPK)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec13loc1">
+
+</speciesReference>
+
+<speciesReference species="spec36loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec37loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_55_2" name="triose phosphate isomerase (cTIM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec28loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec29loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_56_1" name="triose phosphate isomerase (pTIM)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec28loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec29loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_1</ci>
+
+<apply>
+
+<ci>function_4</ci>
+
+<ci>Vf</ci>
+
+<ci>Keq</ci>
+
+<ci>Kma</ci>
+
+<ci>Kmp</ci>
+
+<ci>spec28loc1</ci>
+
+<ci>spec29loc1</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="1" />
+
+<parameter id="Kma" value="2.5" />
+
+<parameter id="Keq" value="1" />
+
+<parameter id="Kmp" value="0.68" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_65_2" name="malate dehydrogenase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec30loc2">
+
+</speciesReference>
+
+<speciesReference species="spec103loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec31loc2">
+
+</speciesReference>
+
+<speciesReference species="spec94loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_70_2" name="fructose-bisphosphate aldolase (cALD)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec26loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec28loc2">
+
+</speciesReference>
+
+<speciesReference species="spec29loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_221_2" name="phosphoenolpyruvate carboxylase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+<speciesReference species="spec106loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec94loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_222_3" name="malate dehydrogenase (decarboxylating)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec30loc3">
+
+</speciesReference>
+
+<speciesReference species="spec103loc3">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec31loc3">
+
+</speciesReference>
+
+<speciesReference species="spec37loc3">
+
+</speciesReference>
+
+<speciesReference species="spec106loc3">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_337_1" name="malate dehydrogenase (oxaloacetate-decarboxylating) (NADP+)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec51loc1">
+
+</speciesReference>
+
+<speciesReference species="spec103loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec37loc1">
+
+</speciesReference>
+
+<speciesReference species="spec52loc1">
+
+</speciesReference>
+
+<speciesReference species="spec106loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_338_2" name="phosphoenolpyruvate carboxykinase (ATP)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc2">
+
+</speciesReference>
+
+<speciesReference species="spec94loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec13loc2">
+
+</speciesReference>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+<speciesReference species="spec106loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_349_1" name="G1P  transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec17loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec17loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_410_1" name="G6P transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec18loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec18loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_414_1" name="malate/glutamate transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec103loc1">
+
+</speciesReference>
+
+<speciesReference species="spec167loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec103loc2">
+
+</speciesReference>
+
+<speciesReference species="spec167loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_422_3" name="pyruvate transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec37loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec37loc3">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_424_3" name="OAA/malate transporter" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec94loc3">
+
+</speciesReference>
+
+<speciesReference species="spec103loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec94loc2">
+
+</speciesReference>
+
+<speciesReference species="spec103loc3">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_440_2" name="pyruvate, phosphate dikinase (cPPDK)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc2">
+
+</speciesReference>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec37loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec20loc2">
+
+</speciesReference>
+
+<speciesReference species="spec36loc2">
+
+</speciesReference>
+
+<speciesReference species="spec241loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_441_1" name="pyruvate, phosphate dikinase (pPPDK)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec11loc1">
+
+</speciesReference>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec37loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec20loc1">
+
+</speciesReference>
+
+<speciesReference species="spec36loc1">
+
+</speciesReference>
+
+<speciesReference species="spec241loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_465_2" name="fructose-1,6-bisphosphatase (cFBPAse)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec26loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec15loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_466_1" name="fructose-1,6-bisphosphatase (pFBPase)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec26loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec15loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_510_1" name="triosephosphat/P translocator (TPT2_DHAP)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec28loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec28loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_511_1" name="triosephosphat/P translocator (TPT1_GAP)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec29loc2">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec29loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_512_1" name="triosephosphat/P translocator (TPT3_3-PGA)" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec14loc2">
+
+</speciesReference>
+
+<speciesReference species="spec35loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec35loc2">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+</listOfReactions>
+
+</model></sbml>
+
+

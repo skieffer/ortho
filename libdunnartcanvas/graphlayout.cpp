@@ -744,7 +744,7 @@ public:
         }
 
         gl.m_return_positions_mutex.lock();
-        Q_ASSERT(gl.returnPosInfosList.size() > 0);
+        //Q_ASSERT(gl.returnPosInfosList.size() > 0);
         if (gl.returnPosInfosList.size() <= 3)
         {
             gl.returnPosInfosList.push_back(PosInfos());

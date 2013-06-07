@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="0mm" height="0mm"
+ xmlns:dunnart="http://www.dunnart.org/ns/dunnart"
+ xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
+<title>two_nodes.svg</title>
+<desc>This SVG file was saved from Dunnart.  http://www.dunnart.org/</desc>
+<defs>
+</defs>
+<!-- Dunnart description -->
+    <dunnart:options flowSeparation="0.5" automaticGraphLayout="0" routingBuffer="4" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="0" defaultIdealConnectorLength="1" segmentPenalty="50" layoutMethod="0" avoidBuffer="-1.16702e-46" pageBoundaryConstraints="0"/>
+    <dunnart:node width="70" cx="-236" cy="-256" height="50" type="org.sbgn.pd.01SimpleChemEPN" id="1" label="circle"/>
+    <dunnart:node width="117" cx="-58.5" cy="-252" height="50" type="org.sbgn.pd.02MacromolEPN" id="2" label="roundedBox"/>
+</svg>

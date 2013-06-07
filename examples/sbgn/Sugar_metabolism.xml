@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Created by MetaCrop v1.0, Copyright 2005-2007 IPK Gatersleben --><sbml xmlns="http://www.sbml.org/sbml/level2" version="1" level="2">
+
+<model id="model_31" name="Sugar metabolism">
+
+<listOfFunctionDefinitions>
+
+<functionDefinition id="function_14">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> Vf </ci>
+            </bvar>
+            <bvar>
+              <ci> substratea </ci>
+            </bvar>
+            <bvar>
+              <ci> Kma </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> Vf </ci>
+                <ci> substratea </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> Kma </ci>
+                <ci> substratea </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+
+</listOfFunctionDefinitions>
+
+<listOfUnitDefinitions>
+
+  <unitDefinition id="volume">
+
+    <listOfUnits>
+
+       <unit kind="litre" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+  <unitDefinition id="substance">
+
+    <listOfUnits>
+
+      <unit kind="mole" scale="-3" multiplier="1" offset="0"/>
+
+    </listOfUnits>
+
+  </unitDefinition>
+
+</listOfUnitDefinitions>
+
+<listOfCompartments>
+
+<compartment id="default" name="default" />
+
+<compartment id="compartment_1" name="unknown" />
+
+</listOfCompartments>
+
+<listOfSpecies>
+
+<species id="spec12loc1" name="sucrose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec14loc1" name="P" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec16loc1" name="glucose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec18loc1" name="glucose 6-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec19loc1" name="phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec21loc1" name="UDP-glucose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec23loc1" name="UDP" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec24loc1" name="fructose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec30loc1" name="NAD+" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec31loc1" name="NADH" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec51loc1" name="NADP+" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec52loc1" name="NADPH" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec396loc1" name="myo-inositol 1-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec397loc1" name="myo-inositol" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec428loc1" name="trehalose 6-phosphate" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec430loc1" name="trehalose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec432loc1" name="UDP-rhamnose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec434loc1" name="UDP-4-dehydro-6-deoxy-glucose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec452loc1" name="alpha-D-galactose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec473loc1" name="UDP-galactose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec581loc1" name="galactinol" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec583loc1" name="raffinose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec585loc1" name="stachyose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+<species id="spec586loc1" name="melibiose" compartment="compartment_1" initialAmount="0.0">
+
+</species>
+
+</listOfSpecies>
+
+<listOfReactions>
+
+<reaction id="reaction_7_1" name="invertase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec12loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec16loc1">
+
+</speciesReference>
+
+<speciesReference species="spec24loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+<kineticLaw>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+
+<apply>
+
+<times />
+
+<ci>compartment_1</ci>
+
+<apply>
+
+<ci>function_14</ci>
+
+<ci>Vf</ci>
+
+<ci>Kma</ci>
+
+<ci>spec12loc1</ci>
+
+
+</apply>
+
+</apply>
+
+</math>
+
+<listOfParameters>
+
+<parameter id="Vf" value="0.1197333333333333333333333333333333333333" />
+
+<parameter id="Kma" value="11.75" />
+
+
+</listOfParameters>
+
+</kineticLaw>
+
+</reaction>
+
+<reaction id="reaction_208_1" name="myo-inositol-1-phosphate synthase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec18loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec396loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_209_1" name="inositol-1(or 4)-monophosphatase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec396loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec19loc1">
+
+</speciesReference>
+
+<speciesReference species="spec397loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_226_1" name="alpha,alpha-trehalose-phosphate synthase (UDP-forming)" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec18loc1">
+
+</speciesReference>
+
+<speciesReference species="spec21loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec23loc1">
+
+</speciesReference>
+
+<speciesReference species="spec428loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_228_1" name="trehalose-phosphatase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec428loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec14loc1">
+
+</speciesReference>
+
+<speciesReference species="spec430loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_229_1" name="UDP-L-rhamnose synthase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec21loc1">
+
+</speciesReference>
+
+<speciesReference species="spec31loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec30loc1">
+
+</speciesReference>
+
+<speciesReference species="spec432loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_230_1" name="UDP-glucose 4,6-dehydratase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec21loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec434loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_231_1" name="nucleotide rhamnose synthase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec52loc1">
+
+</speciesReference>
+
+<speciesReference species="spec434loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec51loc1">
+
+</speciesReference>
+
+<speciesReference species="spec432loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_250_1" name="UDP-glucose 4-epimerase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec21loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec473loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_305_1" name="inositol 1-alpha-galactosyltransferase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec397loc1">
+
+</speciesReference>
+
+<speciesReference species="spec473loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec23loc1">
+
+</speciesReference>
+
+<speciesReference species="spec581loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_306_1" name="galactinol-sucrose galactosyltransferase" reversible="true">
+
+<listOfReactants>
+
+<speciesReference species="spec12loc1">
+
+</speciesReference>
+
+<speciesReference species="spec581loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec397loc1">
+
+</speciesReference>
+
+<speciesReference species="spec583loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_307_1" name="galactinol-raffinose galactosyltransferase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec581loc1">
+
+</speciesReference>
+
+<speciesReference species="spec583loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec397loc1">
+
+</speciesReference>
+
+<speciesReference species="spec585loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+<reaction id="reaction_309_1" name="alpha-galactosidase" reversible="false">
+
+<listOfReactants>
+
+<speciesReference species="spec586loc1">
+
+</speciesReference>
+
+</listOfReactants>
+
+<listOfProducts>
+
+<speciesReference species="spec16loc1">
+
+</speciesReference>
+
+<speciesReference species="spec452loc1">
+
+</speciesReference>
+
+</listOfProducts>
+
+</reaction>
+
+</listOfReactions>
+
+</model></sbml>
+
