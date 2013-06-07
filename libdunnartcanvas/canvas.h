@@ -560,6 +560,7 @@ class Canvas : public QGraphicsScene
         int numHAligns(ShapeObj *s);
         int numVAligns(ShapeObj *s);
         long m_tentative_guideline_timestamp;
+        bool neighbourAngleLessThan(ShapeObj *a, ShapeObj *b);
 
 
         double m_opt_ideal_edge_length_modifier;

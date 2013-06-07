@@ -4850,7 +4850,7 @@ double Canvas::computeOrthoObjective()
 
 
 
-    // Angular resolution
+    // Angular resolution score
     double angres = 0;
     foreach (CanvasItem *item, items())
     {
@@ -4888,6 +4888,11 @@ double Canvas::computeOrthoObjective()
     emit newOrthoGoalBarValue( (int)(round(score)) );
     m_most_recent_ortho_obj_func = score;
     return score;
+}
+
+bool Canvas::neighbourAngleLessThan(ShapeObj *a, ShapeObj *b)
+{
+    return false;
 }
 
 void Canvas::arrangePendants()
