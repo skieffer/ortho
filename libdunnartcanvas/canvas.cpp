@@ -5157,8 +5157,6 @@ double Canvas::computeOrthoObjective()
     emit newCrossingCount(crossings);
     emit newCoincidenceCount(coincidences);
 
-
-
     // Angular resolution score
     computeNeighbourhoods();
     double angres = 0;
@@ -5190,6 +5188,26 @@ double Canvas::computeOrthoObjective()
         }
     }
     qDebug() << "Angular resolution score:" << angres;
+
+    // Grid distance score
+    double avggriddist = 0; int n = 0;
+    foreach (CanvasItem *item, items())
+    {
+        if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
+        {
+            n++;
+            double W = m_opt_snap_grid_width, H = m_opt_snap_grid_height;
+            double sx = s->centrePos().x(), sy = s->centrePos().y();
+            double qx,rx,qy,ry;
+            rx = fabs(modf(sx/W,&qx));
+            ry = fabs(modf(sy/H,&qy));
+            double dx=rx<=0.5?rx*W:(1-rx)*W;
+            double dy=ry<=0.5?ry*H:(1-ry)*H;
+            avggriddist += sqrt(dx*dx+dy*dy);
+        }
+    }
+    avggriddist/=n;
+    qDebug() << "Average grid distance:" << avggriddist;
 
 
     // Clean up
