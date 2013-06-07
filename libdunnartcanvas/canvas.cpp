@@ -2695,6 +2695,7 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
         << m_most_recent_coincidence_count << ","
         << m_most_recent_crossing_count << ","
         << m_most_recent_angle_res_score << ","
+        << m_most_recent_average_obliqueness << ","
         << m_most_recent_avg_grid_distance << ","
         << m_most_recent_edge_node_overlap_count << ","
         << m_most_recent_ortho_obj_func << "\n";
@@ -2706,7 +2707,8 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
     out << "Stress:\t\t" << m_most_recent_stress << "\n";
     out << "Coincidences:\t" << m_most_recent_coincidence_count << "\n";
     out << "Crossings:\t" << m_most_recent_crossing_count << "\n";
-    out << "Angular Resolution:\t" << m_most_recent_angle_res_score << "\n";
+    out << "Average Angular Resolution:\t" << m_most_recent_angle_res_score << "\n";
+    out << "Average Obliqueness:\t" << m_most_recent_average_obliqueness << "\n";
     out << "Average Grid Distance:\t" << m_most_recent_avg_grid_distance << "\n";
     out << "Edge-Node Overlaps:\t" << m_most_recent_edge_node_overlap_count << "\n";
     out << "Score:\t\t" << m_most_recent_ortho_obj_func << "\n";
@@ -5150,6 +5152,9 @@ double Canvas::computeOrthoObjective()
         }
     }
     emit newObliquityBarValue( (int)(round(obliquity)) );
+    if (segs.size()>0) {
+        m_most_recent_average_obliqueness = obliquity/segs.size();
+    }
 
     // Compare each pair of edges to see whether they cross and/or are coincident.
     // For now we do the naive quadratic run-time approach. Improve later if needed.

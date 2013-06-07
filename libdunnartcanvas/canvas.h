@@ -591,6 +591,7 @@ class Canvas : public QGraphicsScene
         double m_most_recent_angle_res_score;
         double m_most_recent_avg_grid_distance;
         int m_most_recent_edge_node_overlap_count;
+        double m_most_recent_average_obliqueness;
 
         double m_opt_ideal_edge_length_modifier;
         double m_opt_snap_distance_modifier;
