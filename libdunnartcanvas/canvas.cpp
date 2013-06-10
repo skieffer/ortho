@@ -5200,11 +5200,10 @@ double Canvas::computeOrthoObjective()
                 } else { // Both s1 and s2 already have a set. We must merge them.
                     QSet<LineSegment*> set1 = coincidenceGroups.value(s1);
                     QSet<LineSegment*> set2 = coincidenceGroups.value(s2);
-                    QSet<LineSegment*> set;
-                    set.unite(set1);
-                    set.unite(set2);
-                    coincidenceGroups.insert(s1,set);
-                    coincidenceGroups.insert(s2,set);
+                    set1.unite(set2);
+                    foreach (LineSegment *ls, set1) {
+                        coincidenceGroups.insert(ls,set1);
+                    }
                 }
             }
         }
@@ -5217,6 +5216,8 @@ double Canvas::computeOrthoObjective()
         seen.unite(coincidenceGroups.value(ls));
     }
     m_most_recent_coincidence_group_count = coinGpCount;
+    qDebug() << "coincidences:" << coincidences;
+    qDebug() << "coincidence groups:" << coinGpCount;
 
     m_most_recent_crossing_count = crossings;
     m_most_recent_coincidence_count = coincidences;
@@ -5280,6 +5281,8 @@ double Canvas::computeOrthoObjective()
     if (node2Count>0) angres2/=node2Count;
     if (node3Count>0) angres3/=node3Count;
     if (node4Count>0) angres4/=node4Count;
+
+    qDebug() << "Ang res for deg 2, 3, 4:" << angres2 << angres3 << angres4;
 
     m_most_recent_ang_res_by_degree.clear();
     m_most_recent_ang_res_by_degree.append(angres2);
