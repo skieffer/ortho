@@ -2693,6 +2693,7 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
         << elapsedSecs << ","
         << m_most_recent_stress << ","
         << m_most_recent_coincidence_count << ","
+        << m_most_recent_coincidence_group_count << ","
         << m_most_recent_crossing_count << ","
         << m_most_recent_angle_res_score << ","
         << m_most_recent_ang_res_by_degree.at(0) << ","
@@ -2709,6 +2710,7 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
     out << "Time:\t\t" << elapsedSecs << "\n";
     out << "Stress:\t\t" << m_most_recent_stress << "\n";
     out << "Coincidences:\t" << m_most_recent_coincidence_count << "\n";
+    out << "Coincidence groups:\t" << m_most_recent_coincidence_group_count << "\n";
     out << "Crossings:\t" << m_most_recent_crossing_count << "\n";
     out << "Average Angular Resolution:\t" << m_most_recent_angle_res_score << "\n";
     out << "Average Ang. Res. for deg-2 nodes:\t" << m_most_recent_ang_res_by_degree.at(0) << "\n";
@@ -5170,6 +5172,8 @@ double Canvas::computeOrthoObjective()
     double angleTolerance = 3;
     double interceptTolerance = 3;
 
+    QMap<LineSegment*,QSet<LineSegment*> > coincidenceGroups;
+
     for (int i = 0; i+1 < m; i++) {
         LineSegment *s1 = segs.at(i);
         for (int j = i+1; j < m; j++) {
@@ -5177,9 +5181,43 @@ double Canvas::computeOrthoObjective()
             if (s1->intersects(s2,interceptTolerance)) {
                 crossings++;
             }
-            if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) coincidences++;
+            if (s1->coincidesWith(s2,angleTolerance,interceptTolerance)) {
+                coincidences++;
+                if (!coincidenceGroups.contains(s1) && !coincidenceGroups.contains(s2)) {
+                    QSet<LineSegment*> set;
+                    set.insert(s1);
+                    set.insert(s2);
+                    coincidenceGroups.insert(s1,set);
+                    coincidenceGroups.insert(s2,set);
+                } else if (coincidenceGroups.contains(s1) && !coincidenceGroups.contains(s2)) {
+                    QSet<LineSegment*> set = coincidenceGroups.value(s1);
+                    set.insert(s2);
+                    coincidenceGroups.insert(s2,set);
+                } else if (!coincidenceGroups.contains(s1) && coincidenceGroups.contains(s2)) {
+                    QSet<LineSegment*> set = coincidenceGroups.value(s2);
+                    set.insert(s1);
+                    coincidenceGroups.insert(s1,set);
+                } else { // Both s1 and s2 already have a set. We must merge them.
+                    QSet<LineSegment*> set1 = coincidenceGroups.value(s1);
+                    QSet<LineSegment*> set2 = coincidenceGroups.value(s2);
+                    QSet<LineSegment*> set;
+                    set.unite(set1);
+                    set.unite(set2);
+                    coincidenceGroups.insert(s1,set);
+                    coincidenceGroups.insert(s2,set);
+                }
+            }
         }
     }
+    int coinGpCount = 0;
+    QSet<LineSegment*> seen;
+    foreach (LineSegment *ls, coincidenceGroups.keys()) {
+        if (seen.contains(ls)) continue;
+        coinGpCount++;
+        seen.unite(coincidenceGroups.value(ls));
+    }
+    m_most_recent_coincidence_group_count = coinGpCount;
+
     m_most_recent_crossing_count = crossings;
     m_most_recent_coincidence_count = coincidences;
     emit newCrossingCount(crossings);
