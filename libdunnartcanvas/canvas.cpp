@@ -2695,6 +2695,9 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
         << m_most_recent_coincidence_count << ","
         << m_most_recent_crossing_count << ","
         << m_most_recent_angle_res_score << ","
+        << m_most_recent_ang_res_by_degree.at(0) << ","
+        << m_most_recent_ang_res_by_degree.at(1) << ","
+        << m_most_recent_ang_res_by_degree.at(2) << ","
         << m_most_recent_average_obliqueness << ","
         << m_most_recent_avg_grid_distance << ","
         << m_most_recent_edge_node_overlap_count << ","
@@ -2708,6 +2711,9 @@ void Canvas::paperExport(QString diagram, QString type, int actions)
     out << "Coincidences:\t" << m_most_recent_coincidence_count << "\n";
     out << "Crossings:\t" << m_most_recent_crossing_count << "\n";
     out << "Average Angular Resolution:\t" << m_most_recent_angle_res_score << "\n";
+    out << "Average Ang. Res. for deg-2 nodes:\t" << m_most_recent_ang_res_by_degree.at(0) << "\n";
+    out << "Average Ang. Res. for deg-3 nodes:\t" << m_most_recent_ang_res_by_degree.at(1) << "\n";
+    out << "Average Ang. Res. for deg-4 nodes:\t" << m_most_recent_ang_res_by_degree.at(2) << "\n";
     out << "Average Obliqueness:\t" << m_most_recent_average_obliqueness << "\n";
     out << "Average Grid Distance:\t" << m_most_recent_avg_grid_distance << "\n";
     out << "Edge-Node Overlaps:\t" << m_most_recent_edge_node_overlap_count << "\n";
@@ -5182,6 +5188,9 @@ double Canvas::computeOrthoObjective()
     // Angular resolution score
     computeNeighbourhoods();
     double angres = 0; int nodeCount = 0;
+    double angres2 = 0; int node2Count = 0;
+    double angres3 = 0; int node3Count = 0;
+    double angres4 = 0; int node4Count = 0;
     foreach (CanvasItem *item, items())
     {
         if (ShapeObj *s = dynamic_cast<ShapeObj*>(item))
@@ -5211,13 +5220,34 @@ double Canvas::computeOrthoObjective()
                 if (c >= 1)  c=0.9999999;
                 //if (fabs(c) > 1) qDebug() << "acos arg outside [-1,1]!" << c;
                 double theta = acos(c);
-                angres += fabs(theta-ideal);
+                double a = fabs(theta-ideal);
+                angres += a;
+                if (n==2) {
+                    node2Count++;
+                    angres2 += a;
+                } else if (n==3) {
+                    node3Count++;
+                    angres3 += a;
+                } else if (n==4) {
+                    node4Count++;
+                    angres4 += a;
+                }
             }
         }
     }
     angres/=nodeCount;
     m_most_recent_angle_res_score = angres;
     qDebug() << "Angular resolution score:" << angres;
+
+    if (node2Count>0) angres2/=node2Count;
+    if (node3Count>0) angres3/=node3Count;
+    if (node4Count>0) angres4/=node4Count;
+
+    m_most_recent_ang_res_by_degree.clear();
+    m_most_recent_ang_res_by_degree.append(angres2);
+    m_most_recent_ang_res_by_degree.append(angres3);
+    m_most_recent_ang_res_by_degree.append(angres4);
+
 
     // Grid distance score
     double avggriddist = 0; nodeCount = 0;

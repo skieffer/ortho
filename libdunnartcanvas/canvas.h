@@ -590,6 +590,7 @@ class Canvas : public QGraphicsScene
         ShapeObj *m_centre_shape_for_angles;
         void computeNeighbourhoods(void);
         double m_most_recent_angle_res_score;
+        QList<double> m_most_recent_ang_res_by_degree;
         double m_most_recent_avg_grid_distance;
         int m_most_recent_edge_node_overlap_count;
         double m_most_recent_average_obliqueness;
