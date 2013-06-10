@@ -397,6 +397,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
     //m_final_stress = stress;
+    most_recent_pure_stress = computePureStress();
 }
 /*
  * Same as run, but only applies one iteration.  This may be useful
@@ -1771,6 +1772,51 @@ double ConstrainedFDLayout::computeStress() const {
     return stress;
 }
 
+double ConstrainedFDLayout::computePureStress() const {
+    double stress=0;
+    for(unsigned u=0;(u + 1)<n;u++) {
+        for(unsigned v=u+1;v<n;v++) {
+            unsigned short p=G[u][v];
+            // no forces between disconnected parts of the graph
+            if(p==0) continue;
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double l=sqrt(rx*rx+ry*ry);
+            double d=D[u][v];
+            if(l>d && p>1) continue; // no attractive forces required
+            // We add stress for node pair (u,v) if l <= d, i.e.
+            // if u and v are "too close", so that such nodes repel;
+            // if the nodes are "too distant" then we add stress only
+            // if p is 0 or 1, i.e. if there is not a path which will
+            // generate an attractive force between these nodes through
+            // the topology add-on.
+            double d2=d*d;
+            double rl=d-l;
+            double s=rl*rl/d2;
+            stress+=s;
+        }
+    }
+    if(preIteration) {
+        if ((*preIteration)()) {
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                double dx=l->pos(vpsc::HORIZONTAL)-X[l->getID()], dy=l->pos(vpsc::VERTICAL)-Y[l->getID()];
+                double s=10000*(dx*dx+dy*dy);
+                stress+=s;
+                FILE_LOG(logDEBUG2)<<"d("<<l->getID()<<")="<<s;
+            }
+        }
+    }
+    stress += topologyAddon->computeStress();
+    if(desiredPositions) {
+        for(DesiredPositions::const_iterator p = desiredPositions->begin();
+            p!=desiredPositions->end();++p) {
+            double dx = X[p->id] - p->x, dy = Y[p->id] - p->y;
+            stress+=0.5*p->weight*(dx*dx+dy*dy);
+        }
+    }
+    return stress;
+}
+
 // Snap stress chooser:
 double ConstrainedFDLayout::computeSnapStress() const {
     switch (m_snapStressFunction) {
@@ -1790,7 +1836,7 @@ double ConstrainedFDLayout::computeSnapStress() const {
         return linearVStress();
     case 8:
 
-#define useTailoredNodeSnapForces
+//#define useTailoredNodeSnapForces
 #ifdef  useTailoredNodeSnapForces
         return tailoredQuadUStress();
 #else

@@ -753,6 +753,7 @@ public:
     void setSnapGridHeight(double h) { m_snapGridY = h; }
     double getFinalStress(void) { return m_final_stress; }
     void addEdgeNodeRepulsion(bool b) { m_addEdgeNodeRepulsion = b; }
+    double most_recent_pure_stress;
 
 private:
     unsigned n; // number of nodes
@@ -828,6 +829,7 @@ private:
     double m_snapStressGamma;
     double m_snapStressSigma;
     int m_snapStressRho;
+    double computePureStress() const;
     double computeEdgeNodeRepulsionStress() const;
     double computeGridSnapStress() const;
     double computeSnapStress() const;

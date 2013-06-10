@@ -187,6 +187,8 @@ public:
     void processShapePosInfos(QList<ShapePosInfo*> posinfos);
     double computeStressOfGraph(GraphData *graph);
 
+    double most_recent_pure_stress;
+
     cola::AlignmentConstraint *getRejectedUnsatTentativeConstraint(void) { return m_ac_to_reject_for_unsat; }
     Guideline *getRejectedUnsatTentativeGuideline(void) { return m_guideline_to_reject_for_unsat; }
 

@@ -534,6 +534,7 @@ class Canvas : public QGraphicsScene
         bool m_use_gml_clusters;
 
         double m_most_recent_stress;
+        double m_most_recent_pure_stress;
         double m_most_recent_ortho_obj_func;
         int m_most_recent_crossing_count;
         int m_most_recent_coincidence_count;

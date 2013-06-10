@@ -1365,6 +1365,7 @@ void GraphLayout::run(const bool shouldReinitialise)
     }
     alg.setUnsatisfiableConstraintInfo(&unsatisfiableX,&unsatisfiableY);
     alg.run(true,true);
+    m_canvas->m_most_recent_pure_stress = alg.most_recent_pure_stress;
     //m_canvas->updateStress(alg.getFinalStress());
     //alg.outputInstanceToSVG();
 
