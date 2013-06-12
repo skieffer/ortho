@@ -4992,7 +4992,7 @@ void Canvas::predictOrthoObjectiveChange(QList<AlignDesc *> &ads)
 #endif
 
 #define bendPointPenalty
-//#define SBGN
+#define SBGN
 #ifdef  SBGN
         double score = 0;
         int npd1 = nonPendantDegree(conn->getAttachedShapes().first);

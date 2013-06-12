@@ -1836,7 +1836,7 @@ double ConstrainedFDLayout::computeSnapStress() const {
         return linearVStress();
     case 8:
 
-//#define useTailoredNodeSnapForces
+#define useTailoredNodeSnapForces
 #ifdef  useTailoredNodeSnapForces
         return tailoredQuadUStress();
 #else
