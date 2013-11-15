@@ -1,183 +1,1173 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--Created with Dunnart (http://www.csse.monash.edu.au/~mwybrow/dunnart/)-->
-<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:dunnart="http://www.csse.monash.edu.au/~mwybrow/dunnart.dtd" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="828px" height="621px" viewBox="18 30.5 828 621">
-  <dunnart:options useMultiway="1" instantFeedback="1" newConnType="53" orientation="0" graphMode="0" automaticGraphLayout="1" layoutMethod="0" layoutMode="1" nonOverlapConstraints="0" straightenConnectors="0" avoidBuffer="1.88034" pageBoundaryConstraints="1" defaultIdealConnectorLength="1.33889" penaliseCrossings="0"/>
-  <sodipodi:namedview showguides="false" guidetolerance="5.0" guidecolor="#000000ff" guideopacity="0.25" bordercolor="#000000" borderopacity="0.5" width="828px" height="621px"/>
-  <style type="text/css">.shape   { stroke:black; stroke-width:1px; fill:#f0f0d2; } .connector { fill:none; stroke:black; stroke-width:1px; stroke-linecap:butt; stroke-linejoin:miter; stroke-opacity:1; } .cluster { fill:#60cdf3; fill-opacity:0.33333333; } .tLabel { text-anchor:middle; text-align:center; } .tsLabel { font-size:11px; font-style:normal; font-weight:normal; fill:black; fill-opacity:1; stroke:none; font-family:DejaVu Sans; } .frLabel { font-size:11px; font-style:normal; font-weight:normal; fill:black; fill-opacity:1; stroke:none; stroke-width:1px; stroke-linecap:butt; stroke-linejoin:miter; stroke-opacity:1; font-family:DejaVu Sans; font-stretch:normal; font-variant:normal; text-anchor:middle; text-align:center; progression-align:center; writing-mode:lr; line-height:125%; } </style>
-  <defs>
-    <marker inkscape:stockid="ConnArrowEnd" orient="auto" refX="7.5" refY="0.0" id="ConnArrowEnd" style="overflow:visible;">
-      <path d="M 0.0,0.0 L 1.0,-5.0 L -12.5,0.0 L 1.0,5.0 L 0.0,0.0 z" style="fill-rule:evenodd; stroke:black; stroke-width:1px; marker-start:none;" transform="scale(0.6) rotate(180)"/>
-    </marker>
-  </defs>
-  <path dunnart:type="connAvoidPoly" id="27" dunnart:directed="1" dunnart:libavoidPath="2 728.384 113.453 1 4 666.532 206.275 2 4 " dunnart:srcID="1" dunnart:srcFlags="544" dunnart:srcX="866" dunnart:srcY="173" dunnart:dstID="2" dunnart:dstFlags="544" dunnart:dstX="809" dunnart:dstY="262" class="connector" d="M 728,113 L 679,184 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="28" dunnart:directed="1" dunnart:libavoidPath="2 728.384 113.453 1 4 629.756 160.314 3 4 " dunnart:srcID="1" dunnart:srcFlags="544" dunnart:srcX="866" dunnart:srcY="173" dunnart:dstID="3" dunnart:dstFlags="544" dunnart:dstX="762" dunnart:dstY="169" class="connector" d="M 728,113 L 653,147 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="29" dunnart:directed="1" dunnart:libavoidPath="2 598.23 110.891 4 4 629.756 160.314 3 4 " dunnart:srcID="4" dunnart:srcFlags="544" dunnart:srcX="751" dunnart:srcY="273" dunnart:dstID="3" dunnart:dstFlags="544" dunnart:dstX="762" dunnart:dstY="169" class="connector" d="M 598,110 L 615,138 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="30" dunnart:directed="1" dunnart:libavoidPath="2 598.23 110.891 4 4 581.651 253.494 5 4 " dunnart:srcID="4" dunnart:srcFlags="544" dunnart:srcX="751" dunnart:srcY="273" dunnart:dstID="5" dunnart:dstFlags="544" dunnart:dstX="711" dunnart:dstY="375" class="connector" d="M 598,110 L 582,231 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="31" dunnart:directed="1" dunnart:libavoidPath="2 300.169 140.122 6 4 352.207 206.222 7 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="7" dunnart:dstFlags="544" dunnart:dstX="456" dunnart:dstY="299" class="connector" d="M 300,140 L 343,195 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="32" dunnart:directed="1" dunnart:libavoidPath="2 300.169 140.122 6 4 434.168 186.984 8 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="8" dunnart:dstFlags="544" dunnart:dstX="545" dunnart:dstY="183" class="connector" d="M 300,140 L 392,172 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="33" dunnart:directed="1" dunnart:libavoidPath="2 300.169 140.122 6 4 232.285 204.527 9 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="9" dunnart:dstFlags="544" dunnart:dstX="411" dunnart:dstY="248" class="connector" d="M 300,140 L 253,182 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="34" dunnart:directed="1" dunnart:libavoidPath="3 300.169 140.122 6 4 205.305 181.547 9 3 166.325 206.222 10 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="10" dunnart:dstFlags="544" dunnart:dstX="378" dunnart:dstY="296" class="connector" d="M 300,140 L 205,181 L 198,184 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="35" dunnart:directed="1" dunnart:libavoidPath="2 300.169 140.122 6 4 80.3641 186.984 11 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="11" dunnart:dstFlags="544" dunnart:dstX="375" dunnart:dstY="122" class="connector" d="M 300,140 L 124,176 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="36" dunnart:directed="1" dunnart:libavoidPath="4 300.169 140.122 6 4 391.187 194.241 7 0 391.187 209.964 8 2 511.738 253.136 12 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:dstX="663" dunnart:dstY="218" class="connector" d="M 300,140 L 391,194 L 391,209 L 489,245 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="37" dunnart:directed="1" dunnart:libavoidPath="4 300.169 140.122 6 4 313.227 194.241 21 0 313.227 218.202 7 2 353.901 253.083 13 4 " dunnart:srcID="6" dunnart:srcFlags="544" dunnart:srcX="467" dunnart:srcY="202" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 300,140 L 313,194 L 313,218 L 341,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="38" dunnart:directed="1" dunnart:libavoidPath="2 352.207 206.222 7 4 353.901 253.083 13 4 " dunnart:srcID="7" dunnart:srcFlags="544" dunnart:srcX="456" dunnart:srcY="299" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 352,206 L 352,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="39" dunnart:directed="1" dunnart:libavoidPath="2 352.207 206.222 7 4 419.599 253.083 14 4 " dunnart:srcID="7" dunnart:srcFlags="544" dunnart:srcX="456" dunnart:srcY="299" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:dstX="550" dunnart:dstY="243" class="connector" d="M 352,206 L 404,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="40" dunnart:directed="1" dunnart:libavoidPath="4 352.207 206.222 7 4 376.882 241.103 13 0 376.882 265.063 13 1 373.402 300.356 15 4 " dunnart:srcID="7" dunnart:srcFlags="544" dunnart:srcX="456" dunnart:srcY="299" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 352,206 L 376,241 L 376,265 L 375,267 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="41" dunnart:directed="1" dunnart:libavoidPath="2 666.532 206.275 2 4 647.476 308.593 16 4 " dunnart:srcID="2" dunnart:srcFlags="544" dunnart:srcX="809" dunnart:srcY="262" dunnart:dstID="16" dunnart:dstFlags="544" dunnart:dstX="806" dunnart:dstY="389" class="connector" d="M 666,206 L 650,286 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="42" dunnart:directed="1" dunnart:libavoidPath="4 666.532 206.275 2 4 569.069 229.202 22 1 558.671 230.514 5 3 511.738 253.136 12 4 " dunnart:srcID="2" dunnart:srcFlags="544" dunnart:srcX="809" dunnart:srcY="262" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:dstX="663" dunnart:dstY="218" class="connector" d="M 666,206 L 569,229 L 558,230 L 531,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="43" dunnart:directed="1" dunnart:libavoidPath="2 666.532 206.275 2 4 725.437 300.356 17 4 " dunnart:srcID="2" dunnart:srcFlags="544" dunnart:srcX="809" dunnart:srcY="262" dunnart:dstID="17" dunnart:dstFlags="544" dunnart:dstX="847" dunnart:dstY="343" class="connector" d="M 666,206 L 711,278 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="44" dunnart:directed="1" dunnart:libavoidPath="2 496.128 199.681 18 4 419.599 253.083 14 4 " dunnart:srcID="18" dunnart:srcFlags="544" dunnart:srcX="600" dunnart:srcY="252" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:dstX="550" dunnart:dstY="243" class="connector" d="M 496,199 L 432,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="45" dunnart:directed="1" dunnart:libavoidPath="3 496.128 199.681 18 4 477.148 209.964 8 1 353.901 253.083 13 4 " dunnart:srcID="18" dunnart:srcFlags="544" dunnart:srcX="600" dunnart:srcY="252" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 496,199 L 477,209 L 373,245 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="46" dunnart:directed="1" dunnart:libavoidPath="2 496.128 199.681 18 4 511.738 253.136 12 4 " dunnart:srcID="18" dunnart:srcFlags="544" dunnart:srcX="600" dunnart:srcY="252" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:dstX="663" dunnart:dstY="218" class="connector" d="M 496,199 L 504,231 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="47" dunnart:directed="1" dunnart:libavoidPath="3 496.128 199.681 18 4 450.579 265.063 14 1 373.402 300.356 15 4 " dunnart:srcID="18" dunnart:srcFlags="544" dunnart:srcX="600" dunnart:srcY="252" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 496,199 L 450,265 L 413,280 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="48" dunnart:directed="1" dunnart:libavoidPath="2 581.651 253.494 5 4 545.898 350.713 19 4 " dunnart:srcID="5" dunnart:srcFlags="544" dunnart:srcX="711" dunnart:srcY="375" dunnart:dstID="19" dunnart:dstFlags="544" dunnart:dstX="690" dunnart:dstY="319" class="connector" d="M 581,253 L 552,328 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="49" dunnart:directed="1" dunnart:libavoidPath="2 581.651 253.494 5 4 725.437 300.356 17 4 " dunnart:srcID="5" dunnart:srcFlags="544" dunnart:srcX="711" dunnart:srcY="375" dunnart:dstID="17" dunnart:dstFlags="544" dunnart:dstX="847" dunnart:dstY="343" class="connector" d="M 581,253 L 679,285 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="50" dunnart:directed="1" dunnart:libavoidPath="3 581.651 253.494 5 4 600.878 327.733 19 0 614.95 397.729 20 4 " dunnart:srcID="5" dunnart:srcFlags="544" dunnart:srcX="711" dunnart:srcY="375" dunnart:dstID="20" dunnart:dstFlags="544" dunnart:dstX="742" dunnart:dstY="483" class="connector" d="M 581,253 L 600,327 L 609,375 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="51" dunnart:directed="1" dunnart:libavoidPath="2 581.651 253.494 5 4 647.476 308.593 16 4 " dunnart:srcID="5" dunnart:srcFlags="544" dunnart:srcX="711" dunnart:srcY="375" dunnart:dstID="16" dunnart:dstFlags="544" dunnart:dstX="806" dunnart:dstY="389" class="connector" d="M 581,253 L 621,286 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="52" dunnart:directed="1" dunnart:libavoidPath="3 581.651 253.494 5 4 534.718 276.116 12 1 373.402 300.356 15 4 " dunnart:srcID="5" dunnart:srcFlags="544" dunnart:srcX="711" dunnart:srcY="375" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 581,253 L 534,276 L 413,293 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="53" dunnart:directed="1" dunnart:libavoidPath="4 629.756 160.314 3 4 569.069 229.202 22 1 558.671 230.514 5 3 511.738 253.136 12 4 " dunnart:srcID="3" dunnart:srcFlags="544" dunnart:srcX="762" dunnart:srcY="169" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:dstX="663" dunnart:dstY="218" class="connector" d="M 629,160 L 569,229 L 558,230 L 531,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="54" dunnart:directed="1" dunnart:libavoidPath="2 511.738 253.136 12 4 545.898 350.713 19 4 " dunnart:srcID="12" dunnart:srcFlags="544" dunnart:srcX="663" dunnart:srcY="218" dunnart:dstID="19" dunnart:dstFlags="544" dunnart:dstX="690" dunnart:dstY="319" class="connector" d="M 511,253 L 537,328 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="55" dunnart:directed="1" dunnart:libavoidPath="2 232.285 204.527 9 4 373.402 300.356 15 4 " dunnart:srcID="9" dunnart:srcFlags="544" dunnart:srcX="411" dunnart:srcY="248" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 232,204 L 331,272 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="56" dunnart:directed="1" dunnart:libavoidPath="3 232.285 204.527 9 4 259.266 218.202 21 2 353.901 253.083 13 4 " dunnart:srcID="9" dunnart:srcFlags="544" dunnart:srcX="411" dunnart:srcY="248" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 232,204 L 259,218 L 331,245 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="57" dunnart:directed="1" dunnart:libavoidPath="3 434.168 186.984 8 4 388.619 241.103 14 3 373.402 300.356 15 4 " dunnart:srcID="8" dunnart:srcFlags="544" dunnart:srcX="545" dunnart:srcY="183" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 434,186 L 388,241 L 380,267 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="58" dunnart:directed="1" dunnart:libavoidPath="2 434.168 186.984 8 4 419.599 253.083 14 4 " dunnart:srcID="8" dunnart:srcFlags="544" dunnart:srcX="545" dunnart:srcY="183" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:dstX="550" dunnart:dstY="243" class="connector" d="M 434,186 L 420,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="59" dunnart:directed="1" dunnart:libavoidPath="2 434.168 186.984 8 4 353.901 253.083 13 4 " dunnart:srcID="8" dunnart:srcFlags="544" dunnart:srcX="545" dunnart:srcY="183" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 434,186 L 364,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="60" dunnart:directed="1" dunnart:libavoidPath="3 166.325 206.222 10 4 205.305 227.507 9 2 353.901 253.083 13 4 " dunnart:srcID="10" dunnart:srcFlags="544" dunnart:srcX="378" dunnart:srcY="296" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 166,206 L 205,227 L 331,249 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="61" dunnart:directed="1" dunnart:libavoidPath="4 166.325 206.222 10 4 205.305 227.507 9 2 247.117 241.514 24 0 373.402 300.356 15 4 " dunnart:srcID="10" dunnart:srcFlags="544" dunnart:srcX="378" dunnart:srcY="296" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 166,206 L 205,227 L 247,241 L 331,281 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="62" dunnart:directed="1" dunnart:libavoidPath="2 286.246 206.222 21 4 353.901 253.083 13 4 " dunnart:srcID="21" dunnart:srcFlags="544" dunnart:srcX="456" dunnart:srcY="362" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 286,206 L 338,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="63" dunnart:directed="1" dunnart:libavoidPath="3 286.246 206.222 21 4 330.921 265.063 13 2 373.402 300.356 15 4 " dunnart:srcID="21" dunnart:srcFlags="544" dunnart:srcX="456" dunnart:srcY="362" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 286,206 L 330,265 L 333,267 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="64" dunnart:directed="1" dunnart:libavoidPath="4 542.089 206.222 22 4 515.109 222.661 18 1 388.619 241.103 14 3 353.901 253.083 13 4 " dunnart:srcID="22" dunnart:srcFlags="544" dunnart:srcX="608" dunnart:srcY="299" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 542,206 L 515,222 L 388,241 L 373,245 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="65" dunnart:directed="1" dunnart:libavoidPath="5 542.089 206.222 22 4 515.109 222.661 18 1 488.757 230.156 12 3 450.579 265.063 14 1 373.402 300.356 15 4 " dunnart:srcID="22" dunnart:srcFlags="544" dunnart:srcX="608" dunnart:srcY="299" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 542,206 L 515,222 L 488,230 L 450,265 L 413,280 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="66" dunnart:directed="1" dunnart:libavoidPath="2 542.089 206.222 22 4 511.738 253.136 12 4 " dunnart:srcID="22" dunnart:srcFlags="544" dunnart:srcX="608" dunnart:srcY="299" dunnart:dstID="12" dunnart:dstFlags="544" dunnart:dstX="663" dunnart:dstY="218" class="connector" d="M 542,206 L 524,231 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="67" dunnart:directed="1" dunnart:libavoidPath="4 542.089 206.222 22 4 515.109 222.661 18 1 488.757 230.156 12 3 419.599 253.083 14 4 " dunnart:srcID="22" dunnart:srcFlags="544" dunnart:srcX="608" dunnart:srcY="299" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:dstX="550" dunnart:dstY="243" class="connector" d="M 542,206 L 515,222 L 488,230 L 447,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="68" dunnart:directed="1" dunnart:libavoidPath="4 383.361 141.306 23 4 391.187 194.241 7 0 391.187 209.964 8 2 419.599 253.083 14 4 " dunnart:srcID="23" dunnart:srcFlags="544" dunnart:srcX="494" dunnart:srcY="148" dunnart:dstID="14" dunnart:dstFlags="544" dunnart:dstX="550" dunnart:dstY="243" class="connector" d="M 383,141 L 391,194 L 391,209 L 412,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="69" dunnart:directed="1" dunnart:libavoidPath="4 383.361 141.306 23 4 391.187 194.241 7 0 391.187 218.202 7 1 353.901 253.083 13 4 " dunnart:srcID="23" dunnart:srcFlags="544" dunnart:srcX="494" dunnart:srcY="148" dunnart:dstID="13" dunnart:dstFlags="544" dunnart:dstX="495" dunnart:dstY="258" class="connector" d="M 383,141 L 391,194 L 391,218 L 363,242 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="70" dunnart:directed="1" dunnart:libavoidPath="2 232.137 253.494 24 4 373.402 300.356 15 4 " dunnart:srcID="24" dunnart:srcFlags="544" dunnart:srcX="474" dunnart:srcY="428" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 232,253 L 331,286 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="71" dunnart:directed="1" dunnart:libavoidPath="2 419.599 253.083 14 4 373.402 300.356 15 4 " dunnart:srcID="14" dunnart:srcFlags="544" dunnart:srcX="550" dunnart:srcY="243" dunnart:dstID="15" dunnart:dstFlags="544" dunnart:dstX="538" dunnart:dstY="326" class="connector" d="M 419,253 L 403,267 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="72" dunnart:directed="1" dunnart:libavoidPath="2 373.402 300.356 15 4 331.078 419.929 25 4 " dunnart:srcID="15" dunnart:srcFlags="544" dunnart:srcX="538" dunnart:srcY="326" dunnart:dstID="25" dunnart:dstFlags="544" dunnart:dstX="546" dunnart:dstY="462" class="connector" d="M 373,300 L 337,397 " style="marker-end:url(#ConnArrowEnd);"/>
-  <path dunnart:type="connAvoidPoly" id="73" dunnart:directed="1" dunnart:libavoidPath="2 331.078 419.929 25 4 297.945 524.578 26 4 " dunnart:srcID="25" dunnart:srcFlags="544" dunnart:srcX="546" dunnart:srcY="462" dunnart:dstID="26" dunnart:dstFlags="544" dunnart:dstX="524" dunnart:dstY="573" class="connector" d="M 331,419 L 303,502 " style="marker-end:url(#ConnArrowEnd);"/>
-  <rect dunnart:type="rect" id="7" dunnart:xPos="312" dunnart:yPos="193" dunnart:width="80" dunnart:height="26" dunnart:label="Kittywake" class="shape" width="74" height="20" x="315.2068421" y="196.2217676"/>
-  <text id="text7" class="tLabel" x="352.207" y="210.222">
-    <tspan id="tspan7n0" class="tsLabel" x="352.207" y="210.222" sodipodi:role="line">Kittywake</tspan>
-  </text>
-  <rect dunnart:type="rect" id="4" dunnart:xPos="570" dunnart:yPos="86" dunnart:width="56" dunnart:height="48" dunnart:label="Arctic&#10;Fox" class="shape" width="50" height="42" x="573" y="89"/>
-  <text id="text4" class="tLabel" x="598" y="107">
-    <tspan id="tspan4n0" class="tsLabel" x="598" y="107" sodipodi:role="line">Arctic</tspan>
-    <tspan id="tspan4n1" class="tsLabel" x="598" y="121" sodipodi:role="line">Fox</tspan>
-  </text>
-  <rect dunnart:type="rect" id="8" dunnart:xPos="390" dunnart:yPos="162" dunnart:width="88" dunnart:height="48" dunnart:label="Brunnich's&#10;Guillemot" class="shape" width="82" height="42" x="393.1675222" y="165.9835072"/>
-  <text id="text8" class="tLabel" x="434.168" y="183.984">
-    <tspan id="tspan8n0" class="tsLabel" x="434.168" y="183.984" sodipodi:role="line">Brunnich's</tspan>
-    <tspan id="tspan8n1" class="tsLabel" x="434.168" y="197.984" sodipodi:role="line">Guillemot</tspan>
-  </text>
-  <rect dunnart:type="rect" id="14" dunnart:xPos="387" dunnart:yPos="240" dunnart:width="64" dunnart:height="26" dunnart:label="Capelin" class="shape" width="58" height="20" x="390" y="243"/>
-  <text id="text14" class="tLabel" x="419" y="257">
-    <tspan id="tspan14n0" class="tsLabel" x="419" y="257" sodipodi:role="line">Capelin</tspan>
-  </text>
-  <rect dunnart:type="rect" id="11" dunnart:xPos="32" dunnart:yPos="173" dunnart:width="96" dunnart:height="26" dunnart:label="Polychaetes" class="shape" width="90" height="20" x="35.36412175" y="176.9835072"/>
-  <text id="text11" class="tLabel" x="80.3641" y="190.984">
-    <tspan id="tspan11n0" class="tsLabel" x="80.3641" y="190.984" sodipodi:role="line">Polychaetes</tspan>
-  </text>
-  <rect dunnart:type="rect" id="6" dunnart:xPos="264" dunnart:yPos="116" dunnart:width="72" dunnart:height="48" dunnart:label="Glaucous&#10;Gull" class="shape" width="66" height="42" x="267.1692567" y="119.1223572"/>
-  <text id="text6" class="tLabel" x="300.169" y="137.122">
-    <tspan id="tspan6n0" class="tsLabel" x="300.169" y="137.122" sodipodi:role="line">Glaucous</tspan>
-    <tspan id="tspan6n1" class="tsLabel" x="300.169" y="151.122" sodipodi:role="line">Gull</tspan>
-  </text>
-  <rect dunnart:type="rect" id="5" dunnart:xPos="557" dunnart:yPos="229" dunnart:width="48" dunnart:height="48" dunnart:label="Eider&#10;Duck" class="shape" width="42" height="42" x="560" y="232"/>
-  <text id="text5" class="tLabel" x="581" y="250">
-    <tspan id="tspan5n0" class="tsLabel" x="581" y="250" sodipodi:role="line">Eider</tspan>
-    <tspan id="tspan5n1" class="tsLabel" x="581" y="264" sodipodi:role="line">Duck</tspan>
-  </text>
-  <rect dunnart:type="rect" id="21" dunnart:xPos="258" dunnart:yPos="193" dunnart:width="56" dunnart:height="26" dunnart:label="Fulmar" class="shape" width="50" height="20" x="261.246162" y="196.2217676"/>
-  <text id="text21" class="tLabel" x="286.246" y="210.222">
-    <tspan id="tspan21n0" class="tsLabel" x="286.246" y="210.222" sodipodi:role="line">Fulmar</tspan>
-  </text>
-  <rect dunnart:type="rect" id="3" dunnart:xPos="601" dunnart:yPos="136" dunnart:width="56" dunnart:height="48" dunnart:label="Ringed&#10;Seal" class="shape" width="50" height="42" x="604.755629" y="139.314133"/>
-  <text id="text3" class="tLabel" x="629.756" y="157.314">
-    <tspan id="tspan3n0" class="tsLabel" x="629.756" y="157.314" sodipodi:role="line">Ringed</tspan>
-    <tspan id="tspan3n1" class="tsLabel" x="629.756" y="171.314" sodipodi:role="line">Seal</tspan>
-  </text>
-  <rect dunnart:type="rect" id="10" dunnart:xPos="126" dunnart:yPos="182" dunnart:width="80" dunnart:height="48" dunnart:label="Black&#10;Guillemot" class="shape" width="74" height="42" x="129.3248018" y="185.2217676"/>
-  <text id="text10" class="tLabel" x="166.325" y="203.222">
-    <tspan id="tspan10n0" class="tsLabel" x="166.325" y="203.222" sodipodi:role="line">Black</tspan>
-    <tspan id="tspan10n1" class="tsLabel" x="166.325" y="217.222" sodipodi:role="line">Guillemot</tspan>
-  </text>
-  <rect dunnart:type="rect" id="22" dunnart:xPos="514" dunnart:yPos="182" dunnart:width="56" dunnart:height="48" dunnart:label="Baleen&#10;Whale" class="shape" width="50" height="42" x="517.0888824" y="185.2217676"/>
-  <text id="text22" class="tLabel" x="542.089" y="203.222">
-    <tspan id="tspan22n0" class="tsLabel" x="542.089" y="203.222" sodipodi:role="line">Baleen</tspan>
-    <tspan id="tspan22n1" class="tsLabel" x="542.089" y="217.222" sodipodi:role="line">Whale</tspan>
-  </text>
-  <rect dunnart:type="rect" id="26" dunnart:xPos="257" dunnart:yPos="500" dunnart:width="80" dunnart:height="48" dunnart:label="Primary&#10;Producers" class="shape" width="74" height="42" x="260" y="503"/>
-  <text id="text26" class="tLabel" x="297" y="521">
-    <tspan id="tspan26n0" class="tsLabel" x="297" y="521" sodipodi:role="line">Primary</tspan>
-    <tspan id="tspan26n1" class="tsLabel" x="297" y="535" sodipodi:role="line">Producers</tspan>
-  </text>
-  <rect dunnart:type="rect" id="17" dunnart:xPos="677" dunnart:yPos="276" dunnart:width="96" dunnart:height="48" dunnart:label="Benthic&#10;Crustaceans" class="shape" width="90" height="42" x="680" y="279"/>
-  <text id="text17" class="tLabel" x="725" y="297">
-    <tspan id="tspan17n0" class="tsLabel" x="725" y="297" sodipodi:role="line">Benthic</tspan>
-    <tspan id="tspan17n1" class="tsLabel" x="725" y="311" sodipodi:role="line">Crustaceans</tspan>
-  </text>
-  <rect dunnart:type="rect" id="23" dunnart:xPos="355" dunnart:yPos="128" dunnart:width="56" dunnart:height="26" dunnart:label="Beluga" class="shape" width="50" height="20" x="358" y="131"/>
-  <text id="text23" class="tLabel" x="383" y="145">
-    <tspan id="tspan23n0" class="tsLabel" x="383" y="145" sodipodi:role="line">Beluga</tspan>
-  </text>
-  <rect dunnart:type="rect" id="25" dunnart:xPos="283" dunnart:yPos="395" dunnart:width="96" dunnart:height="48" dunnart:label="Pelagic&#10;Crustaceans" class="shape" width="90" height="42" x="286" y="398"/>
-  <text id="text25" class="tLabel" x="331" y="416">
-    <tspan id="tspan25n0" class="tsLabel" x="331" y="416" sodipodi:role="line">Pelagic</tspan>
-    <tspan id="tspan25n1" class="tsLabel" x="331" y="430" sodipodi:role="line">Crustaceans</tspan>
-  </text>
-  <rect dunnart:type="rect" id="2" dunnart:xPos="634" dunnart:yPos="182" dunnart:width="64" dunnart:height="48" dunnart:label="Bearded&#10;Seal" class="shape" width="58" height="42" x="637" y="185"/>
-  <text id="text2" class="tLabel" x="666" y="203">
-    <tspan id="tspan2n0" class="tsLabel" x="666" y="203" sodipodi:role="line">Bearded</tspan>
-    <tspan id="tspan2n1" class="tsLabel" x="666" y="217" sodipodi:role="line">Seal</tspan>
-  </text>
-  <rect dunnart:type="rect" id="24" dunnart:xPos="216" dunnart:yPos="240" dunnart:width="32" dunnart:height="26" dunnart:label="Cod" class="shape" width="26" height="20" x="219" y="243"/>
-  <text id="text24" class="tLabel" x="232" y="257">
-    <tspan id="tspan24n0" class="tsLabel" x="232" y="257" sodipodi:role="line">Cod</tspan>
-  </text>
-  <rect dunnart:type="rect" id="20" dunnart:xPos="582" dunnart:yPos="373" dunnart:width="64" dunnart:height="48" dunnart:label="Benthic&#10;Fish" class="shape" width="58" height="42" x="585" y="376"/>
-  <text id="text20" class="tLabel" x="614" y="394">
-    <tspan id="tspan20n0" class="tsLabel" x="614" y="394" sodipodi:role="line">Benthic</tspan>
-    <tspan id="tspan20n1" class="tsLabel" x="614" y="408" sodipodi:role="line">Fish</tspan>
-  </text>
-  <rect dunnart:type="rect" id="9" dunnart:xPos="204" dunnart:yPos="180" dunnart:width="56" dunnart:height="48" dunnart:label="Little&#10;Auk" class="shape" width="50" height="42" x="207.2854819" y="183.5271093"/>
-  <text id="text9" class="tLabel" x="232.285" y="201.527">
-    <tspan id="tspan9n0" class="tsLabel" x="232.285" y="201.527" sodipodi:role="line">Little</tspan>
-    <tspan id="tspan9n1" class="tsLabel" x="232.285" y="215.527" sodipodi:role="line">Auk</tspan>
-  </text>
-  <rect dunnart:type="rect" id="15" dunnart:xPos="329" dunnart:yPos="265" dunnart:width="88" dunnart:height="70" dunnart:label="Amphipods,&#10;Krill,&#10;Prawns" class="shape" width="82" height="64" x="332" y="268"/>
-  <text id="text15" class="tLabel" x="373" y="290">
-    <tspan id="tspan15n0" class="tsLabel" x="373" y="290" sodipodi:role="line">Amphipods,</tspan>
-    <tspan id="tspan15n1" class="tsLabel" x="373" y="304" sodipodi:role="line">Krill,</tspan>
-    <tspan id="tspan15n2" class="tsLabel" x="373" y="318" sodipodi:role="line">Prawns</tspan>
-  </text>
-  <rect dunnart:type="rect" id="16" dunnart:xPos="615" dunnart:yPos="284" dunnart:width="64" dunnart:height="48" dunnart:label="Mussels&#10;Snails" class="shape" width="58" height="42" x="618" y="287"/>
-  <text id="text16" class="tLabel" x="647" y="305">
-    <tspan id="tspan16n0" class="tsLabel" x="647" y="305" sodipodi:role="line">Mussels</tspan>
-    <tspan id="tspan16n1" class="tsLabel" x="647" y="319" sodipodi:role="line">Snails</tspan>
-  </text>
-  <rect dunnart:type="rect" id="12" dunnart:xPos="487" dunnart:yPos="229" dunnart:width="48" dunnart:height="48" dunnart:label="Polar&#10;Cod" class="shape" width="42" height="42" x="490" y="232"/>
-  <text id="text12" class="tLabel" x="511" y="250">
-    <tspan id="tspan12n0" class="tsLabel" x="511" y="250" sodipodi:role="line">Polar</tspan>
-    <tspan id="tspan12n1" class="tsLabel" x="511" y="264" sodipodi:role="line">Cod</tspan>
-  </text>
-  <rect dunnart:type="rect" id="13" dunnart:xPos="329" dunnart:yPos="240" dunnart:width="48" dunnart:height="26" dunnart:label="Squid" class="shape" width="42" height="20" x="332" y="243"/>
-  <text id="text13" class="tLabel" x="353" y="257">
-    <tspan id="tspan13n0" class="tsLabel" x="353" y="257" sodipodi:role="line">Squid</tspan>
-  </text>
-  <rect dunnart:type="rect" id="18" dunnart:xPos="476" dunnart:yPos="175" dunnart:width="40" dunnart:height="48" dunnart:label="Harp&#10;Seal" class="shape" width="34" height="42" x="479.1282023" y="178.6810545"/>
-  <text id="text18" class="tLabel" x="496.128" y="196.681">
-    <tspan id="tspan18n0" class="tsLabel" x="496.128" y="196.681" sodipodi:role="line">Harp</tspan>
-    <tspan id="tspan18n1" class="tsLabel" x="496.128" y="210.681" sodipodi:role="line">Seal</tspan>
-  </text>
-  <rect dunnart:type="rect" id="19" dunnart:xPos="489" dunnart:yPos="326" dunnart:width="112" dunnart:height="48" dunnart:label="Pelagic&#10;Invertebrates" class="shape" width="106" height="42" x="492" y="329"/>
-  <text id="text19" class="tLabel" x="545" y="347">
-    <tspan id="tspan19n0" class="tsLabel" x="545" y="347" sodipodi:role="line">Pelagic</tspan>
-    <tspan id="tspan19n1" class="tsLabel" x="545" y="361" sodipodi:role="line">Invertebrates</tspan>
-  </text>
-  <rect dunnart:type="rect" id="1" dunnart:xPos="704" dunnart:yPos="89" dunnart:width="48" dunnart:height="48" dunnart:label="Polar&#10;Bear" class="shape" width="42" height="42" x="707.384007" y="92.452983"/>
-  <text id="text1" class="tLabel" x="728.384" y="110.453">
-    <tspan id="tspan1n0" class="tsLabel" x="728.384" y="110.453" sodipodi:role="line">Polar</tspan>
-    <tspan id="tspan1n1" class="tsLabel" x="728.384" y="124.453" sodipodi:role="line">Bear</tspan>
-  </text>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="292.1mm" height="219.075mm"
+ viewBox="18 30.5 828 621"
+ xmlns:dunnart="http://www.dunnart.org/ns/dunnart"
+ xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
+<title>arcticfoodchain.svg</title>
+<desc>This SVG file was saved from Dunnart.  http://www.dunnart.org/</desc>
+<defs>
+</defs>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,381.993,500.785)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-48.2436,123.715 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,381.993,500.785)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-38.8846,99.7151 L-39.4998,93.0352 L-38.8231,100.088 L-33.9098,95.215 L-38.8846,99.7151"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.462,330.486)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L45.5308,170.298 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.462,330.486)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M39.1142,146.298 L34.6663,141.277 L39.559,146.685 L40.4627,139.727 L39.1142,146.298"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,335.38,185.92)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L1.08229,144.566 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,335.38,185.92)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0.82026,109.566 L-2.22457,103.589 L1.12474,109.966 L3.77526,103.544 L0.82026,109.566"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,225.586,498.467)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L110.876,-167.981 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,225.586,498.467)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M87.7744,-132.981 L86.973,-126.321 L87.8546,-133.315 L81.9654,-129.626 L87.7744,-132.981"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L31.8015,156.891 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M29.1665,143.891 L25.0343,138.606 L29.5797,144.283 L30.9147,137.414 L29.1665,143.891"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L104.432,139.42 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M94.6943,126.42 L88.6961,123.416 L95.2941,126.74 L93.4983,119.819 L94.6943,126.42"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-83.1344,-85.8492 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-70.5455,-72.8492 L-64.2165,-70.6259 L-71.1784,-73.1365 L-68.5267,-66.452 L-70.5455,-72.8492"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L103.273,-120.864 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M82.7659,-96.8637 L81.149,-90.3533 L82.9276,-97.1678 L76.5874,-94.251 L82.7659,-96.8637"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-82.0521,58.7171 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-38.0521,27.2304 L-34.9186,21.299 L-38.3655,27.4632 L-31.4269,26.1784 L-38.0521,27.2304"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-155.765,-68.3786 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-131.765,-57.8429 L-125.065,-58.1781 L-132.435,-58.0037 L-127.477,-52.6842 L-131.765,-57.8429"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L131.021,-51.3134 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M87.0206,-34.0811 L82.5278,-29.0996 L87.4699,-34.2269 L80.3398,-34.6864 L87.0206,-34.0811"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L57.308,-178.409 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M53.1322,-165.409 L54.1535,-158.779 L53.0301,-165.79 L48.441,-160.614 L53.1322,-165.409"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L178.593,48.8332 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M134.593,36.8022 L128.014,38.1134 L135.251,36.9077 L129.596,32.3259 L134.593,36.8022"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L104.88,-78.2625 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M87.4587,-65.2625 L84.4442,-59.2698 L87.7602,-65.5017 L80.8558,-64.0785 L87.4587,-65.2625"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-75.3537,108.48 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-66.3235,95.4801 L-65.3644,88.8408 L-66.4194,95.8086 L-60.4366,92.2638 L-66.3235,95.4801"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-2.72342,91.0095 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-2.3344,78.0095 L-5.15359,71.9224 L-2.05248,78.4093 L0.843722,72.1019 L-2.3344,78.0095"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-1.64114,235.576 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-1.39731,200.576 L-4.35544,194.555 L-1.1015,200.976 L1.64442,194.597 L-1.39731,200.576"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L126.873,-18.1363 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M102.873,-14.7055 L97.358,-10.8867 L103.425,-14.7621 L96.509,-16.8263 L102.873,-14.7055"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L200.586,108.959 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M156.586,85.0584 L149.881,84.8306 L157.256,85.2493 L152.745,79.5582 L156.586,85.0584"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.787,150.906)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L67.1798,129.033 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.787,150.906)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M54.6844,105.033 L49.2527,101.096 L55.2276,105.387 L54.5746,98.3253 L54.6844,105.033"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,659.436,57.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-137.649,93.4056 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,659.436,57.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-113.649,77.1198 L-110.369,71.2683 L-113.977,77.3444 L-107,76.2331 L-113.649,77.1198"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-266.469,-46.9604 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-222.469,-39.2062 L-216.039,-41.1193 L-223.112,-39.2756 L-217.08,-35.2104 L-222.469,-39.2062"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L147.73,11.2067 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M115.73,8.77919 L109.52,11.3167 L116.351,8.80944 L109.974,5.33393 L115.73,8.77919"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L54.584,159.412 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M46.3662,135.412 L41.5843,130.707 L46.8444,135.79 L47.2608,128.764 L46.3662,135.412"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L192.069,-44.5828 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M144.069,-33.4411 L138.903,-29.1622 L144.586,-33.5316 L137.546,-35.0068 L144.069,-33.4411"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-13.964,-97.5087 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-10.527,-73.5087 L-6.70671,-67.9945 L-10.909,-73.9046 L-12.6461,-67.144 L-10.527,-73.5087"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-87.0493,126.049 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-62.8783,91.0487 L-61.9372,84.4068 L-62.9724,91.3778 L-57.0001,87.8164 L-62.8783,91.0487"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L98.2757,-53.5321 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M74.2757,-40.459 L70.4417,-34.9544 L74.6591,-40.6504 L67.5716,-40.2234 L74.2757,-40.459"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-160.762,-1.04704 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-136.762,-0.890732 L-130.742,-3.85159 L-137.364,-0.893337 L-130.782,2.14828 L-136.762,-0.890732"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-88.1315,-18.5176 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-56.1315,-11.794 L-49.6429,-13.4961 L-56.7804,-11.8762 L-50.8766,-7.62436 L-56.1315,-11.794"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L47.3226,128.639 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M38.4937,104.639 L33.6067,100.043 L38.9824,105.014 L39.2377,97.972 L38.4937,104.639"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-225.89,-53.3196 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-201.89,-47.6546 L-195.362,-49.196 L-202.543,-47.7465 L-196.74,-43.3565 L-201.89,-47.6546"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L2.98368,184.428 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M2.59541,160.428 L-0.501252,154.478 L2.90508,160.828 L5.49796,154.381 L2.59541,160.428"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L91.6939,45.2029 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M47.6939,23.5119 L40.9858,23.5497 L48.3647,23.6888 L43.6388,18.1681 L47.6939,23.5119"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L90.6116,-99.3635 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M78.7566,-86.3635 L76.9304,-79.9086 L78.9392,-86.659 L72.497,-83.9515 L78.7566,-86.3635"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L17.9813,-81.8929 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M15.1269,-68.8929 L16.7703,-62.3891 L14.9625,-69.2836 L10.9099,-63.6759 L15.1269,-68.8929"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L30.3087,73.1443 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M24.9219,60.1443 L19.8536,55.7497 L25.4287,60.5138 L25.3965,53.4529 L24.9219,60.1443"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L289.346,20.6592 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M265.346,18.9456 L259.148,21.5107 L265.966,18.9741 L259.575,15.5259 L265.346,18.9456"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-163.441,-83.7465 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-138.07,-70.7465 L-131.362,-70.6803 L-138.741,-70.9289 L-134.098,-65.3404 L-138.07,-70.7465"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-74.5715,151.407 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-62.7509,127.407 L-62.7911,120.699 L-62.7469,127.766 L-57.4086,123.35 L-62.7509,127.407"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-96.5644,91.2806 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-71.1752,67.2806 L-68.8758,60.9788 L-71.4051,67.5554 L-64.7541,65.339 L-71.1752,67.2806"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L105.662,-35.3358 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M61.6624,-20.6212 L56.9236,-15.8732 L62.1363,-20.7481 L55.0207,-21.5634 L61.6624,-20.6212"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L12.3274,155.037 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M11.2937,142.037 L7.8276,136.294 L11.6404,142.436 L13.8087,135.818 L11.2937,142.037"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-81.9897,173.238 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-70.631,149.238 L-70.7759,142.531 L-70.6165,149.6 L-65.3527,145.098 L-70.631,149.238"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-25.4845,-146.709 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-21.3155,-122.709 L-17.3329,-117.311 L-21.7138,-123.103 L-23.2444,-116.284 L-21.3155,-122.709"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-153.152,0 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-125.152,0 L-119.152,-3 L-125.752,0 L-119.152,3 L-125.152,0"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L-64.9107,146.725 L0,0"/>
+</g>
+
+<g fill="#000000" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-54.2932,122.725 L-54.6093,116.025 L-54.2616,123.091 L-49.1222,118.452 L-54.2932,122.725"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-24,-24 L24,-24 L24,24 L-24,24 L-24,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,812.588,57.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-13.625" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Polar</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-12.7656" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Bear</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,588.967,279.938)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-56,-24 L56,-24 L56,24 L-56,24 L-56,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,588.967,279.938)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-19.4219" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Pelagic</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-37.0312" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Invertebrates</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-20,-24 L20,-24 L20,24 L-20,24 L-20,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,423.511,204.438)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-13.2344" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Harp</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-11.75" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Seal</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,262.75,203.391)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-24,-13 L24,-13 L24,13 L-24,13 L-24,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,262.75,203.391)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-15.4531" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Squid</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.787,150.906)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-24,-24 L24,-24 L24,24 L-24,24 L-24,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,521.787,150.906)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-13.625" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Polar</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-10.6719" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Cod</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,750.661,388.654)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32,-24 L32,-24 L32,24 L-32,24 L-32,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,750.661,388.654)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-21.7031" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Mussels</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-16.2344" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Snails</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.462,330.486)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-44,-35 L44,-35 L44,35 L-44,35 L-44,-35"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,336.462,330.486)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-32.5312" y="-9.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Amphipods,</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-12.1719" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Krill,</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-19.6719" y="16.7031" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Prawns</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-24 L28,-24 L28,24 L-28,24 L-28,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,135.876,221.527)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-13.7969" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Little</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-10.4219" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Auk</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,657.515,536.859)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32,-24 L32,-24 L32,24 L-32,24 L-32,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,657.515,536.859)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-20.8125" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Benthic</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-10.625" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Fish</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,225.586,498.467)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-16,-13 L16,-13 L16,13 L-16,13 L-16,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,225.586,498.467)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-10.6719" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Cod</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32,-24 L32,-24 L32,24 L-32,24 L-32,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,747.677,204.225)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-23.0312" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Bearded</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-11.75" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Seal</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,381.993,500.785)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-48,-24 L48,-24 L48,24 L-48,24 L-48,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,381.993,500.785)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-19.4219" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Pelagic</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-34.0781" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Crustaceans</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-13 L28,-13 L28,13 L-28,13 L-28,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,230.948,46.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-19" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Beluga</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,795,332.864)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-48,-24 L48,-24 L48,24 L-48,24 L-48,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,795,332.864)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-20.8125" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Benthic</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-34.0781" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Crustaceans</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,333.749,624.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-40,-24 L40,-24 L40,24 L-40,24 L-40,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,333.749,624.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-21.2188" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Primary</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-27.2031" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Producers</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-24 L28,-24 L28,24 L-28,24 L-28,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,418.514,271.769)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-18.9062" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Baleen</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-17.1875" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Whale</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-40,-24 L40,-24 L40,24 L-40,24 L-40,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,157.869,281.653)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-14.8594" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Black</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-26.5625" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Guillemot</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,659.436,57.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-24 L28,-24 L28,24 L-28,24 L-28,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,659.436,57.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-19.1719" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Ringed</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-11.75" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Seal</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-13 L28,-13 L28,13 L-28,13 L-28,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,205.442,381.8)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-18.8438" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Fulmar</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-24,-24 L24,-24 L24,24 L-24,24 L-24,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,602.931,377.447)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-14.1094" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Eider</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-13.9219" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Duck</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-36,-24 L36,-24 L36,24 L-36,24 L-36,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,232.441,130.246)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-25.3594" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Glaucous</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-10.7812" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Gull</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,69,46.5)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-48,-13 L48,-13 L48,13 L-48,13 L-48,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,69,46.5)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-32.9062" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Polychaetes</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,335.38,185.92)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-32,-13 L32,-13 L32,13 L-32,13 L-32,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,335.38,185.92)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-20.5938" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Capelin</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-44,-24 L44,-24 L44,24 L-44,24 L-44,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,338.103,94.9107)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-28.875" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Brunnich's</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-26.5625" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Guillemot</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-28,-24 L28,-24 L28,24 L-28,24 L-28,-24"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,684.921,204.209)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-15.6094" y="-3.29688" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Arctic</text>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-9.40625" y="9.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Fox</text>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="Lucida Grande" font-size="13" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-40,-13 L40,-13 L40,13 L-40,13 L-40,-13"/>
+</g>
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,244.768,285.284)"
+font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+>
+<text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="-26.9062" y="3.70312" font-family="DejaVu Sans" font-size="11" font-weight="400" font-style="normal" 
+ >Kittywake</text>
+</g>
+</g>
+<!-- Dunnart description -->
+    <dunnart:options flowSeparation="0.5" automaticGraphLayout="0" routingBuffer="1" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="0" defaultIdealConnectorLength="1.33" segmentPenalty="50" layoutMethod="0" avoidBuffer="1" pageBoundaryConstraints="1"/>
+    <dunnart:node width="80" cx="244.768" cy="285.284" height="26" type="rect" id="7" label="Kittywake"/>
+    <dunnart:node width="56" cx="684.921" cy="204.209" height="48" type="rect" id="4" label="Arctic&#xa;Fox"/>
+    <dunnart:node width="88" cx="338.103" cy="94.9107" height="48" type="rect" id="8" label="Brunnich's&#xa;Guillemot"/>
+    <dunnart:node width="64" cx="335.38" cy="185.92" height="26" type="rect" id="14" label="Capelin"/>
+    <dunnart:node width="96" cx="69" cy="46.5" height="26" type="rect" id="11" label="Polychaetes"/>
+    <dunnart:node width="72" cx="232.441" cy="130.246" height="48" type="rect" id="6" label="Glaucous&#xa;Gull"/>
+    <dunnart:node width="48" cx="602.931" cy="377.447" height="48" type="rect" id="5" label="Eider&#xa;Duck"/>
+    <dunnart:node width="56" cx="205.442" cy="381.8" height="26" type="rect" id="21" label="Fulmar"/>
+    <dunnart:node width="56" cx="659.436" cy="57.5" height="48" type="rect" id="3" label="Ringed&#xa;Seal"/>
+    <dunnart:node width="80" cx="157.869" cy="281.653" height="48" type="rect" id="10" label="Black&#xa;Guillemot"/>
+    <dunnart:node width="56" cx="418.514" cy="271.769" height="48" type="rect" id="22" label="Baleen&#xa;Whale"/>
+    <dunnart:node width="80" cx="333.749" cy="624.5" height="48" type="rect" id="26" label="Primary&#xa;Producers"/>
+    <dunnart:node width="96" cx="795" cy="332.864" height="48" type="rect" id="17" label="Benthic&#xa;Crustaceans"/>
+    <dunnart:node width="56" cx="230.948" cy="46.5" height="26" type="rect" id="23" label="Beluga"/>
+    <dunnart:node width="96" cx="381.993" cy="500.785" height="48" type="rect" id="25" label="Pelagic&#xa;Crustaceans"/>
+    <dunnart:node width="64" cx="747.677" cy="204.225" height="48" type="rect" id="2" label="Bearded&#xa;Seal"/>
+    <dunnart:node width="32" cx="225.586" cy="498.467" height="26" type="rect" id="24" label="Cod"/>
+    <dunnart:node width="64" cx="657.515" cy="536.859" height="48" type="rect" id="20" label="Benthic&#xa;Fish"/>
+    <dunnart:node width="56" cx="135.876" cy="221.527" height="48" type="rect" id="9" label="Little&#xa;Auk"/>
+    <dunnart:node width="88" cx="336.462" cy="330.486" height="70" type="rect" id="15" label="Amphipods,&#xa;Krill,&#xa;Prawns"/>
+    <dunnart:node width="64" cx="750.661" cy="388.654" height="48" type="rect" id="16" label="Mussels&#xa;Snails"/>
+    <dunnart:node width="48" cx="521.787" cy="150.906" height="48" type="rect" id="12" label="Polar&#xa;Cod"/>
+    <dunnart:node width="48" cx="262.75" cy="203.391" height="26" type="rect" id="13" label="Squid"/>
+    <dunnart:node width="40" cx="423.511" cy="204.438" height="48" type="rect" id="18" label="Harp&#xa;Seal"/>
+    <dunnart:node width="112" cx="588.967" cy="279.938" height="48" type="rect" id="19" label="Pelagic&#xa;Invertebrates"/>
+    <dunnart:node width="48" cx="812.588" cy="57.5" height="48" type="rect" id="1" label="Polar&#xa;Bear"/>
+    <dunnart:node libavoidPath="2 819.002 57.4985 26 9 758.978 197.651 16 9 " dstX="747.677" srcX="812.588" dstY="204.225" srcY="57.5" path="812.588,57.5 747.677,204.225 " directed="1" srcID="1" type="connector" dstID="2" id="27"/>
+    <dunnart:node libavoidPath="2 819.002 57.4985 26 9 688.267 123.999 9 9 " dstX="659.436" srcX="812.588" dstY="57.5" srcY="57.5" path="812.588,57.5 659.436,57.5 " directed="1" srcID="1" type="connector" dstID="3" id="28"/>
+    <dunnart:node libavoidPath="2 641.597 57.4985 2 9 688.267 123.999 9 9 " dstX="659.436" srcX="684.921" dstY="57.5" srcY="204.209" path="684.921,204.209 659.436,57.5 " directed="1" srcID="4" type="connector" dstID="3" id="29"/>
+    <dunnart:node libavoidPath="2 641.597 57.4985 2 9 614.953 272.968 7 9 " dstX="602.931" srcX="684.921" dstY="377.447" srcY="204.209" path="684.921,204.209 602.931,377.447 " directed="1" srcID="4" type="connector" dstID="5" id="30"/>
+    <dunnart:node libavoidPath="2 271.277 86.6852 6 9 304.701 195.204 1 9 " dstX="244.768" srcX="232.441" dstY="285.284" srcY="130.246" path="232.441,130.246 244.768,285.284 " directed="1" srcID="6" type="connector" dstID="7" id="31"/>
+    <dunnart:node libavoidPath="2 271.277 86.6852 6 9 361.431 153.185 3 9 " dstX="338.103" srcX="232.441" dstY="94.9107" srcY="130.246" path="232.441,130.246 338.103,94.9107 " directed="1" srcID="6" type="connector" dstID="8" id="32"/>
+    <dunnart:node libavoidPath="2 271.277 86.6852 6 9 158.591 197.651 19 9 " dstX="135.876" srcX="232.441" dstY="221.527" srcY="130.246" path="232.441,130.246 135.876,221.527 " directed="1" srcID="6" type="connector" dstID="9" id="33"/>
+    <dunnart:node libavoidPath="6 271.277 86.6852 6 9 129.591 172.651 19 3 129.591 222.651 19 2 151.589 222.651 10 2 187.591 222.651 19 1 192.589 197.651 10 9 " dstX="157.869" srcX="232.441" dstY="281.653" srcY="130.246" path="232.441,130.246 157.869,281.653 " directed="1" srcID="6" type="connector" dstID="10" id="34"/>
+    <dunnart:node libavoidPath="2 271.277 86.6852 6 9 68.9987 153.185 5 9 " dstX="69" srcX="232.441" dstY="46.5" srcY="130.246" path="232.441,130.246 69,46.5 " directed="1" srcID="6" type="connector" dstID="11" id="35"/>
+    <dunnart:node libavoidPath="4 271.277 86.6852 6 9 406.431 128.185 3 0 490.991 172.651 11 0 544.652 264.151 22 9 " dstX="521.787" srcX="232.441" dstY="150.906" srcY="130.246" path="232.441,130.246 521.787,150.906 " directed="1" srcID="6" type="connector" dstID="12" id="36"/>
+    <dunnart:node libavoidPath="4 271.277 86.6852 6 9 263.701 181.204 1 3 263.701 209.204 1 2 298.313 264.151 23 9 " dstX="262.75" srcX="232.441" dstY="203.391" srcY="130.246" path="232.441,130.246 262.75,203.391 " directed="1" srcID="6" type="connector" dstID="13" id="37"/>
+    <dunnart:node libavoidPath="2 304.701 195.204 1 9 298.313 264.151 23 9 " dstX="262.75" srcX="244.768" dstY="203.391" srcY="285.284" path="244.768,285.284 262.75,203.391 " directed="1" srcID="7" type="connector" dstID="13" id="38"/>
+    <dunnart:node libavoidPath="2 304.701 195.204 1 9 387.394 269.264 4 9 " dstX="335.38" srcX="244.768" dstY="185.92" srcY="285.284" path="244.768,285.284 335.38,185.92 " directed="1" srcID="7" type="connector" dstID="14" id="39"/>
+    <dunnart:node libavoidPath="4 304.701 195.204 1 9 323.313 250.151 23 0 323.313 278.151 23 1 317.115 339.468 20 9 " dstX="336.462" srcX="244.768" dstY="330.486" srcY="285.284" path="244.768,285.284 336.462,330.486 " directed="1" srcID="7" type="connector" dstID="15" id="40"/>
+    <dunnart:node libavoidPath="2 758.978 197.651 16 9 748.259 339.468 21 9 " dstX="750.661" srcX="747.677" dstY="388.654" srcY="204.225" path="747.677,204.225 750.661,388.654 " directed="1" srcID="2" type="connector" dstID="16" id="41"/>
+    <dunnart:node libavoidPath="3 758.978 197.651 16 9 589.953 247.968 7 3 544.652 264.151 22 9 " dstX="521.787" srcX="747.677" dstY="150.906" srcY="204.225" path="747.677,204.225 521.787,150.906 " directed="1" srcID="2" type="connector" dstID="12" id="42"/>
+    <dunnart:node libavoidPath="2 758.978 197.651 16 9 795.002 339.468 13 9 " dstX="795" srcX="747.677" dstY="332.864" srcY="204.225" path="747.677,204.225 795,332.864 " directed="1" srcID="2" type="connector" dstID="17" id="43"/>
+    <dunnart:node libavoidPath="2 433.285 197.651 24 9 387.394 269.264 4 9 " dstX="335.38" srcX="423.511" dstY="185.92" srcY="204.438" path="423.511,204.438 335.38,185.92 " directed="1" srcID="18" type="connector" dstID="14" id="44"/>
+    <dunnart:node libavoidPath="2 433.285 197.651 24 9 298.313 264.151 23 9 " dstX="262.75" srcX="423.511" dstY="203.391" srcY="204.438" path="423.511,204.438 262.75,203.391 " directed="1" srcID="18" type="connector" dstID="13" id="45"/>
+    <dunnart:node libavoidPath="2 433.285 197.651 24 9 544.652 264.151 22 9 " dstX="521.787" srcX="423.511" dstY="150.906" srcY="204.438" path="423.511,204.438 521.787,150.906 " directed="1" srcID="18" type="connector" dstID="12" id="46"/>
+    <dunnart:node libavoidPath="3 433.285 197.651 24 9 354.394 255.264 4 3 317.115 339.468 20 9 " dstX="336.462" srcX="423.511" dstY="330.486" srcY="204.438" path="423.511,204.438 336.462,330.486 " directed="1" srcID="18" type="connector" dstID="15" id="47"/>
+    <dunnart:node libavoidPath="2 614.953 272.968 7 9 575.605 407.036 25 9 " dstX="588.967" srcX="602.931" dstY="279.938" srcY="377.447" path="602.931,377.447 588.967,279.938 " directed="1" srcID="5" type="connector" dstID="19" id="48"/>
+    <dunnart:node libavoidPath="3 614.953 272.968 7 9 781.259 314.468 21 0 795.002 339.468 13 9 " dstX="795" srcX="602.931" dstY="332.864" srcY="377.447" path="602.931,377.447 795,332.864 " directed="1" srcID="5" type="connector" dstID="17" id="49"/>
+    <dunnart:node libavoidPath="2 614.953 272.968 7 9 663.977 497.913 18 9 " dstX="657.515" srcX="602.931" dstY="536.859" srcY="377.447" path="602.931,377.447 657.515,536.859 " directed="1" srcID="5" type="connector" dstID="20" id="50"/>
+    <dunnart:node libavoidPath="2 614.953 272.968 7 9 748.259 339.468 21 9 " dstX="750.661" srcX="602.931" dstY="388.654" srcY="377.447" path="602.931,377.447 750.661,388.654 " directed="1" srcID="5" type="connector" dstID="16" id="51"/>
+    <dunnart:node libavoidPath="3 614.953 272.968 7 9 569.652 289.151 22 1 317.115 339.468 20 9 " dstX="336.462" srcX="602.931" dstY="330.486" srcY="377.447" path="602.931,377.447 336.462,330.486 " directed="1" srcID="5" type="connector" dstID="15" id="52"/>
+    <dunnart:node libavoidPath="2 688.267 123.999 9 9 544.652 264.151 22 9 " dstX="521.787" srcX="659.436" dstY="150.906" srcY="57.5" path="659.436,57.5 521.787,150.906 " directed="1" srcID="3" type="connector" dstID="12" id="53"/>
+    <dunnart:node libavoidPath="2 544.652 264.151 22 9 575.605 407.036 25 9 " dstX="588.967" srcX="521.787" dstY="279.938" srcY="150.906" path="521.787,150.906 588.967,279.938 " directed="1" srcID="12" type="connector" dstID="19" id="54"/>
+    <dunnart:node libavoidPath="2 158.591 197.651 19 9 317.115 339.468 20 9 " dstX="336.462" srcX="135.876" dstY="330.486" srcY="221.527" path="135.876,221.527 336.462,330.486 " directed="1" srcID="9" type="connector" dstID="15" id="55"/>
+    <dunnart:node libavoidPath="2 158.591 197.651 19 9 298.313 264.151 23 9 " dstX="262.75" srcX="135.876" dstY="203.391" srcY="221.527" path="135.876,221.527 262.75,203.391 " directed="1" srcID="9" type="connector" dstID="13" id="56"/>
+    <dunnart:node libavoidPath="2 361.431 153.185 3 9 317.115 339.468 20 9 " dstX="336.462" srcX="338.103" dstY="330.486" srcY="94.9107" path="338.103,94.9107 336.462,330.486 " directed="1" srcID="8" type="connector" dstID="15" id="57"/>
+    <dunnart:node libavoidPath="2 361.431 153.185 3 9 387.394 269.264 4 9 " dstX="335.38" srcX="338.103" dstY="185.92" srcY="94.9107" path="338.103,94.9107 335.38,185.92 " directed="1" srcID="8" type="connector" dstID="14" id="58"/>
+    <dunnart:node libavoidPath="3 361.431 153.185 3 9 345.701 209.204 1 1 298.313 264.151 23 9 " dstX="262.75" srcX="338.103" dstY="203.391" srcY="94.9107" path="338.103,94.9107 262.75,203.391 " directed="1" srcID="8" type="connector" dstID="13" id="59"/>
+    <dunnart:node libavoidPath="6 192.589 197.651 10 9 187.591 172.651 19 0 151.589 172.651 10 3 129.591 172.651 19 3 129.591 222.651 19 2 298.313 264.151 23 9 " dstX="262.75" srcX="157.869" dstY="203.391" srcY="281.653" path="157.869,281.653 262.75,203.391 " directed="1" srcID="10" type="connector" dstID="13" id="60"/>
+    <dunnart:node libavoidPath="6 192.589 197.651 10 9 187.591 172.651 19 0 151.589 172.651 10 3 129.591 172.651 19 3 129.591 222.651 19 2 317.115 339.468 20 9 " dstX="336.462" srcX="157.869" dstY="330.486" srcY="281.653" path="157.869,281.653 336.462,330.486 " directed="1" srcID="10" type="connector" dstID="15" id="61"/>
+    <dunnart:node libavoidPath="2 222.549 197.651 8 9 298.313 264.151 23 9 " dstX="262.75" srcX="205.442" dstY="203.391" srcY="381.8" path="205.442,381.8 262.75,203.391 " directed="1" srcID="21" type="connector" dstID="13" id="62"/>
+    <dunnart:node libavoidPath="3 222.549 197.651 8 9 273.313 278.151 23 2 317.115 339.468 20 9 " dstX="336.462" srcX="205.442" dstY="330.486" srcY="381.8" path="205.442,381.8 336.462,330.486 " directed="1" srcID="21" type="connector" dstID="15" id="63"/>
+    <dunnart:node libavoidPath="3 461.991 197.651 11 9 454.285 222.651 24 1 298.313 264.151 23 9 " dstX="262.75" srcX="418.514" dstY="203.391" srcY="271.769" path="418.514,271.769 262.75,203.391 " directed="1" srcID="22" type="connector" dstID="13" id="64"/>
+    <dunnart:node libavoidPath="4 461.991 197.651 11 9 454.285 222.651 24 1 420.394 283.264 4 1 317.115 339.468 20 9 " dstX="336.462" srcX="418.514" dstY="330.486" srcY="271.769" path="418.514,271.769 336.462,330.486 " directed="1" srcID="22" type="connector" dstID="15" id="65"/>
+    <dunnart:node libavoidPath="2 461.991 197.651 11 9 544.652 264.151 22 9 " dstX="521.787" srcX="418.514" dstY="150.906" srcY="271.769" path="418.514,271.769 521.787,150.906 " directed="1" srcID="22" type="connector" dstID="12" id="66"/>
+    <dunnart:node libavoidPath="3 461.991 197.651 11 9 454.285 222.651 24 1 387.394 269.264 4 9 " dstX="335.38" srcX="418.514" dstY="185.92" srcY="271.769" path="418.514,271.769 335.38,185.92 " directed="1" srcID="22" type="connector" dstID="14" id="67"/>
+    <dunnart:node libavoidPath="4 346.26 46.4985 14 9 406.431 128.185 3 0 406.431 178.185 3 1 387.394 269.264 4 9 " dstX="335.38" srcX="230.948" dstY="185.92" srcY="46.5" path="230.948,46.5 335.38,185.92 " directed="1" srcID="23" type="connector" dstID="14" id="68"/>
+    <dunnart:node libavoidPath="4 346.26 46.4985 14 9 406.431 128.185 3 0 406.431 178.185 3 1 298.313 264.151 23 9 " dstX="262.75" srcX="230.948" dstY="203.391" srcY="46.5" path="230.948,46.5 262.75,203.391 " directed="1" srcID="23" type="connector" dstID="13" id="69"/>
+    <dunnart:node libavoidPath="2 73.566 272.968 17 9 317.115 339.468 20 9 " dstX="336.462" srcX="225.586" dstY="330.486" srcY="498.467" path="225.586,498.467 336.462,330.486 " directed="1" srcID="24" type="connector" dstID="15" id="70"/>
+    <dunnart:node libavoidPath="2 387.394 269.264 4 9 317.115 339.468 20 9 " dstX="336.462" srcX="335.38" dstY="330.486" srcY="185.92" path="335.38,185.92 336.462,330.486 " directed="1" srcID="14" type="connector" dstID="15" id="71"/>
+    <dunnart:node libavoidPath="2 317.115 339.468 20 9 254.15 501.91 15 9 " dstX="381.993" srcX="336.462" dstY="500.785" srcY="330.486" path="336.462,330.486 381.993,500.785 " directed="1" srcID="15" type="connector" dstID="25" id="72"/>
+    <dunnart:node libavoidPath="2 254.15 501.91 15 9 175.454 624.5 12 9 " dstX="333.749" srcX="381.993" dstY="624.5" srcY="500.785" path="381.993,500.785 333.749,624.5 " directed="1" srcID="25" type="connector" dstID="26" id="73"/>
 </svg>
