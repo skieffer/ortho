@@ -158,7 +158,7 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
-    int fixedSep = 300; // magic number
+    int fixedSep = 300; // magic number -- not v. good magic...
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -891,6 +891,10 @@ BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
 {}
 
+/* Builds the tree structure on the Chunks simply by setting their own internal
+ * records of what their children are, and what their "parent cut nodes" are.
+ * Also records the list of cut nodes that were actually used.
+ */
 void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root, QList<node>& usedCutNodes)
 {
     QList<Chunk*> queue;
@@ -1091,6 +1095,10 @@ QMap<int,node> BCLayout::getConnComps2(Graph *G2, QMap<node, node>& nodeMapG2ToG
     // G2: the second graph we construct
     // nodeMapG2ToG: map from nodes of G2 back to nodes of G, the graph
     // whose connected components we actually will return.
+    // We return the connected components in the form of a multimap from
+    // integers to nodes. The components are assigned integer labels, and
+    // the map sends integer n to all those nodes belonging to the ccomp
+    // whose label is n.
 
     NodeArray<int> ccomps(*G2);
     connectedComponents(*G2, ccomps);
@@ -1125,6 +1133,9 @@ Graph *BCLayout::removeBiComps(Graph& G, bclist& bcs, QMap<node, node>& nodeMapN
     }
     // Copy edges, except those in the BiComps listed in bcs.
     edge e = NULL;
+    // FIXME: Might it be more efficient to first construct the set S
+    // of all original edges from the BCs, and /then/ pass through all
+    // the edges of G and keep only those that are not in S?
     forall_edges(e,G)
     {
         bool keep = true;
@@ -1177,7 +1188,7 @@ void BCLayout::orthoLayout(int method)
     QSet<node> cutnodes;
     QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes);
 
-    // Get a new graph isomorphic to the result of removing the bicomps from G.
+    // Get a new graph isomorphic to the result of removing the BC edges from G.
     QMap<node,node> nodeMapG2ToG;
     Graph *G2 = removeBiComps(G, bicomps, nodeMapG2ToG);
     assert(G2->consistencyCheck());
@@ -1186,7 +1197,7 @@ void BCLayout::orthoLayout(int method)
     QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
 
     // Form trees on those components, throwing away isolated
-    // nodes (which must have been cutnodes shared only by nontrivial BCs).
+    // nodes (which must have been nodes belonging to nontrivial BCs).
     QList<RootedTree*> rtrees;
     foreach (int i, ccomps.keys().toSet())
     {
@@ -1209,6 +1220,18 @@ void BCLayout::orthoLayout(int method)
         }
     }
     assert(largest);
+
+    /* TODO
+     * ====
+     *
+     * Here is where I will start to change the algorithm, according to
+     * our latest ideas on how reassembly should work.
+     *
+     * For now all we have is a BFS turning all the Chunks into a tree,
+     * in fact a rooted tree where we have chosen a largest Chunk as the
+     * root.
+     *
+     */
 
     // Build tree of components.
     QList<Chunk*> allChunks;
