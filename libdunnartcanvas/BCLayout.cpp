@@ -1243,6 +1243,7 @@ void BCLayout::layoutBCTrees()
     ogdf::Graph G;
     QMap<ogdf::node,ShapeObj*> nodeShapes;
     QMap<ogdf::edge,Connector*> edgeConns;
+    // First get all the nodes.
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (ShapeObj *shape = isShapeForLayout(item))
@@ -1254,6 +1255,8 @@ void BCLayout::layoutBCTrees()
             shape->setLabel(QString::number(shape->internalId()));
         }
     }
+    // Now do the edges on a separate, second pass, so that all their
+    // endpoints already exist.
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (Connector *conn = dynamic_cast<Connector*>(item))
@@ -1275,20 +1278,38 @@ void BCLayout::layoutBCTrees()
     QMap<ogdf::node,ShapeObj*> bcShapes;
     m_canvas->stop_graph_layout();
     // nodes
+    int p = 0;
     forall_nodes(v,B)
     {
         sh = factory->createShape("org.dunnart.shapes.ellipse");
         ogdf::BCTree::BNodeType bnt = bctree.typeOfBNode(v);
         int n = bctree.numberOfNodes(v);
+        // Set the radius of the shape based on the number of nodes
+        // in the BC represented by v, if it is a BComp.
         double s = 25 + (150/3.14)*std::atan(double(n-1)*0.173);
+        // Choose an initial point.
+        double x = 0, y = 0;
+        switch (p%4)
+        {
+        case 0:
+            x = (double)p; y = 0; break;
+        case 1:
+            x = 0; y = (double)p; break;
+        case 2:
+            x = -(double)p; y = 0; break;
+        case 3:
+            x = 0; y = -(double)p; break;
+        }
+        p++;
+        // Construct the shape.
         switch (bnt)
         {
         case ogdf::BCTree::BComp:
-            sh->setPosAndSize(QPointF(0,0), QSizeF(s,s));
+            sh->setPosAndSize(QPointF(x,y), QSizeF(s,s));
             sh->setFillColour(QColor(128,128,255));
             break;
         case ogdf::BCTree::CComp:
-            sh->setPosAndSize(QPointF(0,0), QSizeF(25,25));
+            sh->setPosAndSize(QPointF(x,y), QSizeF(25,25));
             sh->setFillColour(QColor(255,128,128));
             break;
         }
@@ -1336,7 +1357,10 @@ void BCLayout::layoutBCTrees()
 
     // Draw the "auxiliary graph" -- draw only nodes and edges belonging to
     // biconnected components of 3 or more nodes
-    ogdf::Graph H = bctree.auxiliaryGraph();
+
+    // Looks like we tried to use the auxiliaryGraph function, but
+    // didn't like what we were getting?
+    //ogdf::Graph H = bctree.auxiliaryGraph();
 
     QSet<ogdf::node> hNodes;
     QSet<ogdf::edge> hEdges;
@@ -1344,6 +1368,10 @@ void BCLayout::layoutBCTrees()
     {
         int n = bctree.numberOfNodes(v);
         if (n < 3) continue;
+        // If we get this far, then v represents a BComp containing at least
+        // 3 nodes of the original graph.
+        // We now use the hEdges function which returns a list of all edges
+        // of the original graph belonging to this BComp.
         ogdf::SList<ogdf::edge> edges = bctree.hEdges(v);
         for (ogdf::SListIterator<ogdf::edge> i = edges.begin(); i!=edges.end(); i++)
         {
@@ -1354,10 +1382,26 @@ void BCLayout::layoutBCTrees()
     }
     QMap<ogdf::node,ShapeObj*> auxShapes;
     // nodes
+    p = 0;
     foreach (ogdf::node v, hNodes)
     {
+        // Choose an initial point.
+        double x = 0, y = 0;
+        switch (p%4)
+        {
+        case 0:
+            x = (double)p; y = 0; break;
+        case 1:
+            x = 0; y = (double)p; break;
+        case 2:
+            x = -(double)p; y = 0; break;
+        case 3:
+            x = 0; y = -(double)p; break;
+        }
+        p++;
+        // Construct the shape.
         sh = factory->createShape("org.dunnart.shapes.ellipse");
-        sh->setPosAndSize(QPointF(0,0), QSizeF(25,25));
+        sh->setPosAndSize(QPointF(x,y), QSizeF(25,25));
         sh->setFillColour(QColor(128,255,128));
         m_canvas->addItem(sh);
         auxShapes.insert(v,sh);
