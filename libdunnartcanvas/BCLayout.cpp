@@ -742,8 +742,22 @@ Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
 
 SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState)
 {
-    // TODO
-    return NULL;
+    SeparatedAlignment *sa = NULL;
+    edge ed = NULL;
+    forall_edges(ed,*m_graph) {
+        node src = ed->source();
+        node tgt = ed->target();
+        // oops, need nodeIndices again as argument... TODO
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        // If already aligned, continue to next edge.
+        if (alignmentState(srcIndex,tgtIndex) & (Canvas::Horizontal|Canvas::Vertical)) continue;
+        // Otherwise consider the rectangles.
+        vpsc::Rectangle rsrc = rs.at(srcIndex);
+        vpsc::Rectangle rtgt = rs.at(tgtIndex);
+        //...
+    }
+    return sa;
 }
 
 void BiComp::updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState)
