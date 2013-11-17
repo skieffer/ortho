@@ -553,10 +553,13 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     //BCLayout::extractSizes(m_nodemap, origShapes, newNodesGA);
 
     // Get distinct initial positions
+    // FIXME: just use spiral initial positions, as usual;
+    // don't need random, and it takes longer!
     while (coincidence()) { jog(100.0); }
     // Displace cut node in opposite of cardinal direction /if/ this is not
     // the root component of the layout.
     //
+    // FIXME:
     // Really, we should be using cola for this initial layout, and we should
     // use separation constraints to say that the cut node be on the side
     // where we want it.
@@ -634,7 +637,7 @@ void BiComp::colaLayout()
     QMap<node,int> nodeIndices;
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
-    //cola::CompoundConstraints ccs;
+    cola::CompoundConstraints ccs;
     // make rectangles
     node v = NULL;
     int i = 0;
@@ -642,8 +645,9 @@ void BiComp::colaLayout()
     {
         ShapeObj *sh = m_ownShapeMap.value(v);
         QRectF rect = sh->boundingRect();
-        double x = rect.left(); double X = rect.right();
-        double y = rect.top();  double Y = rect.bottom();
+        QPointF c = sh->centrePos();
+        double x = rect.left() + c.x(); double X = rect.right() + c.x();
+        double y = rect.top() + c.y();  double Y = rect.bottom() + c.y();
         rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
         nodeIndices.insert(v,i);
         i++;
@@ -663,8 +667,45 @@ void BiComp::colaLayout()
     double idealLength = 100;
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,idealLength,false);
-    //fdlayout->setConstraints(ccs);
+
+    // As an experiment, can we add a constraint to align all
+    // the rectangles vertically?
+    /*
+    cola::AlignmentConstraint *ac = new cola::AlignmentConstraint(vpsc::XDIM);
+    for (int j = 0; j < rs.size(); j++) {
+        ac->addShape(j,0);
+    }
+    ccs.push_back(ac);
+    */
+    // Answer: Yes, this works perfectly.
+
+    // Do an initial FD layout.
+    fdlayout->setConstraints(ccs);
     fdlayout->run(true,true);
+
+#define doACA
+#ifdef doACA
+    // _ACA_
+    // Let N be the number of nodes.
+    int N = rs.size();
+    // Prepare the alignment state matrix.
+    Matrix2d<int> alignmentState = initACA(N, nodeIndices);
+    // Start main loop.
+    SeparatedAlignment *sa = chooseSA(rs, alignmentState);
+    while (sa) {
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Redo the layout, with the new constraints.
+        fdlayout->setConstraints(ccs);
+        fdlayout->run(true,true);
+        // Update state.
+        updateAlignmentState(sa, alignmentState);
+        // Choose next SA.
+        sa = chooseSA(rs, alignmentState);
+    }
+#endif
+
     // extract the node positions
     forall_nodes(v,*m_graph)
     {
@@ -675,6 +716,39 @@ void BiComp::colaLayout()
         double y = r->getCentreY();
         sh->setCentrePos(QPointF(x,y));
     }
+}
+
+Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
+{
+    Matrix2d<int> alignmentState = Matrix2d<int>(N,N);
+    // Initialize with zeros.
+    for (uint i = 0; i < N; i++) {
+        for (uint j = 0; j < N; j++) {
+            alignmentState(i,j) = 0;
+        }
+    }
+    // Note connected nodes.
+    edge ed = NULL;
+    forall_edges(ed,*m_graph) {
+        node src = ed->source();
+        node tgt = ed->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        alignmentState(srcIndex,tgtIndex) = Canvas::Connected;
+        alignmentState(tgtIndex,srcIndex) = Canvas::Connected;
+    }
+    return alignmentState;
+}
+
+SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState)
+{
+    // TODO
+    return NULL;
+}
+
+void BiComp::updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState)
+{
+    // TODO
 }
 
 // FIXME: Do this right, in n log n time, instead of n^2, if we're really doing this.

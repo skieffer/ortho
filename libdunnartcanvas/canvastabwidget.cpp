@@ -154,6 +154,7 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
 
     m_action_layout_BCTrees = new QAction("Layout BC-trees",this);
 
+    m_action_BCWithCola = new QAction("with CoLa",this);
     m_action_BCWithFM3 = new QAction("with FM3",this);
     m_action_BCWithSpringEmbedder = new QAction("with Spring Embedder",this);
     m_action_BCWithKamadaKawai = new QAction("with Kamada-Kawai",this);
@@ -337,6 +338,8 @@ void CanvasTabWidget::currentChanged(int index)
     connect(m_action_layout_BCTrees, SIGNAL(triggered()),
             m_canvas, SLOT(layoutBCTrees()));
 
+    m_action_BCWithCola->disconnect();
+    connect(m_action_BCWithCola, SIGNAL(triggered()), m_canvas, SLOT(BCWithCola()));
     m_action_BCWithFM3->disconnect();
     connect(m_action_BCWithFM3, SIGNAL(triggered()), m_canvas, SLOT(BCWithFM3()));
     m_action_BCWithSpringEmbedder->disconnect();
@@ -588,6 +591,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_apply_fm3);
     layout_menu->addAction(m_action_layout_BCTrees);
     QMenu *BCOrthoLayoutMenu = layout_menu->addMenu(tr("BC Ortho Layout"));
+    BCOrthoLayoutMenu->addAction(m_action_BCWithCola);
     BCOrthoLayoutMenu->addAction(m_action_BCWithFM3);
     BCOrthoLayoutMenu->addAction(m_action_BCWithSpringEmbedder);
     BCOrthoLayoutMenu->addAction(m_action_BCWithKamadaKawai);

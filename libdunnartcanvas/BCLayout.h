@@ -29,6 +29,9 @@
 #include <QRectF>
 
 #include "libogdf/ogdf/basic/Graph_d.h"
+#include "libcola/compound_constraints.h"
+#include "libvpsc/rectangle.h"
+#include "libdunnartcanvas/canvas.h"
 
 using namespace ogdf;
 
@@ -50,6 +53,14 @@ typedef QList<RootedTree*> treelist;
 
 class BiComp;
 typedef QList<BiComp*> bclist;
+
+struct SeparatedAlignment {
+    cola::SeparationConstraint* separation;
+    cola::AlignmentConstraint* alignment;
+    int rect1;
+    int rect2;
+    Canvas::AlignmentFlags af;
+};
 
 class Chunk {
 public:
@@ -116,6 +127,12 @@ public:
     void constructDunnartGraph(shapemap& origShapes,
                                QPointF cardinal, QList<node> cutnodes);
     void colaLayout(void);
+
+    // ACA methods
+    Matrix2d<int> initACA(int N, QMap<node,int> nodeIndices);
+    SeparatedAlignment *chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState);
+    void updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState);
+
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
                          QPointF cardinal, QList<node> cutnodes);
