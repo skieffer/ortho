@@ -34,6 +34,7 @@
 #include "libdunnartcanvas/canvasitem.h"
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/connector.h"
+#include "libdunnartcanvas/pluginshapefactory.h"
 
 using namespace dunnart;
 
@@ -129,24 +130,27 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 return false;
             }
 
-            // TODO: Write the method!
-            //errorMessage = tr("Sorry, writing TGF files has been implemented, but not reading!");
-            //return false;
-
             QMap<QString,ShapeObj*> shapesByNum;
+            PluginShapeFactory *shapeFactory = sharedPluginShapeFactory();
+            int n = 0;
+            canvas->stop_graph_layout();
             while (!file.atEnd()) {
                 QByteArray line = file.readLine();
-                qDebug() << line.length();
+                //qDebug() << line.length();
                 QString s = QString(line.data()).trimmed();
-                qDebug() << s;
+                //qDebug() << s;
                 QStringList parts = s.split(" ");
-                qDebug() << QString("%1 parts").arg(parts.length());
+                //qDebug() << QString("%1 parts").arg(parts.length());
                 if (parts.length() == 1) {
                     QString p = parts.at(0);
-                    if (p.at(0)=="#") continue;
-                    ShapeObj *s = new ShapeObj("foo");
+                    if (p.at(0)==QString("#").at(0)) continue;
+                    ShapeObj *s = shapeFactory->createShape("org.dunnart.shapes.rect");
                     shapesByNum.insert(p,s);
+                    double x = n%4<2 ? n : -n;
+                    double y = n%2<1 ? n : -n;
+                    s->setPosAndSize(QPointF(x,y),QSizeF(50,50));
                     canvas->addItem(s);
+                    n++;
                 } else if (parts.length() == 2) {
                     QString p = parts.at(0), q = parts.at(1);
                     ShapeObj *s = shapesByNum.value(p);
@@ -159,6 +163,7 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 }
             }
             file.close();
+            canvas->fully_restart_graph_layout();
             return true;
 
             /*

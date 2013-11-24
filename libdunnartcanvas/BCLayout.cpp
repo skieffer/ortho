@@ -1200,6 +1200,28 @@ void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
     applyDunnartSepAligns(canvas);
 }
 
+/* Perform depth-first search through the network whose nodes are the
+ * BiComps and whose hyperedges are the cutnodes.
+ *
+ * endpts maps cutnodes to the BCs that are their "end points";
+ * elements is the list of BCs seen so far in the DFS.
+ *
+ * We simply add BCs to the elements list.
+ * This is used in decomposing the network of BCs into its connected
+ * components.
+ */
+void BiComp::dfs(QMap<node, BiComp *> endpts, QList<BiComp *> &elements)
+{
+    elements.append(this);
+    foreach (node nd, m_cutNodes) {
+        QList<BiComp*> next = endpts.values(nd);
+        foreach (BiComp *bc, next) {
+            if (elements.contains(bc)) continue;
+            bc->dfs(endpts,elements);
+        }
+    }
+}
+
 // ----------------------------------------------------------------------------
 // BCLayout -------------------------------------------------------------------
 
@@ -1392,6 +1414,34 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
     return bicomps;
 }
 
+/* Fuse BCs that share cutnodes. Return list of BCs thus obtained.
+ */
+QList<BiComp*> BCLayout::fuseBCs(QList<BiComp *> bicomps)
+{
+    // Prepare multimap from cutnodes to BCs they lie in.
+    QMap<node,BiComp*> endpts;
+    foreach (BiComp *bc, bicomps) {
+        QList<node> cn = bc->getCutNodes();
+        foreach (node nd, cn) {
+            endpts.insertMulti(nd,bc);
+        }
+    }
+    // Prepare list of "compound BCs".
+    QList<BiComp*> cbc;
+    while (!bicomps.empty()) {
+        // Do depth-first search starting from first BC, and
+        // following hyperedges as given by the endpts map.
+        QList<BiComp*> elements;
+        BiComp *b = bicomps.first();
+        b->dfs(endpts,elements);
+        // Remove elements found from the main list.
+        bicomps = bicomps.toSet().subtract(elements.toSet()).toList();
+        // Fuse the elements found, and store as compound BC.
+        // ...
+    }
+    return cbc;
+}
+
 QMap<int,node> BCLayout::getConnComps(Graph& G)
 {
     NodeArray<int> ccomps(G);
@@ -1503,6 +1553,8 @@ void BCLayout::orthoLayout(int method)
     // Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
     QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes);
+    // Fuse BCs that share cutnodes.
+    bicomps = fuseBCs(bicomps);
 
     // Get a new graph isomorphic to the result of removing the BC edges from G.
     QMap<node,node> nodeMapG2ToG;

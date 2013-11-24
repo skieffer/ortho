@@ -160,6 +160,7 @@ public:
     bool coincidence(void);
     void jog(double scale);
     static int method;
+    void dfs(QMap<node,BiComp*> endpts, QList<BiComp*> &elements);
 private:
     Graph *m_graph;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
@@ -204,6 +205,7 @@ public:
     void applyFM3(void);
 
     QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
+    QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);
     QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
