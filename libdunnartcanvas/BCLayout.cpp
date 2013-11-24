@@ -684,7 +684,7 @@ void BiComp::colaLayout()
     qDebug() << "run once";
     fdlayout->run(true,true);
 
-//#define doACA
+#define doACA
 #ifdef doACA
     // _ACA_
     // Let N be the number of nodes.
@@ -699,7 +699,26 @@ void BiComp::colaLayout()
         ccs.push_back(sa->separation);
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
-        qDebug() << "run" << n; n++;
+        //qDebug() << "run" << n; n++;
+
+        QString rects = "";
+        rects += QString("%1: ").arg(n,3);
+        for (int i = 0; i < rs.size(); i++) {
+            vpsc::Rectangle *r = rs.at(i);
+            double x = r->getCentreX();
+            double y = r->getCentreY();
+            rects += QString("(%1,%2) ").arg(x,5,'f',2).arg(y,5,'f',2);
+        }
+        qDebug() << rects;
+        QString sepalgn = "";
+        sepalgn += QString("%1").arg(sa->rect1,2);
+        sepalgn += sa->af == Canvas::Horizontal ? "-" : "|";
+        sepalgn += QString("%1").arg(sa->rect2,2);
+        qDebug() << sepalgn;
+        n++;
+
+        delete fdlayout;
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,false);
         fdlayout->setConstraints(ccs);
         fdlayout->run(true,true);
         // Update state.
@@ -718,8 +737,10 @@ void BiComp::colaLayout()
         vpsc::Rectangle *r = rs.at(i);
         double x = r->getCentreX();
         double y = r->getCentreY();
+        delete r;
         sh->setCentrePos(QPointF(x,y));
     }
+    delete fdlayout;
 }
 
 Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
@@ -732,15 +753,33 @@ Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
         }
     }
     // Note connected nodes.
+    //qDebug() << "Building alignment state table.";
     edge ed = NULL;
     forall_edges(ed,*m_graph) {
         node src = ed->source();
         node tgt = ed->target();
         int srcIndex = nodeIndices.value(src);
         int tgtIndex = nodeIndices.value(tgt);
+
+        //qDebug() << QString("endpts: %1,%2").arg(srcIndex).arg(tgtIndex);
+
         alignmentState(srcIndex,tgtIndex) = Canvas::Connected;
         alignmentState(tgtIndex,srcIndex) = Canvas::Connected;
     }
+
+    //-----------------------------------
+    // Debug: show alignment state table.
+    /*
+    for (uint i = 0; i < N; i++) {
+        QString row = "";
+        for (uint j = 0; j < N; j++) {
+            row += QString("%1 ").arg(alignmentState(i,j),2);
+        }
+        qDebug() << row;
+    }
+    */
+    //-----------------------------------
+
     return alignmentState;
 }
 
@@ -755,28 +794,37 @@ SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignme
         node tgt = ed->target();
         int srcIndex = nodeIndices.value(src);
         int tgtIndex = nodeIndices.value(tgt);
+
+        //qDebug() << QString("chooseSA considering endpts: %1,%2").arg(srcIndex).arg(tgtIndex);
+
         // If already aligned, skip this edge.
-        if (alignmentState(srcIndex,tgtIndex) & (Canvas::Horizontal|Canvas::Vertical)) continue;
+        int astate = alignmentState(srcIndex,tgtIndex);
+        if (astate & (Canvas::Horizontal|Canvas::Vertical)) {
+            //qDebug() << "    already aligned -- skip";
+            continue;
+        }
         // Consider horizontal alignment.
         if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Horizontal,rs,alignmentState)) {
             double dH = deflection(srcIndex,tgtIndex,Canvas::Horizontal,rs);
+            //qDebug() << QString("    deflection: %1").arg(dH);
             if (dH < minDeflection) {
                 minDeflection = dH;
                 if (!sa) sa = new SeparatedAlignment;
                 sa->af = Canvas::Horizontal;
                 sa->rect1 = srcIndex;
-                sa->rect1 = tgtIndex;
+                sa->rect2 = tgtIndex;
             }
         }
         // Consider vertical alignment.
         if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Vertical,rs,alignmentState)) {
             double dV = deflection(srcIndex,tgtIndex,Canvas::Vertical,rs);
+            //qDebug() << QString("    deflection: %1").arg(dV);
             if (dV < minDeflection) {
                 minDeflection = dV;
                 if (!sa) sa = new SeparatedAlignment;
                 sa->af = Canvas::Vertical;
                 sa->rect1 = srcIndex;
-                sa->rect1 = tgtIndex;
+                sa->rect2 = tgtIndex;
             }
         }
     }
@@ -785,19 +833,27 @@ SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignme
         // If so, then complete the SeparatedAlignment object.
         int srcIndex = sa->rect1;
         int tgtIndex = sa->rect2;
+
+        /*
+        QString state = QString("Nodes %1,%2 had state %3.").arg(srcIndex).arg(tgtIndex)
+                .arg(alignmentState(srcIndex,tgtIndex));
+        qDebug() << state;
+        */
+
         vpsc::Rectangle *rsrc = rs.at(srcIndex);
         vpsc::Rectangle *rtgt = rs.at(tgtIndex);
         // Separation Constraint
-        vpsc::Dim d = sa->af == Canvas::Horizontal ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim sepDim = sa->af == Canvas::Horizontal ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim algnDim = sa->af == Canvas::Horizontal ? vpsc::YDIM : vpsc::XDIM;
         double sep = sa->af == Canvas::Horizontal ?
                     (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
         int l = sa->af == Canvas::Horizontal ?
                     (rsrc->getCentreX() < rtgt->getCentreX() ? srcIndex : tgtIndex) :
                     (rsrc->getCentreY() < rtgt->getCentreY() ? srcIndex : tgtIndex);
         int r = l == srcIndex ? tgtIndex : srcIndex;
-        sa->separation = new cola::SeparationConstraint(d,l,r,sep);
+        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
         // Alignment Constraint
-        sa->alignment = new cola::AlignmentConstraint(d);
+        sa->alignment = new cola::AlignmentConstraint(algnDim);
         sa->alignment->addShape(l,0);
         sa->alignment->addShape(r,0);
     }
