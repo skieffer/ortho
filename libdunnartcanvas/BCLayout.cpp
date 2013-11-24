@@ -681,9 +681,10 @@ void BiComp::colaLayout()
 
     // Do an initial FD layout.
     fdlayout->setConstraints(ccs);
+    qDebug() << "run once";
     fdlayout->run(true,true);
 
-#define doACA
+//#define doACA
 #ifdef doACA
     // _ACA_
     // Let N be the number of nodes.
@@ -691,18 +692,21 @@ void BiComp::colaLayout()
     // Prepare the alignment state matrix.
     Matrix2d<int> alignmentState = initACA(N, nodeIndices);
     // Start main loop.
-    SeparatedAlignment *sa = chooseSA(rs, alignmentState);
+    SeparatedAlignment *sa = chooseSA(rs, alignmentState, nodeIndices);
+    int n = 2; // for debugging purpose only
     while (sa) {
         // Add the new separated alignment constraints.
         ccs.push_back(sa->separation);
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
+        qDebug() << "run" << n; n++;
         fdlayout->setConstraints(ccs);
         fdlayout->run(true,true);
         // Update state.
         updateAlignmentState(sa, alignmentState);
         // Choose next SA.
-        sa = chooseSA(rs, alignmentState);
+        delete sa;
+        sa = chooseSA(rs, alignmentState, nodeIndices);
     }
 #endif
 
@@ -740,29 +744,160 @@ Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
     return alignmentState;
 }
 
-SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState)
+SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState,
+                                     QMap<node, int> nodeIndices)
 {
     SeparatedAlignment *sa = NULL;
+    double minDeflection = 1.0;
     edge ed = NULL;
     forall_edges(ed,*m_graph) {
         node src = ed->source();
         node tgt = ed->target();
-        // oops, need nodeIndices again as argument... TODO
         int srcIndex = nodeIndices.value(src);
         int tgtIndex = nodeIndices.value(tgt);
-        // If already aligned, continue to next edge.
+        // If already aligned, skip this edge.
         if (alignmentState(srcIndex,tgtIndex) & (Canvas::Horizontal|Canvas::Vertical)) continue;
-        // Otherwise consider the rectangles.
-        vpsc::Rectangle rsrc = rs.at(srcIndex);
-        vpsc::Rectangle rtgt = rs.at(tgtIndex);
-        //...
+        // Consider horizontal alignment.
+        if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Horizontal,rs,alignmentState)) {
+            double dH = deflection(srcIndex,tgtIndex,Canvas::Horizontal,rs);
+            if (dH < minDeflection) {
+                minDeflection = dH;
+                if (!sa) sa = new SeparatedAlignment;
+                sa->af = Canvas::Horizontal;
+                sa->rect1 = srcIndex;
+                sa->rect1 = tgtIndex;
+            }
+        }
+        // Consider vertical alignment.
+        if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Vertical,rs,alignmentState)) {
+            double dV = deflection(srcIndex,tgtIndex,Canvas::Vertical,rs);
+            if (dV < minDeflection) {
+                minDeflection = dV;
+                if (!sa) sa = new SeparatedAlignment;
+                sa->af = Canvas::Vertical;
+                sa->rect1 = srcIndex;
+                sa->rect1 = tgtIndex;
+            }
+        }
+    }
+    // Did we find an alignment?
+    if (sa) {
+        // If so, then complete the SeparatedAlignment object.
+        int srcIndex = sa->rect1;
+        int tgtIndex = sa->rect2;
+        vpsc::Rectangle *rsrc = rs.at(srcIndex);
+        vpsc::Rectangle *rtgt = rs.at(tgtIndex);
+        // Separation Constraint
+        vpsc::Dim d = sa->af == Canvas::Horizontal ? vpsc::XDIM : vpsc::YDIM;
+        double sep = sa->af == Canvas::Horizontal ?
+                    (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        int l = sa->af == Canvas::Horizontal ?
+                    (rsrc->getCentreX() < rtgt->getCentreX() ? srcIndex : tgtIndex) :
+                    (rsrc->getCentreY() < rtgt->getCentreY() ? srcIndex : tgtIndex);
+        int r = l == srcIndex ? tgtIndex : srcIndex;
+        sa->separation = new cola::SeparationConstraint(d,l,r,sep);
+        // Alignment Constraint
+        sa->alignment = new cola::AlignmentConstraint(d);
+        sa->alignment->addShape(l,0);
+        sa->alignment->addShape(r,0);
     }
     return sa;
 }
 
+/* Given that the SeparatedAlignment sa has just been applied, update the
+ * alignmentState matrix to reflect the new alignments that now exist.
+ */
 void BiComp::updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState)
 {
-    // TODO
+    // Which dimension?
+    Canvas::AlignmentFlags af = sa->af;
+    // Get the indices of the two rectangles r1 and r2.
+    int i1 = sa->rect1, i2 = sa->rect2;
+    // Get the sets of indices of nodes already aligned with r1 and r2.
+    QList<int> A1, A2;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i1,j) & af) A1.append(j);
+        if (alignmentState(i2,j) & af) A2.append(j);
+    }
+    // r1 and r2 are aligned deliberately.
+    alignmentState(i1,i2) |= af | Canvas::Deliberate;
+    alignmentState(i2,i1) |= af | Canvas::Deliberate;
+    // r1 is now aligned with each element of A2, and vice versa.
+    foreach (int k, A2) {
+        alignmentState(i1,k) |= af;
+        alignmentState(k,i1) |= af;
+    }
+    foreach (int k, A1) {
+        alignmentState(i2,k) |= af;
+        alignmentState(k,i2) |= af;
+    }
+}
+
+/* Say whether the proposed alignment would create an edge coincidence.
+ */
+bool BiComp::createsCoincidence(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                                vpsc::Rectangles rs, Matrix2d<int> &alignmentState)
+{
+    vpsc::Rectangle *r1 = rs.at(srcIndex), *r2 = rs.at(tgtIndex);
+    double z1 = af == Canvas::Horizontal ? r1->getCentreX() : r1->getCentreY();
+    double z2 = af == Canvas::Horizontal ? r2->getCentreX() : r2->getCentreY();
+    double lowCoord = z1<z2 ? z1 : z2;
+    double highCoord = z1<z2 ? z2 : z1;
+    int lowIndex = z1<z2 ? srcIndex : tgtIndex;
+    int highIndex = z1<z2 ? tgtIndex : srcIndex;
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict coincidence.
+    bool coincidence = false;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (j==lowIndex || j==highIndex) continue;
+        vpsc::Rectangle *r = rs.at(j);
+        int lj = alignmentState(lowIndex, j);
+        int hj = alignmentState(highIndex, j);
+        if (lj&af || hj&af) {
+            double z = af==Canvas::Horizontal ? r->getCentreX() : r->getCentreY();
+            // low shape
+            if ( lj&Canvas::Connected && lowCoord < z ) {
+                coincidence = true; break;
+            }
+            // high shape
+            if ( hj&Canvas::Connected && z < highCoord ) {
+                coincidence = true; break;
+            }
+        }
+    }
+    return coincidence;
+}
+
+/* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
+ * deflected from horizontal or vertical, depending on the passed alignment flag.
+ * The "edge" E is the straight line from the centre of the src rectangle to that
+ * of the tgt rectangle, as given by the src and tgt indices, and the vector of
+ * Rectangles.
+ *
+ * If t is the angle that E makes with the positive x-axis, then the score we return
+ * is sin^2(t) if af == Horizontal, and cos^2(t) if af == Vertical.
+ *
+ * So smaller deflection scores mean edges that are closer to axis-aligned.
+ */
+double BiComp::deflection(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af, vpsc::Rectangles rs)
+{
+    vpsc::Rectangle *s = rs.at(srcIndex), *t = rs.at(tgtIndex);
+    double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
+    double a;
+    if (ty>sy) {
+        a = atan2(ty-sy,tx-sx);
+    } else if (ty<sy) {
+        a = atan2(sy-ty,sx-tx);
+    } else {
+        a = 0;
+    }
+    double sn = sin(a);
+    double sn2 = sn*sn;
+    double dfl = af==Canvas::Horizontal ? sn2 : 1 - sn2;
+    return dfl;
 }
 
 // FIXME: Do this right, in n log n time, instead of n^2, if we're really doing this.

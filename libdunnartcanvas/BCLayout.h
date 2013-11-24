@@ -128,10 +128,17 @@ public:
                                QPointF cardinal, QList<node> cutnodes);
     void colaLayout(void);
 
+    // -----------
     // ACA methods
     Matrix2d<int> initACA(int N, QMap<node,int> nodeIndices);
-    SeparatedAlignment *chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState);
+    SeparatedAlignment *chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState,
+                                 QMap<node,int> nodeIndices);
     void updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState);
+    bool createsCoincidence(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                            vpsc::Rectangles rs, Matrix2d<int> &alignmentState);
+    double deflection(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                      vpsc::Rectangles rs);
+    // -----------
 
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
