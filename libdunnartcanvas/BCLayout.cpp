@@ -44,6 +44,8 @@
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/connector.h"
 #include "libdunnartcanvas/pluginshapefactory.h"
+#include "libdunnartcanvas/guideline.h"
+#include "libdunnartcanvas/separation.h"
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
 #include "libogdf/ogdf/basic/NodeArray.h"
@@ -723,8 +725,8 @@ void BiComp::colaLayout()
         fdlayout->run(true,true);
         // Update state.
         updateAlignmentState(sa, alignmentState);
-        // Choose next SA.
-        delete sa;
+        // Store SA and choose next one.
+        m_sepAligns.append(sa);
         sa = chooseSA(rs, alignmentState, nodeIndices);
     }
 #endif
@@ -740,7 +742,34 @@ void BiComp::colaLayout()
         delete r;
         sh->setCentrePos(QPointF(x,y));
     }
+    // Clean up.
     delete fdlayout;
+}
+
+/* Apply all the separated alignments specified in m_sepAligns.
+ */
+void BiComp::applyDunnartSepAligns(Canvas *canvas)
+{
+    foreach (SeparatedAlignment *sa, m_sepAligns) {
+        ShapeObj *s = sa->shape1, *t=sa->shape2;
+        CanvasItemList items;
+        items.append(s); items.append(t);
+        // Separation
+        dtype dt = sa->af==Canvas::Vertical ? SEP_VERTICAL : SEP_HORIZONTAL;
+        double minDist = (s->width()+t->width())/2.0;
+        bool sort = true;
+        createSeparation(NULL,dt,items,minDist,sort);
+        // Alignment
+        atypes at = sa->af==Canvas::Vertical ? ALIGN_CENTER : ALIGN_MIDDLE;
+        createAlignment(at,items);
+    }
+}
+
+/* Remove all the separated alignments specified in m_sepAligns.
+ */
+void BiComp::removeDunnartSepAligns(Canvas *canvas)
+{
+    // TODO
 }
 
 Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
@@ -856,6 +885,11 @@ SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignme
         sa->alignment = new cola::AlignmentConstraint(algnDim);
         sa->alignment->addShape(l,0);
         sa->alignment->addShape(r,0);
+        // Store the shapes too, for use later in applying a Dunnart constraint.
+        node src = nodeIndices.key(srcIndex);
+        node tgt = nodeIndices.key(tgtIndex);
+        sa->shape1 = m_ownShapeMap.value(src);
+        sa->shape2 = m_ownShapeMap.value(tgt);
     }
     return sa;
 }
@@ -1161,6 +1195,9 @@ void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
     {
         ch->recursiveDraw(canvas, m_basept);
     }
+
+    // Apply any separated alignments created if we used ACA.
+    applyDunnartSepAligns(canvas);
 }
 
 // ----------------------------------------------------------------------------

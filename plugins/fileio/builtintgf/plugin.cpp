@@ -130,8 +130,37 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
             }
 
             // TODO: Write the method!
-            errorMessage = tr("Sorry, writing TGF files has been implemented, but not reading!");
-            return false;
+            //errorMessage = tr("Sorry, writing TGF files has been implemented, but not reading!");
+            //return false;
+
+            QMap<QString,ShapeObj*> shapesByNum;
+            while (!file.atEnd()) {
+                QByteArray line = file.readLine();
+                qDebug() << line.length();
+                QString s = QString(line.data()).trimmed();
+                qDebug() << s;
+                QStringList parts = s.split(" ");
+                qDebug() << QString("%1 parts").arg(parts.length());
+                if (parts.length() == 1) {
+                    QString p = parts.at(0);
+                    if (p.at(0)=="#") continue;
+                    ShapeObj *s = new ShapeObj("foo");
+                    shapesByNum.insert(p,s);
+                    canvas->addItem(s);
+                } else if (parts.length() == 2) {
+                    QString p = parts.at(0), q = parts.at(1);
+                    ShapeObj *s = shapesByNum.value(p);
+                    ShapeObj *t = shapesByNum.value(q);
+                    Connector *c = new Connector();
+                    c->initWithConnection(s,t);
+                    canvas->addItem(c);
+                } else {
+                    // This should not happen!
+                }
+            }
+            file.close();
+            return true;
+
             /*
             QString parsingError;
             int errorLine;

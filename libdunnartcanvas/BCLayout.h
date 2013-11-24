@@ -60,6 +60,8 @@ struct SeparatedAlignment {
     int rect1;
     int rect2;
     Canvas::AlignmentFlags af;
+    ShapeObj *shape1;
+    ShapeObj *shape2;
 };
 
 class Chunk {
@@ -138,6 +140,8 @@ public:
                             vpsc::Rectangles rs, Matrix2d<int> &alignmentState);
     double deflection(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
                       vpsc::Rectangles rs);
+    void applyDunnartSepAligns(Canvas *canvas);
+    void removeDunnartSepAligns(Canvas *canvas);
     // -----------
 
     void improveOrthogonalTopology(void);
@@ -174,6 +178,7 @@ private:
     QList<Chunk*> m_children;
     node m_parentCutNode;
     QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees);
+    QList<SeparatedAlignment*> m_sepAligns;
 };
 
 class BCLayout
