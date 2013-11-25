@@ -329,6 +329,40 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
     BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
     treelayout.call(newNodesGA);
     BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+    // Infer constraints.
+    inferConstraints();
+}
+
+/* After calling ogdfTreeLayout, we use this method to infer apt constraints
+ * to preserve the layout that our shapes have been given.
+ * Store them in m_dunnartConstraints.
+ */
+void RootedTree::inferConstraints()
+{
+    // TODO
+}
+
+/* To be called by recursiveDraw. Applies the Dunnart constraints that
+ * were inferred by inferConstraints.
+ */
+void RootedTree::applyDunnartConstraints()
+{
+    foreach (DunnartConstraint *dc, m_dunnartConstraints) {
+        switch (dc->type) {
+        case ALIGNMENT:
+            atypes at = dc->dim==Canvas::VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
+            createAlignment(at,dc->items);
+            break;
+        case SEPARATION:
+            dtype dt = dc->dim==Canvas::VERT ? SEP_VERTICAL : SEP_HORIZONTAL;
+            bool sort = true;
+            createSeparation(NULL,dt,dc->items,dc->minSep,sort);
+            break;
+        case DISTRIBUTION:
+            // TODO
+            break;
+        }
+    }
 }
 
 void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
@@ -360,6 +394,9 @@ void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
     {
         ch->recursiveDraw(canvas, m_basept);
     }
+
+    // Apply any constraints inferred from ogdfTreeLayout.
+    applyDunnartConstraints();
 }
 
 void RootedTree::setChildren(QList<Chunk *> children)

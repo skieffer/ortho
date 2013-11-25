@@ -64,6 +64,17 @@ struct SeparatedAlignment {
     ShapeObj *shape2;
 };
 
+enum ConstraintType {
+    ALIGNMENT, SEPARATION, DISTRIBUTION
+};
+
+struct DunnartConstraint {
+    ConstraintType type;
+    Canvas::Dimension dim;
+    QList<CanvasItem*> items;
+    double minSep;
+};
+
 class Chunk {
 public:
     virtual void setRelPt(QPointF p) = 0;
@@ -103,6 +114,8 @@ public:
     node getParentCutNode(void);
     QPointF baryCentre(void);
     QRectF bbox(void);
+    void inferConstraints(void);
+    void applyDunnartConstraints(void);
 private:
     Graph *m_graph;
     node m_root;
@@ -120,6 +133,8 @@ private:
     connmap m_ownConnMap;
     QPointF m_basept;
     QPointF m_relpt;
+
+    QList<DunnartConstraint*> m_dunnartConstraints;
 };
 
 class BiComp : public Chunk
