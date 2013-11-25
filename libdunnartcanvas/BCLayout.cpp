@@ -151,7 +151,8 @@ bool RootedTree::containsOriginalNode(node n)
     return m_nodemap.values().contains(n);
 }
 
-void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal, QList<node> cutnodes)
+void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode,
+                                 QPointF cardinal, QList<node> cutnodes)
 {
     // TODO: Use origBaseNode and cardinal.
     // If origBaseNode is NULL, then it is to be ignored.
@@ -160,7 +161,8 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
-    int fixedSep = 300; // magic number -- not v. good magic...
+    int magicNumber = 0;
+    int fixedSep = magicNumber;
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -173,7 +175,7 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal, cutnodes);
-        fixedSep += 300;
+        fixedSep += magicNumber;
     }
 }
 
@@ -192,9 +194,15 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
         node n = m_nodemap.value(m);
         if (cutnodes.contains(n))
         {
-            shape->setFillColour(QColor(0,192,0));
-            int i = cutnodes.indexOf(n);
-            shape->setLabel(QString::number(i));
+            if (n==m_parentCutNode) {
+                // Replace shape by the shape that m_parent associated with
+                // this node.
+                shape = m_parent->getShapeForOriginalNode(n);
+            } else {
+                shape->setFillColour(QColor(0,192,0));
+                int i = cutnodes.indexOf(n);
+                shape->setLabel(QString::number(i));
+            }
         } else {
             shape->setFillColour(QColor(192,0,0));
         }
@@ -359,6 +367,11 @@ void RootedTree::setChildren(QList<Chunk *> children)
     m_children = children;
 }
 
+void RootedTree::setParent(BiComp *bc)
+{
+    m_parent = bc;
+}
+
 void RootedTree::setParentCutNode(node cn)
 {
     m_parentCutNode = cn;
@@ -435,6 +448,13 @@ QRectF RootedTree::bbox()
 
 int BiComp::method = -1;
 
+BiComp::BiComp() :
+    m_graph(NULL),
+    m_basept(QPointF(0,0)),
+    m_relpt(QPointF(0,0)),
+    m_parentCutNode(NULL)
+{}
+
 BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
     m_graph(NULL),
     m_basept(QPointF(0,0)),
@@ -478,6 +498,9 @@ BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Gr
     //
 }
 
+/* Return a list of the cutnodes /of the original graph/ that
+ * belong to this BC.
+ */
 QList<node> BiComp::getCutNodes()
 {
     QList<node> cns;
@@ -491,6 +514,11 @@ QList<node> BiComp::getCutNodes()
 void BiComp::setChildren(QList<Chunk *> children)
 {
     m_children = children;
+}
+
+void BiComp::setParent(BiComp *bc)
+{
+    m_parent = bc;
 }
 
 void BiComp::setRelPt(QPointF p)
@@ -514,6 +542,18 @@ size_t BiComp::size()
     return m_nodemap.size();
 }
 
+/* Return ShapeObj associated in course of constructDunnartGraph with
+ * the passed node orig, which must be a member of the /original/ graph.
+ * So constructDunnartGraph must have already been executed by now!
+ */
+ShapeObj *BiComp::getShapeForOriginalNode(node orig)
+{
+    // Get own node corresp. to orig.
+    node m = m_nodemap.key(orig);
+    // Get shape.
+    ShapeObj *sh = m_ownShapeMap.value(m);
+    return sh;
+}
 
 // pass shapemap for the shapes in the original graph
 void BiComp::constructDunnartGraph(shapemap& origShapes,
@@ -1149,7 +1189,8 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode,
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
-    int fixedSep = 300; // magic number
+    int magicNumber = 0;
+    int fixedSep = magicNumber;
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -1162,7 +1203,7 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode,
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal, cutnodes);
-        fixedSep += 300;
+        fixedSep += magicNumber;
     }
 }
 
@@ -1213,13 +1254,81 @@ void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
 void BiComp::dfs(QMap<node, BiComp *> endpts, QList<BiComp *> &elements)
 {
     elements.append(this);
-    foreach (node nd, m_cutNodes) {
-        QList<BiComp*> next = endpts.values(nd);
+    foreach (node m, m_cutNodes) {
+        node n = m_nodemap.value(m);
+        QList<BiComp*> next = endpts.values(n);
         foreach (BiComp *bc, next) {
             if (elements.contains(bc)) continue;
             bc->dfs(endpts,elements);
         }
     }
+}
+
+/* Create a new BiComp representing the fusion of this one and the
+ * one passed, at all of their shared cutnodes.
+ * Neither of the constituent BCs is altered.
+ * If they do not share any cutnode, then the BC returned will simply
+ * be a copy of this one.
+ * Note: a BiComp object has a list of cutnodes. After fusion, the new
+ * list will still include any cutnodes at which the constituent BCs were
+ * fused, even if these do not connect to any other BCs or trees.
+ */
+BiComp *BiComp::fuse(BiComp *other)
+{
+    BiComp *fusion = new BiComp();
+    // Give the fusion BiComp its Graph object.
+    fusion->m_graph = new Graph;
+    // Below we'll use the following letters for nodes:
+    // t: node in this BiComp T
+    // o: node in other BiComp O
+    // f: node in fusion BiComp F
+    // g: node in original graph G
+    // Begin by giving F a copy of each "normal node" in T.
+    foreach (node t, this->m_normalNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_normalNodes.append(f);
+        node g = this->m_nodemap.value(t);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now give F a copy of each "normal node" in O.
+    foreach (node o, other->m_normalNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_normalNodes.append(f);
+        node g = other->m_nodemap.value(o);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now the cutnodes of T.
+    foreach (node t, this->m_cutNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_cutNodes.append(f);
+        node g = this->m_nodemap.value(t);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // And the cutnodes of O. This time check for duplicates
+    // with T.
+    foreach (node o, other->m_cutNodes) {
+        node g = other->m_nodemap.value(o);
+        if (this->m_nodemap.values().contains(g)) continue;
+        node f = fusion->m_graph->newNode();
+        fusion->m_cutNodes.append(f);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now the edges.
+    // First the edges of G corresponding to those in T.
+    foreach (edge e, this->m_edgemap.values()) {
+        node f1 = fusion->m_nodemap.key(e->source());
+        node f2 = fusion->m_nodemap.key(e->target());
+        edge f = fusion->m_graph->newEdge(f1,f2);
+        fusion->m_edgemap.insert(f,e);
+    }
+    // And finally the edges of G corresp. those in O.
+    foreach (edge e, other->m_edgemap.values()) {
+        node f1 = fusion->m_nodemap.key(e->source());
+        node f2 = fusion->m_nodemap.key(e->target());
+        edge f = fusion->m_graph->newEdge(f1,f2);
+        fusion->m_edgemap.insert(f,e);
+    }
+    return fusion;
 }
 
 // ----------------------------------------------------------------------------
@@ -1250,8 +1359,10 @@ void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root, QList<node>& use
             QSet<Chunk*> nbrSet = nbrs.toSet();
             nbrSet.subtract(seen);
             QList<Chunk*> nbrList = nbrSet.toList();
-            foreach (Chunk *ch, nbrList) {
-                ch->setParentCutNode(cn);
+            foreach (Chunk *ch2, nbrList) {
+                ch2->setParentCutNode(cn);
+                BiComp *bc = dynamic_cast<BiComp*>(ch);
+                ch2->setParent(bc);
                 usedCutNodes.append(cn);
             }
             children.append(nbrList);
@@ -1437,8 +1548,11 @@ QList<BiComp*> BCLayout::fuseBCs(QList<BiComp *> bicomps)
         // Remove elements found from the main list.
         bicomps = bicomps.toSet().subtract(elements.toSet()).toList();
         // Fuse the elements found, and store as compound BC.
-        // ...
+        BiComp *compound = elements.takeFirst();
+        while (!elements.empty()) compound = compound->fuse(elements.takeFirst());
+        cbc.append(compound);
     }
+    qDebug() << QString("Found %1 compound BCs.").arg(cbc.size());
     return cbc;
 }
 
@@ -1575,6 +1689,21 @@ void BCLayout::orthoLayout(int method)
         rtrees.append(rtree);
     }
 
+    /* TODO
+     * ====
+     *
+     * Here is where I will start to change the algorithm, according to
+     * our latest ideas on how reassembly should work.
+     *
+     * For now all we have is a BFS turning all the Chunks into a tree,
+     * in fact a rooted tree where we have chosen a largest Chunk as the
+     * root.
+     *
+     */
+
+    // The following code assumes there is at least one BC.
+    // So this does not handle the case in which the graph itself is at tree!
+
     // Choose a largest biconnected component to be root.
     size_t n = 0;
     BiComp *largest = NULL;
@@ -1588,18 +1717,6 @@ void BCLayout::orthoLayout(int method)
         }
     }
     assert(largest);
-
-    /* TODO
-     * ====
-     *
-     * Here is where I will start to change the algorithm, according to
-     * our latest ideas on how reassembly should work.
-     *
-     * For now all we have is a BFS turning all the Chunks into a tree,
-     * in fact a rooted tree where we have chosen a largest Chunk as the
-     * root.
-     *
-     */
 
     // Build tree of components.
     QList<Chunk*> allChunks;

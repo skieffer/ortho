@@ -74,6 +74,7 @@ public:
     virtual bool containsOriginalNode(node n) = 0;
     virtual QList<node> getCutNodes(void) = 0;
     virtual void setChildren(QList<Chunk*> children) = 0;
+    virtual void setParent(BiComp *bc) = 0;
     virtual void setParentCutNode(node cn) = 0;
     virtual node getParentCutNode(void) = 0;
     QList<Chunk*> findNeighbours(node origCutNode, QList<Chunk*> allChunks);
@@ -97,6 +98,7 @@ public:
     QList<node> getCutNodes(void);
     static QPointF nearestCardinal(QPointF v);
     void setChildren(QList<Chunk*> children);
+    void setParent(BiComp *bc);
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
@@ -110,6 +112,7 @@ private:
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
 
     QList<Chunk*> m_children;
+    BiComp *m_parent;
     node m_parentCutNode; // belongs to orig. graph
 
     shapemap m_origShapeMap;
@@ -122,6 +125,7 @@ private:
 class BiComp : public Chunk
 {
 public:
+    BiComp(void);
     BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G);
     void setRelPt(QPointF p);
     void removeSelf(Graph& G);
@@ -153,6 +157,7 @@ public:
     bool containsOriginalEdge(edge e);
     QList<node> getCutNodes(void);
     void setChildren(QList<Chunk*> children);
+    void setParent(BiComp *bc);
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
@@ -161,6 +166,8 @@ public:
     void jog(double scale);
     static int method;
     void dfs(QMap<node,BiComp*> endpts, QList<BiComp*> &elements);
+    BiComp *fuse(BiComp *other);
+    ShapeObj *getShapeForOriginalNode(node orig);
 private:
     Graph *m_graph;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
@@ -177,6 +184,7 @@ private:
     QPointF m_basept;
     QPointF m_relpt;
     QList<Chunk*> m_children;
+    BiComp *m_parent;
     node m_parentCutNode;
     QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees);
     QList<SeparatedAlignment*> m_sepAligns;
