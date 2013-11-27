@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="0mm" height="0mm"
+ xmlns:dunnart="http://www.dunnart.org/ns/dunnart"
+ xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny">
+<title>tentativeAlignment.svg</title>
+<desc>This SVG file was saved from Dunnart.  http://www.dunnart.org/</desc>
+<defs>
+</defs>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-276.666,125)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L0,-108.109 L0,0"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-276.666,-85.4979)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M0,0 L0,102.389 L0,0"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-276.666,125)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-276.666,16.8912)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
+</g>
+</g>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >
+
+<g fill="#f0f0d2" fill-opacity="1" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,-276.666,-85.4979)"
+font-family="Ubuntu" font-size="11" font-weight="400" font-style="normal" 
+>
+<path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-35,-25 L35,-25 L35,25 L-35,25 L-35,-25"/>
+</g>
+</g>
+<!-- Dunnart description -->
+    <dunnart:options flowSeparation="0.5" automaticGraphLayout="1" routingBuffer="4" rubberBandRouting="0" layoutBeautify="0" colourInterferingConnectors="0" penaliseCrossings="0" layoutMode="0" preventOverlaps="0" defaultIdealConnectorLength="1" segmentPenalty="50" layoutMethod="0" avoidBuffer="0" pageBoundaryConstraints="0"/>
+    <dunnart:node width="70" cx="-276.666" cy="-85.4979" height="50" type="org.dunnart.shapes.rect" id="1"/>
+    <dunnart:node width="70" cx="-276.666" cy="16.8912" height="50" type="org.dunnart.shapes.rect" id="2"/>
+    <dunnart:node width="70" cx="-276.666" cy="125" lockedPos="1" height="50" type="org.dunnart.shapes.rect" id="3"/>
+    <dunnart:node direction="100" tentative="1" position="-276.666" type="guideline" id="4">
+        <dunnart:node type="constraint" constraintID="4" alignmentPos="4" relType="alignment" objOneID="3"/>
+        <dunnart:node type="constraint" constraintID="4" alignmentPos="4" relType="alignment" objOneID="1"/>
+        <dunnart:node type="constraint" constraintID="4" alignmentPos="4" relType="alignment" objOneID="2"/>
+    </dunnart:node>
+    <dunnart:node dstX="-276.666" srcX="-276.666" dstY="16.8912" srcY="-85.4979" srcID="1" type="connector" dstID="2" id="5"/>
+    <dunnart:node dstX="-276.666" srcX="-276.666" dstY="16.8912" srcY="125" srcID="3" type="connector" dstID="2" id="6"/>
+</svg>

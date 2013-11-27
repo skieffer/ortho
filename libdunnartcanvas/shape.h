@@ -167,6 +167,7 @@ class ShapeObj: public CanvasItem
         virtual QPointF centrePos(void) const;
         void setBeingResized(bool isResizing);
         bool isBeingResized(void);
+        bool removeFromGuideline(Guideline *gl);
 
         Relationship *rels[6];
         Avoid::ShapeRef *avoidRef;

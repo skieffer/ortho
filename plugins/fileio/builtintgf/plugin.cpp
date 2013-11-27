@@ -35,6 +35,8 @@
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/connector.h"
 
+#include "libdunnartcanvas/pluginshapefactory.h"
+
 using namespace dunnart;
 
 class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
@@ -128,32 +130,50 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 errorMessage = tr("File could not be opened for reading.");
                 return false;
             }
-
-            // TODO: Write the method!
-            errorMessage = tr("Sorry, writing TGF files has been implemented, but not reading!");
-            return false;
-            /*
-            QString parsingError;
-            int errorLine;
-            int errorColumn;
-            if (!doc.setContent(&file, true, &parsingError, &errorLine, &errorColumn))
+            // Read the node and edge declarations in the file.
+            QTextStream in(&file);
+            bool readingNodes = true;
+            QList<QString> nodes;
+            QList< QPair<QString,QString> > edges;
+            while (!in.atEnd())
             {
-                file.close();
-                errorMessage = tr("Error reading SVG: %1:%2: %3").arg(errorLine).
-                        arg(errorColumn).arg(parsingError);
-                return false;
+                QString line = in.readLine();
+                line = line.trimmed();
+                if (line.length()==0) continue;
+                if (line.startsWith("#")) {
+                    readingNodes = false;
+                } else if (readingNodes) {
+                    // Record node
+                    nodes.append(line);
+                } else {
+                    // Record edge
+                    QStringList ends = line.split(" ");
+                    edges.append(QPair<QString,QString>(ends.at(0), ends.at(1)));
+                }
             }
-            file.close();
-            canvas->setSvgRendererForFile(filename);
-
-            QDomElement root = doc.documentElement();
-
-            for (int pass = 0; pass < PASS_LAST; ++pass)
-            {
-                canvas->recursiveReadSVG(root, x_dunnartNs, pass);
+            qDebug() << nodes;
+            qDebug() << edges;
+            // Build the nodes.
+            QMap<QString, ShapeObj*> map;
+            PluginShapeFactory *factory = sharedPluginShapeFactory();
+            QString type("org.dunnart.shapes.rect");
+            foreach (QString node, nodes) {
+                ShapeObj *shape = factory->createShape(type);
+                map.insert(node, shape);
+                shape->setSize(QSizeF(30,30));
+                shape->setCentrePos(QPointF(0,0));
+                QUndoCommand *cmd = new CmdCanvasSceneAddItem(canvas, shape);
+                canvas->currentUndoMacro()->addCommand(cmd);
             }
-            */
-
+            // Build the edges.
+            typedef QPair<QString,QString> Edge;
+            foreach ( Edge edge, edges) {
+                Connector *conn = new Connector();
+                conn->initWithConnection(map.value(edge.first), map.value(edge.second));
+                conn->setDirected(true);
+                QUndoCommand *cmd = new CmdCanvasSceneAddItem(canvas, conn);
+                canvas->currentUndoMacro()->addCommand(cmd);
+            }
             return true;
         }
 
