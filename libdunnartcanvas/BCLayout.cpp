@@ -46,6 +46,7 @@
 #include "libdunnartcanvas/pluginshapefactory.h"
 #include "libdunnartcanvas/guideline.h"
 #include "libdunnartcanvas/separation.h"
+#include "libdunnartcanvas/distribution.h"
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
 #include "libogdf/ogdf/basic/NodeArray.h"
@@ -182,6 +183,18 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode,
 void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
                                        QList<node> cutnodes)
 {
+//#define multicoloured
+#ifdef multicoloured
+    QString shapeName = "org.dunnart.shapes.ellipse";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(0,192,0);
+    QColor normalnodeColor = QColor(192,0,0);
+#else
+    QString shapeName = "org.dunnart.shapes.rectangle";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(255,192,0);
+    QColor normalnodeColor = QColor(255,192,0);
+#endif
     // Store passed value.
     m_origShapeMap = origShapes;
 
@@ -189,8 +202,8 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     foreach (node m, m_nodemap.keys())
     {
-        ShapeObj *shape = factory->createShape("org.dunnart.shapes.ellipse");
-        shape->setPosAndSize(QPointF(0,0), QSizeF(30,30));
+        ShapeObj *shape = factory->createShape(shapeName);
+        shape->setPosAndSize(QPointF(0,0), shapeSize);
         node n = m_nodemap.value(m);
         if (cutnodes.contains(n))
         {
@@ -199,12 +212,12 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
                 // this node.
                 shape = m_parent->getShapeForOriginalNode(n);
             } else {
-                shape->setFillColour(QColor(0,192,0));
+                shape->setFillColour(cutnodeColor);
                 int i = cutnodes.indexOf(n);
                 shape->setLabel(QString::number(i));
             }
         } else {
-            shape->setFillColour(QColor(192,0,0));
+            shape->setFillColour(normalnodeColor);
         }
         m_ownShapeMap.insert(m,shape);
     }
@@ -283,6 +296,7 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
     TreeLayout treelayout;
     int x = cardinal.x(); int y = cardinal.y();
     int n = x*x - x + 2*y*y + y; // maps (x,y) to log[i](x+iy)
+    m_orientation = n;
     Orientation orient;
     switch(n)
     {
@@ -339,7 +353,97 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
  */
 void RootedTree::inferConstraints()
 {
-    // TODO
+    // We use a top-down search through the tree. This works because
+    // the tree already has a layout. (If you were starting from scratch
+    // you would have to work bottom-up.)
+    node localRoot = m_nodemap.key(m_parentCutNode);
+    QList<node> queue;
+    QList<node> parentQueue; // keeps track of parents
+    queue.push_back(localRoot);
+    parentQueue.push_back(NULL);
+    while (!queue.empty()) {
+        node A = queue.takeFirst();
+        node parent = parentQueue.takeFirst();
+        // Make list of the children of A.
+        QList<node> children;
+        edge e = NULL;
+        forall_adj_edges(e,A) {
+            node B = A==e->source() ? e->target() : e->source();
+            if (B==parent) continue;
+            children.append(B);
+        }
+        int numChil = children.size();
+        // If no children, continue.
+        if (numChil==0) continue;
+        // Else add children to the queue, and add as many copies of
+        // node A to the parent queue.
+        queue.append(children);
+        for(int i=0;i<numChil;i++){ parentQueue.append(A); }
+
+        // Define constraints -------------------------------------------
+        DunnartConstraint *dc;
+
+        // Align children.
+        dc = new DunnartConstraint();
+        dc->type = ALIGNMENT;
+        dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+        for(int i=0;i<numChil;i++){ dc->items.append(m_ownShapeMap.value(children.at(i))); }
+        m_dunnartConstraints.append(dc);
+
+        // Let's try skipping the rest if the parent is the root node.
+        //if (A==localRoot) continue;
+
+        // Separate parent and children.
+        dc = new DunnartConstraint();
+        dc->type = SEPARATION;
+        dc->dim = m_orientation%2==0 ? Canvas::HORIZ : Canvas::VERT;
+        dc->items.append(m_ownShapeMap.value(A));
+        dc->items.append(m_ownShapeMap.value(children.at(0)));
+        // Determine the min sep.
+        QPointF p = m_ownShapeMap.value(A)->centrePos();
+        QPointF q = m_ownShapeMap.value(children.at(0))->centrePos();
+        double z = m_orientation%2==0 ? p.x() : p.y();
+        double w = m_orientation%2==0 ? q.x() : q.y();
+        dc->minSep = fabs(z-w);
+        m_dunnartConstraints.append(dc);
+
+        // Centre parent above children, and distribute children.
+        if (numChil==1) {
+            // In this case need just a single alignment.
+            dc = new DunnartConstraint();
+            dc->type = ALIGNMENT;
+            dc->dim = m_orientation%2==0 ? Canvas::HORIZ : Canvas::VERT;
+            dc->items.append(m_ownShapeMap.value(A));
+            dc->items.append(m_ownShapeMap.value(children.at(0)));
+            m_dunnartConstraints.append(dc);
+        } else {
+            // In this case need two distributions.
+            // First distribute all the children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+            for(int i=0;i<numChil;i++){ dc->items.append(m_ownShapeMap.value(children.at(i))); }
+            m_dunnartConstraints.append(dc);
+            // Now the parent and the two outer children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+            dc->items.append(m_ownShapeMap.value(A));
+            // Find the two outermost children.
+            node minChild = NULL, maxChild = NULL;
+            double minZ = DBL_MAX, maxZ = DBL_MIN;
+            foreach (node c, children) {
+                QPointF p = m_ownShapeMap.value(c)->centrePos();
+                double z = m_orientation%2==0 ? p.y() : p.x();
+                if (z<minZ) {minZ=z; minChild=c;}
+                if (z>maxZ) {maxZ=z; maxChild=c;}
+            }
+            dc->items.append(m_ownShapeMap.value(minChild));
+            dc->items.append(m_ownShapeMap.value(maxChild));
+            m_dunnartConstraints.append(dc);
+        }
+        // End constraint definitions -----------------------------------
+    }
 }
 
 /* To be called by recursiveDraw. Applies the Dunnart constraints that
@@ -350,17 +454,24 @@ void RootedTree::applyDunnartConstraints()
     foreach (DunnartConstraint *dc, m_dunnartConstraints) {
         switch (dc->type) {
         case ALIGNMENT:
+        {
             atypes at = dc->dim==Canvas::VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
             createAlignment(at,dc->items);
             break;
+        }
         case SEPARATION:
+        {
             dtype dt = dc->dim==Canvas::VERT ? SEP_VERTICAL : SEP_HORIZONTAL;
             bool sort = true;
             createSeparation(NULL,dt,dc->items,dc->minSep,sort);
             break;
+        }
         case DISTRIBUTION:
-            // TODO
+        {
+            dtype dt = dc->dim==Canvas::VERT ? DIST_MIDDLE : DIST_CENTER;
+            createDistribution(NULL,dt,dc->items);
             break;
+        }
         }
     }
 }
@@ -596,22 +707,33 @@ ShapeObj *BiComp::getShapeForOriginalNode(node orig)
 void BiComp::constructDunnartGraph(shapemap& origShapes,
                                    QPointF cardinal, QList<node> cutnodes)
 {
+#ifdef multicoloured
+    QString shapeName = "org.dunnart.shapes.ellipse";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(0,192,0);
+    QColor normalnodeColor = QColor(0,0,192);
+#else
+    QString shapeName = "org.dunnart.shapes.rectangle";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(255,192,0);
+    QColor normalnodeColor = QColor(255,192,0);
+#endif
     // Create Dunnart shape and connector objects for own graph.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     foreach (node m, m_nodemap.keys())
     {
-        ShapeObj *shape = factory->createShape("org.dunnart.shapes.ellipse");
+        ShapeObj *shape = factory->createShape(shapeName);
         //shape->setPosAndSize(QPointF(0,0), QSizeF(30,30));
         shape->setCentrePos(QPointF(0,0));
-        shape->setSize(QSizeF(30,30));
+        shape->setSize(shapeSize);
         node n = m_nodemap.value(m);
         if (cutnodes.contains(n))
         {
-            shape->setFillColour(QColor(0,192,0));
+            shape->setFillColour(cutnodeColor);
             int i = cutnodes.indexOf(n);
             shape->setLabel(QString::number(i));
         } else {
-            shape->setFillColour(QColor(0,0,192));
+            shape->setFillColour(normalnodeColor);
         }
         m_ownShapeMap.insert(m,shape);
     }

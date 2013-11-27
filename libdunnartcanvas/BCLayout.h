@@ -135,6 +135,7 @@ private:
     QPointF m_relpt;
 
     QList<DunnartConstraint*> m_dunnartConstraints;
+    int m_orientation; // in {0,1,2,3} for tree layout
 };
 
 class BiComp : public Chunk
