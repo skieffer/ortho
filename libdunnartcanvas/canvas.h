@@ -371,6 +371,7 @@ class Canvas : public QGraphicsScene
         void arrangePendants(void);
         void applyFM3(void);
         void layoutBCTrees(void);
+        void BCWithCola(void);
         void BCWithFM3(void);
         void BCWithSpringEmbedder(void);
         void BCWithKamadaKawai(void);

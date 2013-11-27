@@ -5671,6 +5671,11 @@ void Canvas::layoutBCTrees()
     m_bclayout->layoutBCTrees();
 }
 
+void Canvas::BCWithCola()
+{
+    m_bclayout->orthoLayout(0);
+}
+
 void Canvas::BCWithFM3()
 {
     m_bclayout->orthoLayout(1);

@@ -44,6 +44,9 @@
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/connector.h"
 #include "libdunnartcanvas/pluginshapefactory.h"
+#include "libdunnartcanvas/guideline.h"
+#include "libdunnartcanvas/separation.h"
+#include "libdunnartcanvas/distribution.h"
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
 #include "libogdf/ogdf/basic/NodeArray.h"
@@ -149,7 +152,8 @@ bool RootedTree::containsOriginalNode(node n)
     return m_nodemap.values().contains(n);
 }
 
-void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPointF cardinal, QList<node> cutnodes)
+void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode,
+                                 QPointF cardinal, QList<node> cutnodes)
 {
     // TODO: Use origBaseNode and cardinal.
     // If origBaseNode is NULL, then it is to be ignored.
@@ -158,7 +162,8 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
-    int fixedSep = 300; // magic number
+    int magicNumber = 0;
+    int fixedSep = magicNumber;
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -171,13 +176,25 @@ void RootedTree::recursiveLayout(shapemap& origShapes, node origBaseNode, QPoint
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal, cutnodes);
-        fixedSep += 300;
+        fixedSep += magicNumber;
     }
 }
 
 void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
                                        QList<node> cutnodes)
 {
+//#define multicoloured
+#ifdef multicoloured
+    QString shapeName = "org.dunnart.shapes.ellipse";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(0,192,0);
+    QColor normalnodeColor = QColor(192,0,0);
+#else
+    QString shapeName = "org.dunnart.shapes.rectangle";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(255,192,0);
+    QColor normalnodeColor = QColor(255,192,0);
+#endif
     // Store passed value.
     m_origShapeMap = origShapes;
 
@@ -185,16 +202,22 @@ void RootedTree::constructDunnartGraph(shapemap& origShapes, QPointF cardinal,
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     foreach (node m, m_nodemap.keys())
     {
-        ShapeObj *shape = factory->createShape("org.dunnart.shapes.ellipse");
-        shape->setPosAndSize(QPointF(0,0), QSizeF(30,30));
+        ShapeObj *shape = factory->createShape(shapeName);
+        shape->setPosAndSize(QPointF(0,0), shapeSize);
         node n = m_nodemap.value(m);
         if (cutnodes.contains(n))
         {
-            shape->setFillColour(QColor(0,192,0));
-            int i = cutnodes.indexOf(n);
-            shape->setLabel(QString::number(i));
+            if (n==m_parentCutNode) {
+                // Replace shape by the shape that m_parent associated with
+                // this node.
+                shape = m_parent->getShapeForOriginalNode(n);
+            } else {
+                shape->setFillColour(cutnodeColor);
+                int i = cutnodes.indexOf(n);
+                shape->setLabel(QString::number(i));
+            }
         } else {
-            shape->setFillColour(QColor(192,0,0));
+            shape->setFillColour(normalnodeColor);
         }
         m_ownShapeMap.insert(m,shape);
     }
@@ -273,6 +296,7 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
     TreeLayout treelayout;
     int x = cardinal.x(); int y = cardinal.y();
     int n = x*x - x + 2*y*y + y; // maps (x,y) to log[i](x+iy)
+    m_orientation = n;
     Orientation orient;
     switch(n)
     {
@@ -319,6 +343,137 @@ void RootedTree::ogdfTreeLayout(QPointF cardinal)
     BCLayout::extractPosAndSize(m_ownShapeMap, newNodesGA);
     treelayout.call(newNodesGA);
     BCLayout::injectPositions(m_ownShapeMap, newNodesGA);
+    // Infer constraints.
+    inferConstraints();
+}
+
+/* After calling ogdfTreeLayout, we use this method to infer apt constraints
+ * to preserve the layout that our shapes have been given.
+ * Store them in m_dunnartConstraints.
+ */
+void RootedTree::inferConstraints()
+{
+    // We use a top-down search through the tree. This works because
+    // the tree already has a layout. (If you were starting from scratch
+    // you would have to work bottom-up.)
+    node localRoot = m_nodemap.key(m_parentCutNode);
+    QList<node> queue;
+    QList<node> parentQueue; // keeps track of parents
+    queue.push_back(localRoot);
+    parentQueue.push_back(NULL);
+    while (!queue.empty()) {
+        node A = queue.takeFirst();
+        node parent = parentQueue.takeFirst();
+        // Make list of the children of A.
+        QList<node> children;
+        edge e = NULL;
+        forall_adj_edges(e,A) {
+            node B = A==e->source() ? e->target() : e->source();
+            if (B==parent) continue;
+            children.append(B);
+        }
+        int numChil = children.size();
+        // If no children, continue.
+        if (numChil==0) continue;
+        // Else add children to the queue, and add as many copies of
+        // node A to the parent queue.
+        queue.append(children);
+        for(int i=0;i<numChil;i++){ parentQueue.append(A); }
+
+        // Define constraints -------------------------------------------
+        DunnartConstraint *dc;
+
+        // Align children.
+        dc = new DunnartConstraint();
+        dc->type = ALIGNMENT;
+        dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+        for(int i=0;i<numChil;i++){ dc->items.append(m_ownShapeMap.value(children.at(i))); }
+        m_dunnartConstraints.append(dc);
+
+        // Let's try skipping the rest if the parent is the root node.
+        //if (A==localRoot) continue;
+
+        // Separate parent and children.
+        dc = new DunnartConstraint();
+        dc->type = SEPARATION;
+        dc->dim = m_orientation%2==0 ? Canvas::HORIZ : Canvas::VERT;
+        dc->items.append(m_ownShapeMap.value(A));
+        dc->items.append(m_ownShapeMap.value(children.at(0)));
+        // Determine the min sep.
+        QPointF p = m_ownShapeMap.value(A)->centrePos();
+        QPointF q = m_ownShapeMap.value(children.at(0))->centrePos();
+        double z = m_orientation%2==0 ? p.x() : p.y();
+        double w = m_orientation%2==0 ? q.x() : q.y();
+        dc->minSep = fabs(z-w);
+        m_dunnartConstraints.append(dc);
+
+        // Centre parent above children, and distribute children.
+        if (numChil==1) {
+            // In this case need just a single alignment.
+            dc = new DunnartConstraint();
+            dc->type = ALIGNMENT;
+            dc->dim = m_orientation%2==0 ? Canvas::HORIZ : Canvas::VERT;
+            dc->items.append(m_ownShapeMap.value(A));
+            dc->items.append(m_ownShapeMap.value(children.at(0)));
+            m_dunnartConstraints.append(dc);
+        } else {
+            // In this case need two distributions.
+            // First distribute all the children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+            for(int i=0;i<numChil;i++){ dc->items.append(m_ownShapeMap.value(children.at(i))); }
+            m_dunnartConstraints.append(dc);
+            // Now the parent and the two outer children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = m_orientation%2==0 ? Canvas::VERT : Canvas::HORIZ;
+            dc->items.append(m_ownShapeMap.value(A));
+            // Find the two outermost children.
+            node minChild = NULL, maxChild = NULL;
+            double minZ = DBL_MAX, maxZ = DBL_MIN;
+            foreach (node c, children) {
+                QPointF p = m_ownShapeMap.value(c)->centrePos();
+                double z = m_orientation%2==0 ? p.y() : p.x();
+                if (z<minZ) {minZ=z; minChild=c;}
+                if (z>maxZ) {maxZ=z; maxChild=c;}
+            }
+            dc->items.append(m_ownShapeMap.value(minChild));
+            dc->items.append(m_ownShapeMap.value(maxChild));
+            m_dunnartConstraints.append(dc);
+        }
+        // End constraint definitions -----------------------------------
+    }
+}
+
+/* To be called by recursiveDraw. Applies the Dunnart constraints that
+ * were inferred by inferConstraints.
+ */
+void RootedTree::applyDunnartConstraints()
+{
+    foreach (DunnartConstraint *dc, m_dunnartConstraints) {
+        switch (dc->type) {
+        case ALIGNMENT:
+        {
+            atypes at = dc->dim==Canvas::VERT ? ALIGN_CENTER : ALIGN_MIDDLE;
+            createAlignment(at,dc->items);
+            break;
+        }
+        case SEPARATION:
+        {
+            dtype dt = dc->dim==Canvas::VERT ? SEP_VERTICAL : SEP_HORIZONTAL;
+            bool sort = true;
+            createSeparation(NULL,dt,dc->items,dc->minSep,sort);
+            break;
+        }
+        case DISTRIBUTION:
+        {
+            dtype dt = dc->dim==Canvas::VERT ? DIST_MIDDLE : DIST_CENTER;
+            createDistribution(NULL,dt,dc->items);
+            break;
+        }
+        }
+    }
 }
 
 void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
@@ -350,11 +505,19 @@ void RootedTree::recursiveDraw(Canvas *canvas, QPointF p)
     {
         ch->recursiveDraw(canvas, m_basept);
     }
+
+    // Apply any constraints inferred from ogdfTreeLayout.
+    applyDunnartConstraints();
 }
 
 void RootedTree::setChildren(QList<Chunk *> children)
 {
     m_children = children;
+}
+
+void RootedTree::setParent(BiComp *bc)
+{
+    m_parent = bc;
 }
 
 void RootedTree::setParentCutNode(node cn)
@@ -433,6 +596,13 @@ QRectF RootedTree::bbox()
 
 int BiComp::method = -1;
 
+BiComp::BiComp() :
+    m_graph(NULL),
+    m_basept(QPointF(0,0)),
+    m_relpt(QPointF(0,0)),
+    m_parentCutNode(NULL)
+{}
+
 BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
     m_graph(NULL),
     m_basept(QPointF(0,0)),
@@ -476,6 +646,9 @@ BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Gr
     //
 }
 
+/* Return a list of the cutnodes /of the original graph/ that
+ * belong to this BC.
+ */
 QList<node> BiComp::getCutNodes()
 {
     QList<node> cns;
@@ -489,6 +662,11 @@ QList<node> BiComp::getCutNodes()
 void BiComp::setChildren(QList<Chunk *> children)
 {
     m_children = children;
+}
+
+void BiComp::setParent(BiComp *bc)
+{
+    m_parent = bc;
 }
 
 void BiComp::setRelPt(QPointF p)
@@ -512,27 +690,50 @@ size_t BiComp::size()
     return m_nodemap.size();
 }
 
+/* Return ShapeObj associated in course of constructDunnartGraph with
+ * the passed node orig, which must be a member of the /original/ graph.
+ * So constructDunnartGraph must have already been executed by now!
+ */
+ShapeObj *BiComp::getShapeForOriginalNode(node orig)
+{
+    // Get own node corresp. to orig.
+    node m = m_nodemap.key(orig);
+    // Get shape.
+    ShapeObj *sh = m_ownShapeMap.value(m);
+    return sh;
+}
 
 // pass shapemap for the shapes in the original graph
 void BiComp::constructDunnartGraph(shapemap& origShapes,
                                    QPointF cardinal, QList<node> cutnodes)
 {
+#ifdef multicoloured
+    QString shapeName = "org.dunnart.shapes.ellipse";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(0,192,0);
+    QColor normalnodeColor = QColor(0,0,192);
+#else
+    QString shapeName = "org.dunnart.shapes.rectangle";
+    QSizeF shapeSize = QSizeF(30,30);
+    QColor cutnodeColor = QColor(255,192,0);
+    QColor normalnodeColor = QColor(255,192,0);
+#endif
     // Create Dunnart shape and connector objects for own graph.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     foreach (node m, m_nodemap.keys())
     {
-        ShapeObj *shape = factory->createShape("org.dunnart.shapes.ellipse");
+        ShapeObj *shape = factory->createShape(shapeName);
         //shape->setPosAndSize(QPointF(0,0), QSizeF(30,30));
         shape->setCentrePos(QPointF(0,0));
-        shape->setSize(QSizeF(30,30));
+        shape->setSize(shapeSize);
         node n = m_nodemap.value(m);
         if (cutnodes.contains(n))
         {
-            shape->setFillColour(QColor(0,192,0));
+            shape->setFillColour(cutnodeColor);
             int i = cutnodes.indexOf(n);
             shape->setLabel(QString::number(i));
         } else {
-            shape->setFillColour(QColor(0,0,192));
+            shape->setFillColour(normalnodeColor);
         }
         m_ownShapeMap.insert(m,shape);
     }
@@ -553,10 +754,13 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     //BCLayout::extractSizes(m_nodemap, origShapes, newNodesGA);
 
     // Get distinct initial positions
+    // FIXME: just use spiral initial positions, as usual;
+    // don't need random, and it takes longer!
     while (coincidence()) { jog(100.0); }
     // Displace cut node in opposite of cardinal direction /if/ this is not
     // the root component of the layout.
     //
+    // FIXME:
     // Really, we should be using cola for this initial layout, and we should
     // use separation constraints to say that the cut node be on the side
     // where we want it.
@@ -634,7 +838,7 @@ void BiComp::colaLayout()
     QMap<node,int> nodeIndices;
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
-    //cola::CompoundConstraints ccs;
+    cola::CompoundConstraints ccs;
     // make rectangles
     node v = NULL;
     int i = 0;
@@ -642,8 +846,9 @@ void BiComp::colaLayout()
     {
         ShapeObj *sh = m_ownShapeMap.value(v);
         QRectF rect = sh->boundingRect();
-        double x = rect.left(); double X = rect.right();
-        double y = rect.top();  double Y = rect.bottom();
+        QPointF c = sh->centrePos();
+        double x = rect.left() + c.x(); double X = rect.right() + c.x();
+        double y = rect.top() + c.y();  double Y = rect.bottom() + c.y();
         rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
         nodeIndices.insert(v,i);
         i++;
@@ -663,8 +868,68 @@ void BiComp::colaLayout()
     double idealLength = 100;
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,idealLength,false);
-    //fdlayout->setConstraints(ccs);
+
+    // As an experiment, can we add a constraint to align all
+    // the rectangles vertically?
+    /*
+    cola::AlignmentConstraint *ac = new cola::AlignmentConstraint(vpsc::XDIM);
+    for (int j = 0; j < rs.size(); j++) {
+        ac->addShape(j,0);
+    }
+    ccs.push_back(ac);
+    */
+    // Answer: Yes, this works perfectly.
+
+    // Do an initial FD layout.
+    fdlayout->setConstraints(ccs);
+    qDebug() << "run once";
     fdlayout->run(true,true);
+
+#define doACA
+#ifdef doACA
+    // _ACA_
+    // Let N be the number of nodes.
+    int N = rs.size();
+    // Prepare the alignment state matrix.
+    Matrix2d<int> alignmentState = initACA(N, nodeIndices);
+    // Start main loop.
+    SeparatedAlignment *sa = chooseSA(rs, alignmentState, nodeIndices);
+    int n = 2; // for debugging purpose only
+    while (sa) {
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Redo the layout, with the new constraints.
+        //qDebug() << "run" << n; n++;
+
+        QString rects = "";
+        rects += QString("%1: ").arg(n,3);
+        for (int i = 0; i < rs.size(); i++) {
+            vpsc::Rectangle *r = rs.at(i);
+            double x = r->getCentreX();
+            double y = r->getCentreY();
+            rects += QString("(%1,%2) ").arg(x,5,'f',2).arg(y,5,'f',2);
+        }
+        qDebug() << rects;
+        QString sepalgn = "";
+        sepalgn += QString("%1").arg(sa->rect1,2);
+        sepalgn += sa->af == Canvas::Horizontal ? "-" : "|";
+        sepalgn += QString("%1").arg(sa->rect2,2);
+        qDebug() << sepalgn;
+        n++;
+
+        delete fdlayout;
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+        fdlayout->setConstraints(ccs);
+        fdlayout->run(true,true);
+        // Update state.
+        updateAlignmentState(sa, alignmentState);
+        // Store SA and choose next one.
+        m_sepAligns.append(sa);
+        sa = chooseSA(rs, alignmentState, nodeIndices);
+    }
+#endif
+
     // extract the node positions
     forall_nodes(v,*m_graph)
     {
@@ -673,8 +938,255 @@ void BiComp::colaLayout()
         vpsc::Rectangle *r = rs.at(i);
         double x = r->getCentreX();
         double y = r->getCentreY();
+        delete r;
         sh->setCentrePos(QPointF(x,y));
     }
+    // Clean up.
+    delete fdlayout;
+}
+
+/* Apply all the separated alignments specified in m_sepAligns.
+ */
+void BiComp::applyDunnartSepAligns(Canvas *canvas)
+{
+    foreach (SeparatedAlignment *sa, m_sepAligns) {
+        ShapeObj *s = sa->shape1, *t=sa->shape2;
+        CanvasItemList items;
+        items.append(s); items.append(t);
+        // Separation
+        dtype dt = sa->af==Canvas::Vertical ? SEP_VERTICAL : SEP_HORIZONTAL;
+        double minDist = (s->width()+t->width())/2.0;
+        bool sort = true;
+        createSeparation(NULL,dt,items,minDist,sort);
+        // Alignment
+        atypes at = sa->af==Canvas::Vertical ? ALIGN_CENTER : ALIGN_MIDDLE;
+        createAlignment(at,items);
+    }
+}
+
+/* Remove all the separated alignments specified in m_sepAligns.
+ */
+void BiComp::removeDunnartSepAligns(Canvas *canvas)
+{
+    // TODO
+}
+
+Matrix2d<int> BiComp::initACA(int N, QMap<node,int> nodeIndices)
+{
+    Matrix2d<int> alignmentState = Matrix2d<int>(N,N);
+    // Initialize with zeros.
+    for (uint i = 0; i < N; i++) {
+        for (uint j = 0; j < N; j++) {
+            alignmentState(i,j) = 0;
+        }
+    }
+    // Note connected nodes.
+    //qDebug() << "Building alignment state table.";
+    edge ed = NULL;
+    forall_edges(ed,*m_graph) {
+        node src = ed->source();
+        node tgt = ed->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+
+        //qDebug() << QString("endpts: %1,%2").arg(srcIndex).arg(tgtIndex);
+
+        alignmentState(srcIndex,tgtIndex) = Canvas::Connected;
+        alignmentState(tgtIndex,srcIndex) = Canvas::Connected;
+    }
+
+    //-----------------------------------
+    // Debug: show alignment state table.
+    /*
+    for (uint i = 0; i < N; i++) {
+        QString row = "";
+        for (uint j = 0; j < N; j++) {
+            row += QString("%1 ").arg(alignmentState(i,j),2);
+        }
+        qDebug() << row;
+    }
+    */
+    //-----------------------------------
+
+    return alignmentState;
+}
+
+SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState,
+                                     QMap<node, int> nodeIndices)
+{
+    SeparatedAlignment *sa = NULL;
+    double minDeflection = 1.0;
+    edge ed = NULL;
+    forall_edges(ed,*m_graph) {
+        node src = ed->source();
+        node tgt = ed->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+
+        //qDebug() << QString("chooseSA considering endpts: %1,%2").arg(srcIndex).arg(tgtIndex);
+
+        // If already aligned, skip this edge.
+        int astate = alignmentState(srcIndex,tgtIndex);
+        if (astate & (Canvas::Horizontal|Canvas::Vertical)) {
+            //qDebug() << "    already aligned -- skip";
+            continue;
+        }
+        // Consider horizontal alignment.
+        if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Horizontal,rs,alignmentState)) {
+            double dH = deflection(srcIndex,tgtIndex,Canvas::Horizontal,rs);
+            //qDebug() << QString("    deflection: %1").arg(dH);
+            if (dH < minDeflection) {
+                minDeflection = dH;
+                if (!sa) sa = new SeparatedAlignment;
+                sa->af = Canvas::Horizontal;
+                sa->rect1 = srcIndex;
+                sa->rect2 = tgtIndex;
+            }
+        }
+        // Consider vertical alignment.
+        if (!createsCoincidence(srcIndex,tgtIndex,Canvas::Vertical,rs,alignmentState)) {
+            double dV = deflection(srcIndex,tgtIndex,Canvas::Vertical,rs);
+            //qDebug() << QString("    deflection: %1").arg(dV);
+            if (dV < minDeflection) {
+                minDeflection = dV;
+                if (!sa) sa = new SeparatedAlignment;
+                sa->af = Canvas::Vertical;
+                sa->rect1 = srcIndex;
+                sa->rect2 = tgtIndex;
+            }
+        }
+    }
+    // Did we find an alignment?
+    if (sa) {
+        // If so, then complete the SeparatedAlignment object.
+        int srcIndex = sa->rect1;
+        int tgtIndex = sa->rect2;
+
+        /*
+        QString state = QString("Nodes %1,%2 had state %3.").arg(srcIndex).arg(tgtIndex)
+                .arg(alignmentState(srcIndex,tgtIndex));
+        qDebug() << state;
+        */
+
+        vpsc::Rectangle *rsrc = rs.at(srcIndex);
+        vpsc::Rectangle *rtgt = rs.at(tgtIndex);
+        // Separation Constraint
+        vpsc::Dim sepDim = sa->af == Canvas::Horizontal ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim algnDim = sa->af == Canvas::Horizontal ? vpsc::YDIM : vpsc::XDIM;
+        double sep = sa->af == Canvas::Horizontal ?
+                    (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        int l = sa->af == Canvas::Horizontal ?
+                    (rsrc->getCentreX() < rtgt->getCentreX() ? srcIndex : tgtIndex) :
+                    (rsrc->getCentreY() < rtgt->getCentreY() ? srcIndex : tgtIndex);
+        int r = l == srcIndex ? tgtIndex : srcIndex;
+        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
+        // Alignment Constraint
+        sa->alignment = new cola::AlignmentConstraint(algnDim);
+        sa->alignment->addShape(l,0);
+        sa->alignment->addShape(r,0);
+        // Store the shapes too, for use later in applying a Dunnart constraint.
+        node src = nodeIndices.key(srcIndex);
+        node tgt = nodeIndices.key(tgtIndex);
+        sa->shape1 = m_ownShapeMap.value(src);
+        sa->shape2 = m_ownShapeMap.value(tgt);
+    }
+    return sa;
+}
+
+/* Given that the SeparatedAlignment sa has just been applied, update the
+ * alignmentState matrix to reflect the new alignments that now exist.
+ */
+void BiComp::updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState)
+{
+    // Which dimension?
+    Canvas::AlignmentFlags af = sa->af;
+    // Get the indices of the two rectangles r1 and r2.
+    int i1 = sa->rect1, i2 = sa->rect2;
+    // Get the sets of indices of nodes already aligned with r1 and r2.
+    QList<int> A1, A2;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i1,j) & af) A1.append(j);
+        if (alignmentState(i2,j) & af) A2.append(j);
+    }
+    // r1 and r2 are aligned deliberately.
+    alignmentState(i1,i2) |= af | Canvas::Deliberate;
+    alignmentState(i2,i1) |= af | Canvas::Deliberate;
+    // r1 is now aligned with each element of A2, and vice versa.
+    foreach (int k, A2) {
+        alignmentState(i1,k) |= af;
+        alignmentState(k,i1) |= af;
+    }
+    foreach (int k, A1) {
+        alignmentState(i2,k) |= af;
+        alignmentState(k,i2) |= af;
+    }
+}
+
+/* Say whether the proposed alignment would create an edge coincidence.
+ */
+bool BiComp::createsCoincidence(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                                vpsc::Rectangles rs, Matrix2d<int> &alignmentState)
+{
+    vpsc::Rectangle *r1 = rs.at(srcIndex), *r2 = rs.at(tgtIndex);
+    double z1 = af == Canvas::Horizontal ? r1->getCentreX() : r1->getCentreY();
+    double z2 = af == Canvas::Horizontal ? r2->getCentreX() : r2->getCentreY();
+    double lowCoord = z1<z2 ? z1 : z2;
+    double highCoord = z1<z2 ? z2 : z1;
+    int lowIndex = z1<z2 ? srcIndex : tgtIndex;
+    int highIndex = z1<z2 ? tgtIndex : srcIndex;
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict coincidence.
+    bool coincidence = false;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (j==lowIndex || j==highIndex) continue;
+        vpsc::Rectangle *r = rs.at(j);
+        int lj = alignmentState(lowIndex, j);
+        int hj = alignmentState(highIndex, j);
+        if (lj&af || hj&af) {
+            double z = af==Canvas::Horizontal ? r->getCentreX() : r->getCentreY();
+            // low shape
+            if ( lj&Canvas::Connected && lowCoord < z ) {
+                coincidence = true; break;
+            }
+            // high shape
+            if ( hj&Canvas::Connected && z < highCoord ) {
+                coincidence = true; break;
+            }
+        }
+    }
+    return coincidence;
+}
+
+/* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
+ * deflected from horizontal or vertical, depending on the passed alignment flag.
+ * The "edge" E is the straight line from the centre of the src rectangle to that
+ * of the tgt rectangle, as given by the src and tgt indices, and the vector of
+ * Rectangles.
+ *
+ * If t is the angle that E makes with the positive x-axis, then the score we return
+ * is sin^2(t) if af == Horizontal, and cos^2(t) if af == Vertical.
+ *
+ * So smaller deflection scores mean edges that are closer to axis-aligned.
+ */
+double BiComp::deflection(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af, vpsc::Rectangles rs)
+{
+    vpsc::Rectangle *s = rs.at(srcIndex), *t = rs.at(tgtIndex);
+    double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
+    double a;
+    if (ty>sy) {
+        a = atan2(ty-sy,tx-sx);
+    } else if (ty<sy) {
+        a = atan2(sy-ty,sx-tx);
+    } else {
+        a = 0;
+    }
+    double sn = sin(a);
+    double sn2 = sn*sn;
+    double dfl = af==Canvas::Horizontal ? sn2 : 1 - sn2;
+    return dfl;
 }
 
 // FIXME: Do this right, in n log n time, instead of n^2, if we're really doing this.
@@ -836,7 +1348,8 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode,
     // moving in the direction given by cardinal.
     constructDunnartGraph(origShapes, cardinal, cutnodes);
     QPointF bary = baryCentre();
-    int fixedSep = 300; // magic number
+    int magicNumber = 0;
+    int fixedSep = magicNumber;
     foreach (Chunk *ch, m_children)
     {
         node origCutNode = ch->getParentCutNode();
@@ -849,7 +1362,7 @@ void BiComp::recursiveLayout(shapemap& origShapes, node origBaseNode,
         QPointF p = cnCentre + fixedSep*cardinal;
         ch->setRelPt(p);
         ch->recursiveLayout(origShapes, origCutNode, cardinal, cutnodes);
-        fixedSep += 300;
+        fixedSep += magicNumber;
     }
 }
 
@@ -882,6 +1395,99 @@ void BiComp::recursiveDraw(Canvas *canvas, QPointF p)
     {
         ch->recursiveDraw(canvas, m_basept);
     }
+
+    // Apply any separated alignments created if we used ACA.
+    applyDunnartSepAligns(canvas);
+}
+
+/* Perform depth-first search through the network whose nodes are the
+ * BiComps and whose hyperedges are the cutnodes.
+ *
+ * endpts maps cutnodes to the BCs that are their "end points";
+ * elements is the list of BCs seen so far in the DFS.
+ *
+ * We simply add BCs to the elements list.
+ * This is used in decomposing the network of BCs into its connected
+ * components.
+ */
+void BiComp::dfs(QMap<node, BiComp *> endpts, QList<BiComp *> &elements)
+{
+    elements.append(this);
+    foreach (node m, m_cutNodes) {
+        node n = m_nodemap.value(m);
+        QList<BiComp*> next = endpts.values(n);
+        foreach (BiComp *bc, next) {
+            if (elements.contains(bc)) continue;
+            bc->dfs(endpts,elements);
+        }
+    }
+}
+
+/* Create a new BiComp representing the fusion of this one and the
+ * one passed, at all of their shared cutnodes.
+ * Neither of the constituent BCs is altered.
+ * If they do not share any cutnode, then the BC returned will simply
+ * be a copy of this one.
+ * Note: a BiComp object has a list of cutnodes. After fusion, the new
+ * list will still include any cutnodes at which the constituent BCs were
+ * fused, even if these do not connect to any other BCs or trees.
+ */
+BiComp *BiComp::fuse(BiComp *other)
+{
+    BiComp *fusion = new BiComp();
+    // Give the fusion BiComp its Graph object.
+    fusion->m_graph = new Graph;
+    // Below we'll use the following letters for nodes:
+    // t: node in this BiComp T
+    // o: node in other BiComp O
+    // f: node in fusion BiComp F
+    // g: node in original graph G
+    // Begin by giving F a copy of each "normal node" in T.
+    foreach (node t, this->m_normalNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_normalNodes.append(f);
+        node g = this->m_nodemap.value(t);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now give F a copy of each "normal node" in O.
+    foreach (node o, other->m_normalNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_normalNodes.append(f);
+        node g = other->m_nodemap.value(o);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now the cutnodes of T.
+    foreach (node t, this->m_cutNodes) {
+        node f = fusion->m_graph->newNode();
+        fusion->m_cutNodes.append(f);
+        node g = this->m_nodemap.value(t);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // And the cutnodes of O. This time check for duplicates
+    // with T.
+    foreach (node o, other->m_cutNodes) {
+        node g = other->m_nodemap.value(o);
+        if (this->m_nodemap.values().contains(g)) continue;
+        node f = fusion->m_graph->newNode();
+        fusion->m_cutNodes.append(f);
+        fusion->m_nodemap.insert(f,g);
+    }
+    // Now the edges.
+    // First the edges of G corresponding to those in T.
+    foreach (edge e, this->m_edgemap.values()) {
+        node f1 = fusion->m_nodemap.key(e->source());
+        node f2 = fusion->m_nodemap.key(e->target());
+        edge f = fusion->m_graph->newEdge(f1,f2);
+        fusion->m_edgemap.insert(f,e);
+    }
+    // And finally the edges of G corresp. those in O.
+    foreach (edge e, other->m_edgemap.values()) {
+        node f1 = fusion->m_nodemap.key(e->source());
+        node f2 = fusion->m_nodemap.key(e->target());
+        edge f = fusion->m_graph->newEdge(f1,f2);
+        fusion->m_edgemap.insert(f,e);
+    }
+    return fusion;
 }
 
 // ----------------------------------------------------------------------------
@@ -891,6 +1497,10 @@ BCLayout::BCLayout(Canvas *canvas) :
     m_canvas(canvas)
 {}
 
+/* Builds the tree structure on the Chunks simply by setting their own internal
+ * records of what their children are, and what their "parent cut nodes" are.
+ * Also records the list of cut nodes that were actually used.
+ */
 void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root, QList<node>& usedCutNodes)
 {
     QList<Chunk*> queue;
@@ -908,8 +1518,10 @@ void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root, QList<node>& use
             QSet<Chunk*> nbrSet = nbrs.toSet();
             nbrSet.subtract(seen);
             QList<Chunk*> nbrList = nbrSet.toList();
-            foreach (Chunk *ch, nbrList) {
-                ch->setParentCutNode(cn);
+            foreach (Chunk *ch2, nbrList) {
+                ch2->setParentCutNode(cn);
+                BiComp *bc = dynamic_cast<BiComp*>(ch);
+                ch2->setParent(bc);
                 usedCutNodes.append(cn);
             }
             children.append(nbrList);
@@ -1072,6 +1684,37 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
     return bicomps;
 }
 
+/* Fuse BCs that share cutnodes. Return list of BCs thus obtained.
+ */
+QList<BiComp*> BCLayout::fuseBCs(QList<BiComp *> bicomps)
+{
+    // Prepare multimap from cutnodes to BCs they lie in.
+    QMap<node,BiComp*> endpts;
+    foreach (BiComp *bc, bicomps) {
+        QList<node> cn = bc->getCutNodes();
+        foreach (node nd, cn) {
+            endpts.insertMulti(nd,bc);
+        }
+    }
+    // Prepare list of "compound BCs".
+    QList<BiComp*> cbc;
+    while (!bicomps.empty()) {
+        // Do depth-first search starting from first BC, and
+        // following hyperedges as given by the endpts map.
+        QList<BiComp*> elements;
+        BiComp *b = bicomps.first();
+        b->dfs(endpts,elements);
+        // Remove elements found from the main list.
+        bicomps = bicomps.toSet().subtract(elements.toSet()).toList();
+        // Fuse the elements found, and store as compound BC.
+        BiComp *compound = elements.takeFirst();
+        while (!elements.empty()) compound = compound->fuse(elements.takeFirst());
+        cbc.append(compound);
+    }
+    qDebug() << QString("Found %1 compound BCs.").arg(cbc.size());
+    return cbc;
+}
+
 QMap<int,node> BCLayout::getConnComps(Graph& G)
 {
     NodeArray<int> ccomps(G);
@@ -1091,6 +1734,10 @@ QMap<int,node> BCLayout::getConnComps2(Graph *G2, QMap<node, node>& nodeMapG2ToG
     // G2: the second graph we construct
     // nodeMapG2ToG: map from nodes of G2 back to nodes of G, the graph
     // whose connected components we actually will return.
+    // We return the connected components in the form of a multimap from
+    // integers to nodes. The components are assigned integer labels, and
+    // the map sends integer n to all those nodes belonging to the ccomp
+    // whose label is n.
 
     NodeArray<int> ccomps(*G2);
     connectedComponents(*G2, ccomps);
@@ -1125,6 +1772,9 @@ Graph *BCLayout::removeBiComps(Graph& G, bclist& bcs, QMap<node, node>& nodeMapN
     }
     // Copy edges, except those in the BiComps listed in bcs.
     edge e = NULL;
+    // FIXME: Might it be more efficient to first construct the set S
+    // of all original edges from the BCs, and /then/ pass through all
+    // the edges of G and keep only those that are not in S?
     forall_edges(e,G)
     {
         bool keep = true;
@@ -1176,8 +1826,10 @@ void BCLayout::orthoLayout(int method)
     // Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
     QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes);
+    // Fuse BCs that share cutnodes.
+    bicomps = fuseBCs(bicomps);
 
-    // Get a new graph isomorphic to the result of removing the bicomps from G.
+    // Get a new graph isomorphic to the result of removing the BC edges from G.
     QMap<node,node> nodeMapG2ToG;
     Graph *G2 = removeBiComps(G, bicomps, nodeMapG2ToG);
     assert(G2->consistencyCheck());
@@ -1186,7 +1838,7 @@ void BCLayout::orthoLayout(int method)
     QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
 
     // Form trees on those components, throwing away isolated
-    // nodes (which must have been cutnodes shared only by nontrivial BCs).
+    // nodes (which must have been nodes belonging to nontrivial BCs).
     QList<RootedTree*> rtrees;
     foreach (int i, ccomps.keys().toSet())
     {
@@ -1195,6 +1847,21 @@ void BCLayout::orthoLayout(int method)
         RootedTree *rtree = new RootedTree(nodes, cutnodes);
         rtrees.append(rtree);
     }
+
+    /* TODO
+     * ====
+     *
+     * Here is where I will start to change the algorithm, according to
+     * our latest ideas on how reassembly should work.
+     *
+     * For now all we have is a BFS turning all the Chunks into a tree,
+     * in fact a rooted tree where we have chosen a largest Chunk as the
+     * root.
+     *
+     */
+
+    // The following code assumes there is at least one BC.
+    // So this does not handle the case in which the graph itself is at tree!
 
     // Choose a largest biconnected component to be root.
     size_t n = 0;
@@ -1243,6 +1910,7 @@ void BCLayout::layoutBCTrees()
     ogdf::Graph G;
     QMap<ogdf::node,ShapeObj*> nodeShapes;
     QMap<ogdf::edge,Connector*> edgeConns;
+    // First get all the nodes.
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (ShapeObj *shape = isShapeForLayout(item))
@@ -1254,6 +1922,8 @@ void BCLayout::layoutBCTrees()
             shape->setLabel(QString::number(shape->internalId()));
         }
     }
+    // Now do the edges on a separate, second pass, so that all their
+    // endpoints already exist.
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (Connector *conn = dynamic_cast<Connector*>(item))
@@ -1275,20 +1945,38 @@ void BCLayout::layoutBCTrees()
     QMap<ogdf::node,ShapeObj*> bcShapes;
     m_canvas->stop_graph_layout();
     // nodes
+    int p = 0;
     forall_nodes(v,B)
     {
         sh = factory->createShape("org.dunnart.shapes.ellipse");
         ogdf::BCTree::BNodeType bnt = bctree.typeOfBNode(v);
         int n = bctree.numberOfNodes(v);
+        // Set the radius of the shape based on the number of nodes
+        // in the BC represented by v, if it is a BComp.
         double s = 25 + (150/3.14)*std::atan(double(n-1)*0.173);
+        // Choose an initial point.
+        double x = 0, y = 0;
+        switch (p%4)
+        {
+        case 0:
+            x = (double)p; y = 0; break;
+        case 1:
+            x = 0; y = (double)p; break;
+        case 2:
+            x = -(double)p; y = 0; break;
+        case 3:
+            x = 0; y = -(double)p; break;
+        }
+        p++;
+        // Construct the shape.
         switch (bnt)
         {
         case ogdf::BCTree::BComp:
-            sh->setPosAndSize(QPointF(0,0), QSizeF(s,s));
+            sh->setPosAndSize(QPointF(x,y), QSizeF(s,s));
             sh->setFillColour(QColor(128,128,255));
             break;
         case ogdf::BCTree::CComp:
-            sh->setPosAndSize(QPointF(0,0), QSizeF(25,25));
+            sh->setPosAndSize(QPointF(x,y), QSizeF(25,25));
             sh->setFillColour(QColor(255,128,128));
             break;
         }
@@ -1336,7 +2024,10 @@ void BCLayout::layoutBCTrees()
 
     // Draw the "auxiliary graph" -- draw only nodes and edges belonging to
     // biconnected components of 3 or more nodes
-    ogdf::Graph H = bctree.auxiliaryGraph();
+
+    // Looks like we tried to use the auxiliaryGraph function, but
+    // didn't like what we were getting?
+    //ogdf::Graph H = bctree.auxiliaryGraph();
 
     QSet<ogdf::node> hNodes;
     QSet<ogdf::edge> hEdges;
@@ -1344,6 +2035,10 @@ void BCLayout::layoutBCTrees()
     {
         int n = bctree.numberOfNodes(v);
         if (n < 3) continue;
+        // If we get this far, then v represents a BComp containing at least
+        // 3 nodes of the original graph.
+        // We now use the hEdges function which returns a list of all edges
+        // of the original graph belonging to this BComp.
         ogdf::SList<ogdf::edge> edges = bctree.hEdges(v);
         for (ogdf::SListIterator<ogdf::edge> i = edges.begin(); i!=edges.end(); i++)
         {
@@ -1354,10 +2049,26 @@ void BCLayout::layoutBCTrees()
     }
     QMap<ogdf::node,ShapeObj*> auxShapes;
     // nodes
+    p = 0;
     foreach (ogdf::node v, hNodes)
     {
+        // Choose an initial point.
+        double x = 0, y = 0;
+        switch (p%4)
+        {
+        case 0:
+            x = (double)p; y = 0; break;
+        case 1:
+            x = 0; y = (double)p; break;
+        case 2:
+            x = -(double)p; y = 0; break;
+        case 3:
+            x = 0; y = -(double)p; break;
+        }
+        p++;
+        // Construct the shape.
         sh = factory->createShape("org.dunnart.shapes.ellipse");
-        sh->setPosAndSize(QPointF(0,0), QSizeF(25,25));
+        sh->setPosAndSize(QPointF(x,y), QSizeF(25,25));
         sh->setFillColour(QColor(128,255,128));
         m_canvas->addItem(sh);
         auxShapes.insert(v,sh);

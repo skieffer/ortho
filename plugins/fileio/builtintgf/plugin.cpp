@@ -34,6 +34,7 @@
 #include "libdunnartcanvas/canvasitem.h"
 #include "libdunnartcanvas/shape.h"
 #include "libdunnartcanvas/connector.h"
+#include "libdunnartcanvas/pluginshapefactory.h"
 
 #include "libdunnartcanvas/pluginshapefactory.h"
 
@@ -130,50 +131,37 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 errorMessage = tr("File could not be opened for reading.");
                 return false;
             }
-            // Read the node and edge declarations in the file.
-            QTextStream in(&file);
-            bool readingNodes = true;
-            QList<QString> nodes;
-            QList< QPair<QString,QString> > edges;
-            while (!in.atEnd())
-            {
-                QString line = in.readLine();
-                line = line.trimmed();
-                if (line.length()==0) continue;
-                if (line.startsWith("#")) {
-                    readingNodes = false;
-                } else if (readingNodes) {
-                    // Record node
-                    nodes.append(line);
+            QMap<QString,ShapeObj*> shapesByNum;
+            PluginShapeFactory *shapeFactory = sharedPluginShapeFactory();
+            int n = 0;
+            canvas->stop_graph_layout();
+            while (!file.atEnd()) {
+                QByteArray line = file.readLine();
+                QString s = QString(line.data()).trimmed();
+                QStringList parts = s.split(" ");
+                if (parts.length() == 1) {
+                    QString p = parts.at(0);
+                    if (p.at(0)==QString("#").at(0)) continue;
+                    ShapeObj *s = shapeFactory->createShape("org.dunnart.shapes.rect");
+                    shapesByNum.insert(p,s);
+                    double x = n%4<2 ? n : -n;
+                    double y = n%2<1 ? n : -n;
+                    s->setPosAndSize(QPointF(x,y),QSizeF(50,50));
+                    canvas->addItem(s);
+                    n++;
+                } else if (parts.length() == 2) {
+                    QString p = parts.at(0), q = parts.at(1);
+                    ShapeObj *s = shapesByNum.value(p);
+                    ShapeObj *t = shapesByNum.value(q);
+                    Connector *c = new Connector();
+                    c->initWithConnection(s,t);
+                    canvas->addItem(c);
                 } else {
-                    // Record edge
-                    QStringList ends = line.split(" ");
-                    edges.append(QPair<QString,QString>(ends.at(0), ends.at(1)));
+                    // This should not happen!
                 }
             }
-            qDebug() << nodes;
-            qDebug() << edges;
-            // Build the nodes.
-            QMap<QString, ShapeObj*> map;
-            PluginShapeFactory *factory = sharedPluginShapeFactory();
-            QString type("org.dunnart.shapes.rect");
-            foreach (QString node, nodes) {
-                ShapeObj *shape = factory->createShape(type);
-                map.insert(node, shape);
-                shape->setSize(QSizeF(30,30));
-                shape->setCentrePos(QPointF(0,0));
-                QUndoCommand *cmd = new CmdCanvasSceneAddItem(canvas, shape);
-                canvas->currentUndoMacro()->addCommand(cmd);
-            }
-            // Build the edges.
-            typedef QPair<QString,QString> Edge;
-            foreach ( Edge edge, edges) {
-                Connector *conn = new Connector();
-                conn->initWithConnection(map.value(edge.first), map.value(edge.second));
-                conn->setDirected(true);
-                QUndoCommand *cmd = new CmdCanvasSceneAddItem(canvas, conn);
-                canvas->currentUndoMacro()->addCommand(cmd);
-            }
+            file.close();
+            canvas->fully_restart_graph_layout();
             return true;
         }
 

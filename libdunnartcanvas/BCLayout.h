@@ -29,6 +29,9 @@
 #include <QRectF>
 
 #include "libogdf/ogdf/basic/Graph_d.h"
+#include "libcola/compound_constraints.h"
+#include "libvpsc/rectangle.h"
+#include "libdunnartcanvas/canvas.h"
 
 using namespace ogdf;
 
@@ -51,6 +54,27 @@ typedef QList<RootedTree*> treelist;
 class BiComp;
 typedef QList<BiComp*> bclist;
 
+struct SeparatedAlignment {
+    cola::SeparationConstraint* separation;
+    cola::AlignmentConstraint* alignment;
+    int rect1;
+    int rect2;
+    Canvas::AlignmentFlags af;
+    ShapeObj *shape1;
+    ShapeObj *shape2;
+};
+
+enum ConstraintType {
+    ALIGNMENT, SEPARATION, DISTRIBUTION
+};
+
+struct DunnartConstraint {
+    ConstraintType type;
+    Canvas::Dimension dim;
+    QList<CanvasItem*> items;
+    double minSep;
+};
+
 class Chunk {
 public:
     virtual void setRelPt(QPointF p) = 0;
@@ -61,6 +85,7 @@ public:
     virtual bool containsOriginalNode(node n) = 0;
     virtual QList<node> getCutNodes(void) = 0;
     virtual void setChildren(QList<Chunk*> children) = 0;
+    virtual void setParent(BiComp *bc) = 0;
     virtual void setParentCutNode(node cn) = 0;
     virtual node getParentCutNode(void) = 0;
     QList<Chunk*> findNeighbours(node origCutNode, QList<Chunk*> allChunks);
@@ -84,10 +109,13 @@ public:
     QList<node> getCutNodes(void);
     static QPointF nearestCardinal(QPointF v);
     void setChildren(QList<Chunk*> children);
+    void setParent(BiComp *bc);
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
     QRectF bbox(void);
+    void inferConstraints(void);
+    void applyDunnartConstraints(void);
 private:
     Graph *m_graph;
     node m_root;
@@ -97,6 +125,7 @@ private:
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
 
     QList<Chunk*> m_children;
+    BiComp *m_parent;
     node m_parentCutNode; // belongs to orig. graph
 
     shapemap m_origShapeMap;
@@ -104,11 +133,15 @@ private:
     connmap m_ownConnMap;
     QPointF m_basept;
     QPointF m_relpt;
+
+    QList<DunnartConstraint*> m_dunnartConstraints;
+    int m_orientation; // in {0,1,2,3} for tree layout
 };
 
 class BiComp : public Chunk
 {
 public:
+    BiComp(void);
     BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G);
     void setRelPt(QPointF p);
     void removeSelf(Graph& G);
@@ -116,6 +149,21 @@ public:
     void constructDunnartGraph(shapemap& origShapes,
                                QPointF cardinal, QList<node> cutnodes);
     void colaLayout(void);
+
+    // -----------
+    // ACA methods
+    Matrix2d<int> initACA(int N, QMap<node,int> nodeIndices);
+    SeparatedAlignment *chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState,
+                                 QMap<node,int> nodeIndices);
+    void updateAlignmentState(SeparatedAlignment *sa, Matrix2d<int> &alignmentState);
+    bool createsCoincidence(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                            vpsc::Rectangles rs, Matrix2d<int> &alignmentState);
+    double deflection(int srcIndex, int tgtIndex, Canvas::AlignmentFlags af,
+                      vpsc::Rectangles rs);
+    void applyDunnartSepAligns(Canvas *canvas);
+    void removeDunnartSepAligns(Canvas *canvas);
+    // -----------
+
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
                          QPointF cardinal, QList<node> cutnodes);
@@ -125,6 +173,7 @@ public:
     bool containsOriginalEdge(edge e);
     QList<node> getCutNodes(void);
     void setChildren(QList<Chunk*> children);
+    void setParent(BiComp *bc);
     void setParentCutNode(node cn);
     node getParentCutNode(void);
     QPointF baryCentre(void);
@@ -132,6 +181,9 @@ public:
     bool coincidence(void);
     void jog(double scale);
     static int method;
+    void dfs(QMap<node,BiComp*> endpts, QList<BiComp*> &elements);
+    BiComp *fuse(BiComp *other);
+    ShapeObj *getShapeForOriginalNode(node orig);
 private:
     Graph *m_graph;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
@@ -148,8 +200,10 @@ private:
     QPointF m_basept;
     QPointF m_relpt;
     QList<Chunk*> m_children;
+    BiComp *m_parent;
     node m_parentCutNode;
     QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees);
+    QList<SeparatedAlignment*> m_sepAligns;
 };
 
 class BCLayout
@@ -175,6 +229,7 @@ public:
     void applyFM3(void);
 
     QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
+    QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);
     QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
