@@ -138,6 +138,16 @@ private:
     int m_orientation; // in {0,1,2,3} for tree layout
 };
 
+class ExternalTree
+{
+public:
+    ExternalTree(QList<node> nodes, node root, node taproot);
+private:
+    Graph *m_graph;
+    node m_root;
+    node m_tapRoot;
+};
+
 class BiComp : public Chunk
 {
 public:
@@ -228,13 +238,14 @@ public:
 
     void applyFM3(void);
 
+    QList<ExternalTree*> removeExternalTrees(Graph &G);
     QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
     QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);
     QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
     void orthoLayout(int method);
-
+    void ortholayout2(void);
     void layoutBCTrees(void);
 
 private:

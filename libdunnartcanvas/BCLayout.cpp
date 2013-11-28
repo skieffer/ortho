@@ -592,6 +592,17 @@ QRectF RootedTree::bbox()
 }
 
 // ----------------------------------------------------------------------------
+// ExternalTree ---------------------------------------------------------------
+
+ExternalTree::ExternalTree(QList<node> nodes, node root, node taproot) :
+    m_root(root),
+    m_tapRoot(taproot)
+{
+    m_graph = new Graph;
+    // TODO
+}
+
+// ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
 int BiComp::method = -1;
@@ -882,7 +893,7 @@ void BiComp::colaLayout()
 
     // Do an initial FD layout.
     fdlayout->setConstraints(ccs);
-    qDebug() << "run once";
+    //qDebug() << "run once";
     fdlayout->run(true,true);
 
 #define doACA
@@ -910,12 +921,12 @@ void BiComp::colaLayout()
             double y = r->getCentreY();
             rects += QString("(%1,%2) ").arg(x,5,'f',2).arg(y,5,'f',2);
         }
-        qDebug() << rects;
+        //qDebug() << rects;
         QString sepalgn = "";
         sepalgn += QString("%1").arg(sa->rect1,2);
         sepalgn += sa->af == Canvas::Horizontal ? "-" : "|";
         sepalgn += QString("%1").arg(sa->rect2,2);
-        qDebug() << sepalgn;
+        //qDebug() << sepalgn;
         n++;
 
         delete fdlayout;
@@ -1804,8 +1815,9 @@ void BCLayout::orthoLayout(int method)
     BiComp::method = method;
     shapemap nodeShapes;
     connmap edgeConns;
-    Graph *Gp = new Graph;
-    Graph G = *Gp;
+    //Graph *Gp = new Graph;
+    //Graph G = *Gp;
+    Graph G;
     ogdfGraph(G, nodeShapes, edgeConns);
     //diag:
     /*
@@ -1889,6 +1901,117 @@ void BCLayout::orthoLayout(int method)
     m_canvas->stop_graph_layout();
     largest->recursiveDraw(m_canvas, QPointF(0,0));
     m_canvas->interrupt_graph_layout();
+}
+
+/* Latest attempt (28 Nov 2013) at the Orthowontist layout algorithm.
+  * Operates on all the nodes and edges currently on the Dunnart canvas.
+  * Expects this to be a connected graph.
+  */
+void BCLayout::ortholayout2()
+{
+    BiComp::method = 0;
+    shapemap nodeShapes;
+    connmap edgeConns;
+    Graph G;
+    ogdfGraph(G, nodeShapes, edgeConns);
+
+    // Compute external trees.
+    QList<ExternalTree*> XX = removeExternalTrees(G);
+
+}
+
+/* Expects a connected graph.
+  * Prunes all external trees, and returns them in a list.
+  * The graph itself IS altered.
+  * Uses the idea from the TopoLayout paper.
+  */
+QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
+{
+    // Make a map from degrees to lists of nodes that have that degree.
+    // Initialize with one slot for each degree from 1 up to the maximum
+    // degree occurring in the graph. This dense data structure might be
+    // bad if there is a node of extremely high degree, but in our examples
+    // we don't expect that.
+    QMap< int,QSet<node> > nodesByDegree;
+    int D = G.maxNodeIndex();
+    for (int i=1;i<=D;i++) {
+        QSet<node> set;
+        nodesByDegree.insert(i,set);
+    }
+    node v;
+    forall_nodes(v,G) {
+        int d = v->degree();
+        QSet<node> set = nodesByDegree.value(d);
+        set.insert(v);
+        nodesByDegree.insert(d,set);
+    }
+    // Create a new graph, where we'll make copies of the nodes we delete from G.
+    Graph H;
+    // For each node r of H, we will keep track of the node t in G which was its parent.
+    // We imagine r as a "root" and t as a "taproot". If subsequently t gets removed from
+    // G (and t' is its copy added to H), then we delete the mapping r-->t from the map.
+    // This way the domain of the map always is precisely the set of root nodes in H.
+    // (H will be such that each connected component is one of the external trees, and each
+    // one will have a root.)
+    QMap<node,node> rootsToTaproots; // Maps from H to G!
+    // The basic idea is simple: Continue deleting nodes of degree 1, until
+    // there aren't any more.
+    while (nodesByDegree.value(1).size() > 0) {
+        // Grab the degree-1 nodes, and replace with an empty set in the nodesByDegree map.
+        QSet<node> degreeOneNodes = nodesByDegree.value(1);
+        QSet<node> set;
+        nodesByDegree.insert(1,set);
+        foreach (node r, degreeOneNodes) {
+            // Create a copy in H.
+            node rH = H.newNode();
+            // Was r the taproot for any nodes already in H?
+            // If so, it should now be connected to them.
+            QList<node> children = rootsToTaproots.keys(r);
+            foreach (node c, children) {
+                H.newEdge(rH,c);
+                rootsToTaproots.remove(c);
+            }
+            // Get rH's taproot, i.e. r's parent in G.
+            edge e = NULL;
+            node t = NULL;
+            forall_adj_edges(e,r) { // There should be only one!
+                t = r==e->source() ? e->target() : e->source();
+                rootsToTaproots.insert(rH,t);
+            }
+            // Now we can delete r.
+            G.delNode(r);
+            // Let t bubble up in the lists by degree, since its degree just dropped.
+            int n = t->degree();
+            QSet<node> degNplus1 = nodesByDegree.value(n+1);
+            degNplus1.remove(t);
+            nodesByDegree.insert(n+1,degNplus1);
+            QSet<node> degN = nodesByDegree.value(n);
+            degN.insert(t);
+            nodesByDegree.insert(n,degN);
+        }
+    }
+    // Compute the connected components of H, and node the root node of each.
+    QMap<int,node> CC;
+    QMap<int,node> root;
+    NodeArray<int> cc(H);
+    ogdf::connectedComponents(H,cc);
+    node a = NULL;
+    forall_nodes(a,H) {
+        int n = cc[a];
+        CC.insertMulti(n,a);
+        if (rootsToTaproots.keys().contains(a)) root.insert(n,a);
+    }
+    // Now construct an ExternalTree object for each connected component in H,
+    // and return the list of these.
+    QList<ExternalTree*> XX;
+    foreach (int n, CC.keys()) {
+        QList<node> nodes = CC.values(n);   // list of nodes in H
+        node r = root.value(n);             // node in H
+        node t = rootsToTaproots.value(r);  // node in G
+        ExternalTree *X = new ExternalTree(nodes,r,t);
+        XX.append(X);
+    }
+    return XX;
 }
 
 void BCLayout::applyFM3()
