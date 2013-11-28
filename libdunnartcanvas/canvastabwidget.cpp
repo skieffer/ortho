@@ -162,6 +162,8 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
     m_action_BCWithPlanarizationGrid = new QAction("with PlanarizationGrid",this);
     m_action_BCOther = new QAction("other",this);
 
+    m_action_orthoLayout2 = new QAction("Ortho Layout 2",this);
+
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);
 
@@ -352,6 +354,9 @@ void CanvasTabWidget::currentChanged(int index)
     connect(m_action_BCWithPlanarizationGrid, SIGNAL(triggered()), m_canvas, SLOT(BCWithPlanarizationGrid()));
     m_action_BCOther->disconnect();
     connect(m_action_BCOther, SIGNAL(triggered()), m_canvas, SLOT(BCOther()));
+
+    m_action_orthoLayout2->disconnect();
+    connect(m_action_orthoLayout2, SIGNAL(triggered()), m_canvas, SLOT(orthoLayout2()));
 
     m_action_lock->disconnect();
     connect(m_action_lock, SIGNAL(triggered()),
@@ -590,7 +595,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     layout_menu->addAction(m_action_infer_alignments);
     layout_menu->addAction(m_action_apply_fm3);
     layout_menu->addAction(m_action_layout_BCTrees);
-    QMenu *BCOrthoLayoutMenu = layout_menu->addMenu(tr("BC Ortho Layout"));
+    QMenu *BCOrthoLayoutMenu = layout_menu->addMenu(tr("Ortho Layout 1"));
     BCOrthoLayoutMenu->addAction(m_action_BCWithCola);
     BCOrthoLayoutMenu->addAction(m_action_BCWithFM3);
     BCOrthoLayoutMenu->addAction(m_action_BCWithSpringEmbedder);
@@ -598,6 +603,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     BCOrthoLayoutMenu->addAction(m_action_BCWithPlanarization);
     BCOrthoLayoutMenu->addAction(m_action_BCWithPlanarizationGrid);
     BCOrthoLayoutMenu->addAction(m_action_BCOther);
+    layout_menu->addAction(m_action_orthoLayout2);
 }
 
 

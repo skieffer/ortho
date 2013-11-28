@@ -594,12 +594,29 @@ QRectF RootedTree::bbox()
 // ----------------------------------------------------------------------------
 // ExternalTree ---------------------------------------------------------------
 
-ExternalTree::ExternalTree(QList<node> nodes, node root, node taproot) :
+ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot) :
     m_root(root),
     m_tapRoot(taproot)
 {
     m_graph = new Graph;
+    QMap<node,node> nodemap; // maps passed nodes to own nodes
+    foreach (node n, nodes) {
+        node m = m_graph->newNode();
+        nodemap.insert(n,m);
+    }
+    foreach (edge e, edges) {
+        node m1 = nodemap.value(e->source());
+        node m2 = nodemap.value(e->target());
+        m_graph->newEdge(m1,m2);
+    }
+}
+
+QString ExternalTree::listNodes()
+{
+    QString s = "";
+    s += QString("Root: %1\n").arg(0); // TODO
     // TODO
+    return s;
 }
 
 // ----------------------------------------------------------------------------
@@ -1907,7 +1924,7 @@ void BCLayout::orthoLayout(int method)
   * Operates on all the nodes and edges currently on the Dunnart canvas.
   * Expects this to be a connected graph.
   */
-void BCLayout::ortholayout2()
+void BCLayout::ortholayout2(void)
 {
     BiComp::method = 0;
     shapemap nodeShapes;
@@ -1917,6 +1934,11 @@ void BCLayout::ortholayout2()
 
     // Compute external trees.
     QList<ExternalTree*> XX = removeExternalTrees(G);
+    // Test:
+    qDebug() << "External Trees:";
+    foreach (ExternalTree *X, XX) {
+        qDebug() << X->listNodes();
+    }
 
 }
 
@@ -1933,12 +1955,17 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
     // bad if there is a node of extremely high degree, but in our examples
     // we don't expect that.
     QMap< int,QSet<node> > nodesByDegree;
-    int D = G.maxNodeIndex();
+    // Find max degree D in graph.
+    int D = 0;
+    node v;
+    forall_nodes(v,G) {
+        int d = v->degree();
+        if (d>D) D = d;
+    }
     for (int i=1;i<=D;i++) {
         QSet<node> set;
         nodesByDegree.insert(i,set);
     }
-    node v;
     forall_nodes(v,G) {
         int d = v->degree();
         QSet<node> set = nodesByDegree.value(d);
@@ -1953,7 +1980,10 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
     // This way the domain of the map always is precisely the set of root nodes in H.
     // (H will be such that each connected component is one of the external trees, and each
     // one will have a root.)
-    QMap<node,node> rootsToTaproots; // Maps from H to G!
+    QMap< node,node > rootsToTaproots; // Maps from H to G!
+    // We also keep track of the nodes and edges belonging to each tree in H.
+    QMap< node,QList<node> > rootsToNodes;
+    QMap< node,QList<edge> > rootsToEdges;
     // The basic idea is simple: Continue deleting nodes of degree 1, until
     // there aren't any more.
     while (nodesByDegree.value(1).size() > 0) {
@@ -1964,13 +1994,25 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
         foreach (node r, degreeOneNodes) {
             // Create a copy in H.
             node rH = H.newNode();
+            // Prepare lists of the nodes and edges for the tree of which rH is the new root.
+            // Note: the root IS included in the list of nodes belonging to the tree.
+            QList<node> treeNodes;
+            treeNodes.append(rH);
+            QList<edge> treeEdges;
             // Was r the taproot for any nodes already in H?
             // If so, it should now be connected to them.
             QList<node> children = rootsToTaproots.keys(r);
             foreach (node c, children) {
-                H.newEdge(rH,c);
+                edge f = H.newEdge(rH,c);
+                treeEdges.append(f);
+                treeNodes.append(rootsToNodes.value(c));
+                treeEdges.append(rootsToEdges.value(c));
                 rootsToTaproots.remove(c);
+                rootsToNodes.remove(c);
+                rootsToEdges.remove(c);
             }
+            rootsToNodes.insert(rH,treeNodes);
+            rootsToEdges.insert(rH,treeEdges);
             // Get rH's taproot, i.e. r's parent in G.
             edge e = NULL;
             node t = NULL;
@@ -1990,6 +2032,7 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
             nodesByDegree.insert(n,degN);
         }
     }
+    /*
     // Compute the connected components of H, and node the root node of each.
     QMap<int,node> CC;
     QMap<int,node> root;
@@ -2001,14 +2044,24 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
         CC.insertMulti(n,a);
         if (rootsToTaproots.keys().contains(a)) root.insert(n,a);
     }
+    */
     // Now construct an ExternalTree object for each connected component in H,
     // and return the list of these.
     QList<ExternalTree*> XX;
+    /*
     foreach (int n, CC.keys()) {
         QList<node> nodes = CC.values(n);   // list of nodes in H
         node r = root.value(n);             // node in H
         node t = rootsToTaproots.value(r);  // node in G
         ExternalTree *X = new ExternalTree(nodes,r,t);
+        XX.append(X);
+    }
+    */
+    foreach (node r, rootsToTaproots.keys()) {
+        node t = rootsToTaproots.value(r);
+        QList<node> nodes = rootsToNodes.value(r);
+        QList<edge> edges = rootsToEdges.value(r);
+        ExternalTree *X = new ExternalTree(nodes,edges,r,t);
         XX.append(X);
     }
     return XX;

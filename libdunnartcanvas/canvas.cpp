@@ -5706,6 +5706,11 @@ void Canvas::BCOther()
     m_bclayout->orthoLayout(6);
 }
 
+void Canvas::orthoLayout2()
+{
+    m_bclayout->ortholayout2();
+}
+
 }
 // vim: filetype=cpp ts=4 sw=4 et tw=0 wm=0 cindent
 

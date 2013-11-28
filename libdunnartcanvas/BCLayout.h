@@ -141,11 +141,13 @@ private:
 class ExternalTree
 {
 public:
-    ExternalTree(QList<node> nodes, node root, node taproot);
+    ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot);
+    //Testing:
+    QString listNodes(void);
 private:
     Graph *m_graph;
-    node m_root;
-    node m_tapRoot;
+    node m_root;    // a node in this object's m_graph
+    node m_tapRoot; // a node in the original graph
 };
 
 class BiComp : public Chunk

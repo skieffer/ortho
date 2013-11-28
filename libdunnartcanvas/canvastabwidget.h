@@ -111,6 +111,7 @@ private:
     QAction *m_action_infer_alignments;
     QAction *m_action_apply_fm3;
     QAction *m_action_layout_BCTrees;
+    QAction *m_action_orthoLayout2;
     QAction *m_action_BCWithCola;
     QAction *m_action_BCWithFM3;
     QAction *m_action_BCWithSpringEmbedder;
