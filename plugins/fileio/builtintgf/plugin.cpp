@@ -36,6 +36,8 @@
 #include "libdunnartcanvas/connector.h"
 #include "libdunnartcanvas/pluginshapefactory.h"
 
+#include "libdunnartcanvas/pluginshapefactory.h"
+
 using namespace dunnart;
 
 class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
@@ -129,18 +131,14 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                 errorMessage = tr("File could not be opened for reading.");
                 return false;
             }
-
             QMap<QString,ShapeObj*> shapesByNum;
             PluginShapeFactory *shapeFactory = sharedPluginShapeFactory();
             int n = 0;
             canvas->stop_graph_layout();
             while (!file.atEnd()) {
                 QByteArray line = file.readLine();
-                //qDebug() << line.length();
                 QString s = QString(line.data()).trimmed();
-                //qDebug() << s;
                 QStringList parts = s.split(" ");
-                //qDebug() << QString("%1 parts").arg(parts.length());
                 if (parts.length() == 1) {
                     QString p = parts.at(0);
                     if (p.at(0)==QString("#").at(0)) continue;
@@ -164,30 +162,6 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
             }
             file.close();
             canvas->fully_restart_graph_layout();
-            return true;
-
-            /*
-            QString parsingError;
-            int errorLine;
-            int errorColumn;
-            if (!doc.setContent(&file, true, &parsingError, &errorLine, &errorColumn))
-            {
-                file.close();
-                errorMessage = tr("Error reading SVG: %1:%2: %3").arg(errorLine).
-                        arg(errorColumn).arg(parsingError);
-                return false;
-            }
-            file.close();
-            canvas->setSvgRendererForFile(filename);
-
-            QDomElement root = doc.documentElement();
-
-            for (int pass = 0; pass < PASS_LAST; ++pass)
-            {
-                canvas->recursiveReadSVG(root, x_dunnartNs, pass);
-            }
-            */
-
             return true;
         }
 

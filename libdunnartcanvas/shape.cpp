@@ -570,6 +570,21 @@ QAction *ShapeObj::buildAndExecContextMenu(QGraphicsSceneMouseEvent *event,
     return action;
 }
 
+bool ShapeObj::removeFromGuideline(Guideline *gl)
+{
+    bool removed = false;
+    for (int i = 0; i < 6; i++) {
+        if (rels[i] && rels[i]->guide == gl) {
+            canvas()->beginUndoMacro(tr("Dettach From Guideline"));
+            rels[i]->deactivate();
+            canvas()->interrupt_graph_layout();
+            removed = true;
+            break;
+        }
+    }
+    return removed;
+}
+
 #if 0
 void ShapeObj::showConnectionPoints(void)
 {

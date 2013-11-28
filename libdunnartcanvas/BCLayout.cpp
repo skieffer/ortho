@@ -1851,7 +1851,7 @@ void BCLayout::orthoLayout(int method)
     /* TODO
      * ====
      *
-     * Here is where I will start to change the algorithm, according to
+     * Change the algorithm starting here, according to
      * our latest ideas on how reassembly should work.
      *
      * For now all we have is a BFS turning all the Chunks into a tree,

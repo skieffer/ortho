@@ -4396,13 +4396,22 @@ void Canvas::appliedAlignmentWasUnsat(ConstraintRejectedEvent *cre)
     Guideline *reject = cre->m_guideline;
     qDebug() << "Found UNSAT tentative constraint.";
     qDebug() << "Guideline:" << reject->idString() << "Shape:" << shape->idString();
-    // Delete guideline.
-    stop_graph_layout();
-    UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+    // How many attached shapes?
     CanvasItemSet dummySet;
-    reject->deactivateAll(dummySet);
-    QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
-    undoMacro->addCommand(cmd);
+    reject->addAttachedShapesToSet(dummySet);
+    int n = dummySet.size();
+    if (n >= 3) {
+        // If there are three or more shapes on the guideline, then just remove the one shape.
+        shape->removeFromGuideline(reject);
+    } else {
+        // If there are only two (or fewer?) shapes, then delete the guideline.
+        // Delete guideline.
+        stop_graph_layout();
+        UndoMacro *undoMacro = beginUndoMacro(tr("Delete"));
+        reject->deactivateAll(dummySet);
+        QUndoCommand *cmd = new CmdCanvasSceneRemoveItem(this, reject);
+        undoMacro->addCommand(cmd);
+    }
     fully_restart_graph_layout();
 }
 
