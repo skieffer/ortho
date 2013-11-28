@@ -153,6 +153,12 @@ private:
     int m_tapRootID; // ID of Dunnart shape corresp. to m_tapRoot
 };
 
+class InternalTree
+{
+public:
+    InternalTree(QList<node> nodes, QSet<node> cutnodes);
+};
+
 class BiComp : public Chunk
 {
 public:

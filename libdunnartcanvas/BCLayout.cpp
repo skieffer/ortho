@@ -1881,7 +1881,7 @@ void BCLayout::orthoLayout(int method)
     QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
 
     // Form trees on those components, throwing away isolated
-    // nodes (which must have been nodes belonging to nontrivial BCs).
+    // nodes (which must have been the noncutnodes belonging to nontrivial BCs).
     QList<RootedTree*> rtrees;
     foreach (int i, ccomps.keys().toSet())
     {
@@ -1946,14 +1946,41 @@ void BCLayout::ortholayout2(void)
     Graph G;
     ogdfGraph(G, nodeShapes, edgeConns);
 
-    // Compute external trees.
+    // 1. Compute external trees.
     QList<ExternalTree*> XX = removeExternalTrees(G, nodeShapes);
     // Test:
+    /*
     qDebug() << "External Trees:";
     foreach (ExternalTree *X, XX) {
         qDebug() << X->listNodes();
     }
+    */
 
+    // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
+    QSet<node> cutnodes;
+    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
+    // Fuse BCs that share cutnodes.
+    BB = fuseBCs(BB);
+
+    // 3. Compute internal trees.
+    // Get a new graph isomorphic to the result of removing the BC edges from G.
+    QMap<node,node> nodeMapG2ToG;
+    Graph *G2 = removeBiComps(G, BB, nodeMapG2ToG);
+    // Get connected components of original graph G corresponding to those of G2.
+    QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
+    // Form trees on those components, throwing away isolated
+    // nodes (which must have been the noncutnodes belonging to nontrivial BCs).
+    QList<InternalTree*> II;
+    foreach (int i, ccomps.keys().toSet())
+    {
+        QList<node> nodes = ccomps.values(i);
+        if (nodes.size() < 2) continue;
+        InternalTree *I = new InternalTree(nodes, cutnodes);
+        II.append(I);
+    }
+
+    // 4. Build the metagraph M.
+    // TODO
 }
 
 /* Expects a connected graph.
