@@ -594,15 +594,18 @@ QRectF RootedTree::bbox()
 // ----------------------------------------------------------------------------
 // ExternalTree ---------------------------------------------------------------
 
-ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot) :
-    m_root(root),
-    m_tapRoot(taproot)
+ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
+                           node taproot, QMap<node,int> dunnartIDs, int taprootID) :
+    m_tapRoot(taproot),
+    m_tapRootID(taprootID)
 {
     m_graph = new Graph;
-    QMap<node,node> nodemap; // maps passed nodes to own nodes
-    foreach (node n, nodes) {
-        node m = m_graph->newNode();
+    QMap<node,node> nodemap; // maps passed nodes (from H) to own nodes
+    foreach (node n, nodes) { // n belongs to H
+        node m = m_graph->newNode(); // m belongs to own graph
         nodemap.insert(n,m);
+        m_dunnartIDs.insert(m,dunnartIDs.value(n));
+        if (n==root) m_root = m;
     }
     foreach (edge e, edges) {
         node m1 = nodemap.value(e->source());
@@ -614,8 +617,14 @@ ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root, node
 QString ExternalTree::listNodes()
 {
     QString s = "";
-    s += QString("Root: %1\n").arg(0); // TODO
-    // TODO
+    s += QString("Root: %1").arg(m_dunnartIDs.value(m_root));
+    s += QString("\n  Taproot: %1").arg(m_tapRootID);
+    s += QString("\n  Other nodes: ");
+    foreach (node m, m_dunnartIDs.keys()) {
+        if (m==m_root) continue;
+        int id = m_dunnartIDs.value(m);
+        s += QString("%1, ").arg(id);
+    }
     return s;
 }
 
@@ -1568,6 +1577,11 @@ void BCLayout::ogdfGraph(Graph& G, shapemap &nodeShapes, connmap &edgeConns)
         {
             node n = G.newNode();
             nodeShapes.insert(n,shape);
+#define showIDs
+#ifdef showIDs
+            QString label = QString("%1").arg(shape->internalId());
+            shape->setLabel(label);
+#endif
         }
     }
     foreach (CanvasItem *item, m_canvas->items())
@@ -1933,7 +1947,7 @@ void BCLayout::ortholayout2(void)
     ogdfGraph(G, nodeShapes, edgeConns);
 
     // Compute external trees.
-    QList<ExternalTree*> XX = removeExternalTrees(G);
+    QList<ExternalTree*> XX = removeExternalTrees(G, nodeShapes);
     // Test:
     qDebug() << "External Trees:";
     foreach (ExternalTree *X, XX) {
@@ -1947,7 +1961,7 @@ void BCLayout::ortholayout2(void)
   * The graph itself IS altered.
   * Uses the idea from the TopoLayout paper.
   */
-QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
+QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes)
 {
     // Make a map from degrees to lists of nodes that have that degree.
     // Initialize with one slot for each degree from 1 up to the maximum
@@ -1974,6 +1988,9 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
     }
     // Create a new graph, where we'll make copies of the nodes we delete from G.
     Graph H;
+    // For debugging purposes, let's keep track of the id numbers of the Dunnart ShapeObj
+    // objects to which the nodes in H correspond.
+    QMap<node, int> dunnartIDs; // domain is H
     // For each node r of H, we will keep track of the node t in G which was its parent.
     // We imagine r as a "root" and t as a "taproot". If subsequently t gets removed from
     // G (and t' is its copy added to H), then we delete the mapping r-->t from the map.
@@ -1994,6 +2011,9 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
         foreach (node r, degreeOneNodes) {
             // Create a copy in H.
             node rH = H.newNode();
+            // Note ID of corresp. Dunnart shape obj.
+            ShapeObj *sh = nodeShapes.value(r);
+            dunnartIDs.insert(rH,sh->internalId());
             // Prepare lists of the nodes and edges for the tree of which rH is the new root.
             // Note: the root IS included in the list of nodes belonging to the tree.
             QList<node> treeNodes;
@@ -2061,7 +2081,8 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G)
         node t = rootsToTaproots.value(r);
         QList<node> nodes = rootsToNodes.value(r);
         QList<edge> edges = rootsToEdges.value(r);
-        ExternalTree *X = new ExternalTree(nodes,edges,r,t);
+        ShapeObj *tapRootShape = nodeShapes.value(t);
+        ExternalTree *X = new ExternalTree(nodes,edges,r,t,dunnartIDs,tapRootShape->internalId());
         XX.append(X);
     }
     return XX;

@@ -141,13 +141,16 @@ private:
 class ExternalTree
 {
 public:
-    ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot);
+    ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot,
+                 QMap<node,int> dunnartIDs, int taprootID);
     //Testing:
     QString listNodes(void);
 private:
     Graph *m_graph;
+    QMap<node,int> m_dunnartIDs; // maps own nodes to IDs of corresp. Dunnart shapes
     node m_root;    // a node in this object's m_graph
-    node m_tapRoot; // a node in the original graph
+    node m_tapRoot; // a node in the original graph G
+    int m_tapRootID; // ID of Dunnart shape corresp. to m_tapRoot
 };
 
 class BiComp : public Chunk
@@ -240,7 +243,7 @@ public:
 
     void applyFM3(void);
 
-    QList<ExternalTree*> removeExternalTrees(Graph &G);
+    QList<ExternalTree*> removeExternalTrees(Graph &G, shapemap nodeShapes);
     QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
     QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);
