@@ -1110,6 +1110,13 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         setVariableDesiredPositions(vs,cs,des,coords);
         //if (dim==vpsc::HORIZONTAL) qDebug() << "c2: " << writeVADVect(coords);
 
+        // Is it okay to move the setupVarsAndConstraints call to right here,
+        // so that the ccs can take the desired positions into account before
+        // computing their cs?
+        // Or maybe we need to break it into two methods: setupVars, which
+        // is still called first, then compute the desired positions, then
+        // setupConstraints, and then finally project. Will that work?
+
 
         //project(vs,cs,coords);
         // We do the projection here, so we can keep the solver for later use.
