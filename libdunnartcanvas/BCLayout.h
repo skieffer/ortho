@@ -145,6 +145,7 @@ public:
                  QMap<node,int> dunnartIDs, int taprootID);
     void treeLayout(void);
     QSizeF getBoundingBoxSize(void);
+    node taproot(void);
     //Testing:
     QString listNodes(void);
 private:
@@ -163,13 +164,19 @@ private:
 
 struct InternalTree
 {
-    InternalTree(QList<node> nodes, QSet<node> cutnodes, Graph G);
+    InternalTree(QList<node> nodes, QSet<node> cutnodes,
+                 QMap<node,BiComp*> pNodesToBCs, Graph G);
+    // Unlike most of the classes, which have their own Graph objects, and
+    // maintain mappings from their own nodes to the nodes of the original
+    // graph (i.e. the Graph G declared first in BCLayout::ortholayout2),
+    // the InternalTree struct just stores nodes of G itself.
     QList<node> nodes;          // all nodes
     QList<node> cutNodes;
     QList<node> nonCutNodes;
     QList<edge> edges;          // all edges
     QList<edge> cutEdges;       // one endpt is a cutnode
     QList<edge> nonCutEdges;    // neither endpt is a cutnode
+    QMap<node,BiComp*> nodesToBCs;
 };
 
 enum MetaGraphNodeType {
@@ -180,7 +187,7 @@ class MetaGraph
 {
 public:
     MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
-              QList<InternalTree *> II);
+              QList<InternalTree *> II, QMap<node,BiComp*> nodesToBCs);
     void acaLayout(void);
 private:
     Graph *m_graph;
@@ -230,6 +237,7 @@ public:
     bool containsOriginalNode(node n);
     bool containsOriginalEdge(edge e);
     QList<node> getCutNodes(void);
+    QList<node> getAllOriginalNodes(void);
     void setChildren(QList<Chunk*> children);
     void setParent(BiComp *bc);
     void setParentCutNode(node cn);
@@ -334,6 +342,7 @@ public:
 
     QList<ExternalTree*> removeExternalTrees(Graph &G, shapemap nodeShapes);
     QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
+    QMap<node,BiComp*> makeGnodeToBCmap(QList<BiComp*> BB);
     QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);
     QMap<int,node> getConnComps2(Graph *G2, QMap<node,node>& nodeMapG2ToG);

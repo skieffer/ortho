@@ -632,6 +632,11 @@ QSizeF ExternalTree::getBoundingBoxSize(void)
     return QSizeF(X-x,Y-y);
 }
 
+node ExternalTree::taproot(void)
+{
+    return m_tapRoot;
+}
+
 QString ExternalTree::listNodes()
 {
     QString s = "";
@@ -777,11 +782,13 @@ void ExternalTree::inferConstraints(Canvas::Dimension dim)
 // ----------------------------------------------------------------------------
 // InternalTree ---------------------------------------------------------------
 
-InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes, Graph G)
+InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes,
+                           QMap<node,BiComp*> pNodesToBCs, Graph G)
 {
     // Nodes
     foreach (node n, pNodes) {
         nodes.append(n);
+        nodesToBCs.insert(n,pNodesToBCs.value(n));
         if (cutnodes.contains(n)) {
             cutNodes.append(n);
         } else {
@@ -806,7 +813,8 @@ InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes, Graph G)
 // ----------------------------------------------------------------------------
 // MetaGraph ------------------------------------------------------------------
 
-MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB, QList<InternalTree *> II)
+MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
+                     QList<InternalTree *> II, QMap<node, BiComp *> nodesToBCs)
 {
     m_graph = new Graph();
     m_graphAttributes = new GraphAttributes(*m_graph);
@@ -845,11 +853,42 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB, QList<Interna
 
     // Edges ------------------------------------
 
-    // Internal tree non-cutedges
-
-    // Internal tree cutedges (connect to BCs)
+    // Internal trees
+    foreach (InternalTree *I, II) {
+        // non-cutedges
+        foreach (edge e, I->nonCutEdges) {
+            node m1 = m_internNodemap.key(e->source());
+            node m2 = m_internNodemap.key(e->target());
+            m_graph->newEdge(m1,m2);
+        }
+        // cutedges (connect to BCs)
+        foreach (edge f, I->cutEdges) {
+            node fInt = I->cutNodes.contains(f->source()) ? f->target() : f->source();
+            node fCut = I->cutNodes.contains(f->source()) ? f->source() : f->target();
+            node mInt = m_internNodemap.key(fInt);
+            BiComp *B = I->nodesToBCs.value(fCut);
+            node mCut = m_biconNodemap.key(B);
+            m_graph->newEdge(mInt,mCut);
+        }
+    }
 
     // External tree taproot edges
+    foreach (ExternalTree *X, XX) {
+        // TODO: taproot of X must either belong to some B in BB,
+        // or else be a noncutnode i in some I in II.
+        // Need the lift L of B or i.
+        // Then have edge from the lift of X to L.
+        node t = X->taproot();
+        node tLift = NULL;
+        if (m_internNodemap.values().contains(t)) {
+            tLift = m_internNodemap.key(t);
+        } else {
+            BiComp *B = nodesToBCs.value(t);
+            tLift = m_biconNodemap.key(B);
+        }
+        node XLift = m_externNodemap.key(X);
+        m_graph->newEdge(tLift,XLift);
+    }
 
 }
 
@@ -927,6 +966,14 @@ QList<node> BiComp::getCutNodes()
         cns.append(m_nodemap.value(cn));
     }
     return cns;
+}
+
+/** Return a list of all the nodes of the original graph which
+  * are represented in this BiComp.
+  */
+QList<node> BiComp::getAllOriginalNodes()
+{
+    return m_nodemap.values();
 }
 
 void BiComp::setChildren(QList<Chunk *> children)
@@ -2274,6 +2321,22 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
     return bicomps;
 }
 
+/** Make a map from nodes of the original graph G to the set of all BiComps.
+  * The domain contains every node that belongs to a BiComp (cutnode or otherwise),
+  * and this is mapped to the BiComp to which the node belongs.
+  */
+QMap<node,BiComp*> BCLayout::makeGnodeToBCmap(QList<BiComp *> BB)
+{
+    QMap<node,BiComp*> map;
+    foreach (BiComp *B, BB) {
+        QList<node> nodes = B->getAllOriginalNodes();
+        foreach (node n, nodes) {
+            map.insert(n,B);
+        }
+    }
+    return map;
+}
+
 /* Fuse BCs that share cutnodes. Return list of BCs thus obtained.
  */
 QList<BiComp*> BCLayout::fuseBCs(QList<BiComp *> bicomps)
@@ -2507,6 +2570,7 @@ void BCLayout::ortholayout2(void)
     // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
     QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
+    QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
     // Fuse BCs that share cutnodes.
     BB = fuseBCs(BB);
 
@@ -2523,7 +2587,7 @@ void BCLayout::ortholayout2(void)
     {
         QList<node> nodes = ccomps.values(i);
         if (nodes.size() < 2) continue;
-        InternalTree *I = new InternalTree(nodes, cutnodes, G);
+        InternalTree *I = new InternalTree(nodes, cutnodes, origNodesToBCs, G);
         II.append(I);
     }
 
@@ -2539,7 +2603,7 @@ void BCLayout::ortholayout2(void)
 
     // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
     //    of corresponding B and X.
-    MetaGraph *M = new MetaGraph(XX,BB,II);
+    MetaGraph *M = new MetaGraph(XX,BB,II,origNodesToBCs);
 
     // 7. Lay out M using FD+ACA.
     //M->acaLayout();
