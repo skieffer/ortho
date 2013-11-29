@@ -658,7 +658,39 @@ void ExternalTree::treeLayout(void)
 
 void ExternalTree::inferConstraints(void)
 {
-    // TODO (Copy from RootedTree, and modify as necessary.)
+    // We use a top-down search through the tree. This works because
+    // the tree already has a layout. (If you were starting from scratch
+    // you would have to work bottom-up.)
+    QList<node> queue;
+    QList<node> parentQueue; // keeps track of parents
+    queue.push_back(m_root);
+    parentQueue.push_back(NULL);
+    while (!queue.empty()) {
+        node A = queue.takeFirst();
+        node parent = parentQueue.takeFirst();
+        // Make list of the children of A.
+        QList<node> children;
+        edge e = NULL;
+        forall_adj_edges(e,A) {
+            node B = A==e->source() ? e->target() : e->source();
+            if (B==parent) continue;
+            children.append(B);
+        }
+        int numChil = children.size();
+        // If no children, continue.
+        if (numChil==0) continue;
+        // Else add children to the queue, and add as many copies of
+        // node A to the parent queue.
+        queue.append(children);
+        for(int i=0;i<numChil;i++){ parentQueue.append(A); }
+
+        // Define constraints -------------------------------------------
+        DunnartConstraint *dc;
+
+        // TODO (Copy from RootedTree, and modify as necessary.)
+        // ...
+
+    }
 }
 
 // ----------------------------------------------------------------------------
