@@ -157,6 +157,7 @@ class InternalTree
 {
 public:
     InternalTree(QList<node> nodes, QSet<node> cutnodes);
+private:
 };
 
 class BiComp : public Chunk
@@ -172,7 +173,7 @@ public:
     void colaLayout(void);
 
     // -----------
-    // ACA methods
+    // ACA methods -- for BiComp's own built in ACA layout -- deprecated
     Matrix2d<int> initACA(int N, QMap<node,int> nodeIndices);
     SeparatedAlignment *chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignmentState,
                                  QMap<node,int> nodeIndices);
@@ -184,6 +185,9 @@ public:
     void applyDunnartSepAligns(Canvas *canvas);
     void removeDunnartSepAligns(Canvas *canvas);
     // -----------
+
+    // For ACA layout performed by separate ACALayout object -- preferred method
+    void acaLayout(void);
 
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
@@ -207,6 +211,7 @@ public:
     ShapeObj *getShapeForOriginalNode(node orig);
 private:
     Graph *m_graph;
+    GraphAttributes *m_graphAttributes;
     QMap<node,node> m_nodemap; // maps own nodes to orig. graph nodes
     QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
     QList<node> m_normalNodes; // subdomain of those which are not
@@ -225,6 +230,51 @@ private:
     node m_parentCutNode;
     QList<Chunk*> findCutNodeNeighbours(node origCutNode, bclist& bcs, treelist& trees);
     QList<SeparatedAlignment*> m_sepAligns;
+};
+
+enum ACAFlags {
+    ACAHORIZ = 1,
+    ACAVERT = 2,
+    ACADELIB = 4,
+    ACACONN = 8
+};
+
+struct ACASeparatedAlignment {
+    cola::SeparationConstraint* separation;
+    cola::AlignmentConstraint* alignment;
+    int rect1;
+    int rect2;
+    ACAFlags af;
+    ShapeObj *shape1;
+    ShapeObj *shape2;
+};
+
+class ACALayout
+{
+public:
+    ACALayout(Canvas *canvas, bool selection = false);
+    ACALayout(Graph G, GraphAttributes GA);
+    ACALayout(QList<ShapeObj*> shapes, QList<Connector*> connectors);
+    void setIdealLength(double il);
+    void run(void);
+
+    void readLayout(Graph G, GraphAttributes &GA);
+private:
+    void initAlignmentState(void);
+    void updateAlignmentState(ACASeparatedAlignment *sa);
+    ACASeparatedAlignment *chooseSA(void);
+    bool createsCoincidence(int src, int tgt, ACAFlags af);
+    double deflection(int src, int tgt, ACAFlags af);
+
+    void debugOutput(ACASeparatedAlignment *sa);
+
+    QMap<node,int> m_ogdfNodeIndices;
+
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+    double idealLength;
+    Matrix2d<int> alignmentState;
+    QList<ACASeparatedAlignment*> sepAligns;
 };
 
 class BCLayout

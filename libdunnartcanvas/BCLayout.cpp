@@ -629,6 +629,15 @@ QString ExternalTree::listNodes()
 }
 
 // ----------------------------------------------------------------------------
+// InternalTree ---------------------------------------------------------------
+
+InternalTree::InternalTree(QList<node> nodes, QSet<node> cutnodes)
+{
+    // TODO
+}
+
+
+// ----------------------------------------------------------------------------
 // BiComp ---------------------------------------------------------------------
 
 int BiComp::method = -1;
@@ -870,7 +879,15 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     }
 }
 
-void BiComp::colaLayout()
+void BiComp::acaLayout(void)
+{
+    m_graphAttributes = new GraphAttributes(*m_graph);
+    ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
+    aca.run();
+    aca.readLayout(*m_graph, *m_graphAttributes);
+}
+
+void BiComp::colaLayout(void)
 {
     QMap<node,int> nodeIndices;
     vpsc::Rectangles rs;
@@ -1528,6 +1545,289 @@ BiComp *BiComp::fuse(BiComp *other)
 }
 
 // ----------------------------------------------------------------------------
+// ACALayout ------------------------------------------------------------------
+
+/** Build an ACA layout object for some nodes on the canvas.
+  * If selection = false then apply to all the nodes on the canvas,
+  * otherwise just the nodes in the current selection.
+  */
+ACALayout::ACALayout(Canvas *canvas, bool selection)
+{
+    // TODO
+}
+
+/** Build an ACA layout object for the graph defined by the passed shapes and connectors.
+  */
+ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
+{
+    // TODO
+}
+
+/** Build an ACA layout object for the passed OGDF graph.
+  */
+ACALayout::ACALayout(Graph G, GraphAttributes GA) :
+    idealLength(100)
+{
+    node n = NULL;
+    int i = 0;
+    forall_nodes(n,G) {
+        double x = GA.x(n), y = GA.y(n);
+        double X = x + GA.width(n), Y = y + GA.height(n);
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        m_ogdfNodeIndices.insert(n,i);
+        i++;
+    }
+    edge e = NULL;
+    forall_edges(e,G) {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = m_ogdfNodeIndices.value(src);
+        int tgtIndex = m_ogdfNodeIndices.value(tgt);
+        es.push_back( cola::Edge(srcIndex, tgtIndex) );
+    }
+}
+
+/** You must call this after running the layout in order to have the
+  * resulting positions put into the GraphAttributes object.
+  */
+void ACALayout::readLayout(Graph G, GraphAttributes &GA)
+{
+    node n = NULL;
+    forall_nodes(n,G) {
+        vpsc::Rectangle *r = rs.at(m_ogdfNodeIndices.value(n));
+        GA.x(n) = r->getMinX();
+        GA.y(n) = r->getMinY();
+    }
+}
+
+void ACALayout::setIdealLength(double il)
+{
+    idealLength = il;
+}
+
+/** Run the layout algorithm.
+  */
+void ACALayout::run(void)
+{
+    // Do an initial unconstrained FD layout.
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+    fdlayout->run(true,true);
+    // Prepare the alignment state matrix.
+    initAlignmentState();
+    // Start main loop.
+    cola::CompoundConstraints ccs;
+    ACASeparatedAlignment *sa = chooseSA();
+    while (sa) {
+        //debugOutput(sa);
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Redo the layout, with the new constraints.
+        delete fdlayout;
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+        fdlayout->setConstraints(ccs);
+        fdlayout->run(true,true);
+        // Update state.
+        updateAlignmentState(sa);
+        // Store SA and choose next one.
+        sepAligns.append(sa);
+        sa = chooseSA();
+    }
+}
+
+void ACALayout::debugOutput(ACASeparatedAlignment *sa)
+{
+    QString rects = "";
+    for (int i = 0; i < rs.size(); i++) {
+        vpsc::Rectangle *r = rs.at(i);
+        double x = r->getCentreX();
+        double y = r->getCentreY();
+        rects += QString("(%1,%2) ").arg(x,5,'f',2).arg(y,5,'f',2);
+    }
+    qDebug() << rects;
+    QString sepalgn = "";
+    sepalgn += QString("%1").arg(sa->rect1,2);
+    sepalgn += sa->af == ACAHORIZ ? "-" : "|";
+    sepalgn += QString("%1").arg(sa->rect2,2);
+    qDebug() << sepalgn;
+}
+
+void ACALayout::initAlignmentState(void)
+{
+    int N = rs.size();
+    alignmentState = Matrix2d<int>(N,N);
+    // Initialize with zeros.
+    for (uint i = 0; i < N; i++) {
+        for (uint j = 0; j < N; j++) {
+            alignmentState(i,j) = 0;
+        }
+    }
+    // Note connections.
+    foreach (cola::Edge e, es) {
+        int src = e.first, tgt = e.second;
+        alignmentState(src,tgt) = ACACONN;
+        alignmentState(tgt,src) = ACACONN;
+    }
+}
+
+void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
+{
+    // Which dimension?
+    ACAFlags af = sa->af;
+    // Get the indices of the two rectangles r1 and r2.
+    int i1 = sa->rect1, i2 = sa->rect2;
+    // Get the sets of indices of nodes already aligned with r1 and r2.
+    QList<int> A1, A2;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i1,j) & af) A1.append(j);
+        if (alignmentState(i2,j) & af) A2.append(j);
+    }
+    // r1 and r2 are aligned deliberately.
+    alignmentState(i1,i2) |= af | ACADELIB;
+    alignmentState(i2,i1) |= af | ACADELIB;
+    // r1 is now aligned with each element of A2, and vice versa.
+    foreach (int k, A2) {
+        alignmentState(i1,k) |= af;
+        alignmentState(k,i1) |= af;
+    }
+    foreach (int k, A1) {
+        alignmentState(i2,k) |= af;
+        alignmentState(k,i2) |= af;
+    }
+}
+
+ACASeparatedAlignment *ACALayout::chooseSA(void)
+{
+    ACASeparatedAlignment *sa = NULL;
+    double minDeflection = 1.0;
+    // Consisder each edge for potential alignment.
+    foreach (cola::Edge e, es) {
+        int src = e.first, tgt = e.second;
+        // If already aligned, skip this edge.
+        int astate = alignmentState(src,tgt);
+        if (astate & (ACAHORIZ|ACAVERT)) {
+            //qDebug() << "    already aligned -- skip";
+            continue;
+        }
+        // Consider horizontal alignment.
+        if (!createsCoincidence(src,tgt,ACAHORIZ)) {
+            double dH = deflection(src,tgt,ACAHORIZ);
+            //qDebug() << QString("    deflection: %1").arg(dH);
+            if (dH < minDeflection) {
+                minDeflection = dH;
+                if (!sa) sa = new ACASeparatedAlignment;
+                sa->af = ACAHORIZ;
+                sa->rect1 = src;
+                sa->rect2 = tgt;
+            }
+        }
+        // Consider vertical alignment.
+        if (!createsCoincidence(src,tgt,ACAVERT)) {
+            double dV = deflection(src,tgt,ACAVERT);
+            //qDebug() << QString("    deflection: %1").arg(dV);
+            if (dV < minDeflection) {
+                minDeflection = dV;
+                if (!sa) sa = new ACASeparatedAlignment;
+                sa->af = ACAVERT;
+                sa->rect1 = src;
+                sa->rect2 = tgt;
+            }
+        }
+    }
+    // Did we find an alignment?
+    if (sa) {
+        // If so, then complete the ACASeparatedAlignment object.
+        int src = sa->rect1;
+        int tgt = sa->rect2;
+        //qDebug() << QString("Nodes %1,%2 had state %3.").arg(src).arg(tgt).arg(alignmentState(src,tgt));
+        vpsc::Rectangle *rsrc = rs.at(src);
+        vpsc::Rectangle *rtgt = rs.at(tgt);
+        // Separation Constraint
+        vpsc::Dim sepDim = sa->af == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+        double sep = sa->af == ACAHORIZ ?
+                    (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        int l = sa->af == Canvas::Horizontal ?
+                    (rsrc->getCentreX() < rtgt->getCentreX() ? src : tgt) :
+                    (rsrc->getCentreY() < rtgt->getCentreY() ? src : tgt);
+        int r = l == src ? tgt : src;
+        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
+        // Alignment Constraint
+        sa->alignment = new cola::AlignmentConstraint(algnDim);
+        sa->alignment->addShape(l,0);
+        sa->alignment->addShape(r,0);
+    }
+    return sa;
+}
+
+/* Say whether the proposed alignment would create an edge coincidence.
+ */
+bool ACALayout::createsCoincidence(int src, int tgt, ACAFlags af)
+{
+    vpsc::Rectangle *r1 = rs.at(src), *r2 = rs.at(tgt);
+    double z1 = af == ACAHORIZ ? r1->getCentreX() : r1->getCentreY();
+    double z2 = af == ACAHORIZ ? r2->getCentreX() : r2->getCentreY();
+    double lowCoord = z1<z2 ? z1 : z2;
+    double highCoord = z1<z2 ? z2 : z1;
+    int lowIndex = z1<z2 ? src : tgt;
+    int highIndex = z1<z2 ? tgt : src;
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict coincidence.
+    bool coincidence = false;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (j==lowIndex || j==highIndex) continue;
+        vpsc::Rectangle *r = rs.at(j);
+        int lj = alignmentState(lowIndex, j);
+        int hj = alignmentState(highIndex, j);
+        if (lj&af || hj&af) {
+            double z = af==ACAHORIZ ? r->getCentreX() : r->getCentreY();
+            // low shape
+            if ( lj&ACACONN && lowCoord < z ) {
+                coincidence = true; break;
+            }
+            // high shape
+            if ( hj&ACACONN && z < highCoord ) {
+                coincidence = true; break;
+            }
+        }
+    }
+    return coincidence;
+}
+
+/* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
+ * deflected from horizontal or vertical, depending on the passed alignment flag.
+ * The "edge" E is the straight line from the centre of the src rectangle to that
+ * of the tgt rectangle, as given by the src and tgt indices, and the vector of
+ * Rectangles.
+ *
+ * If t is the angle that E makes with the positive x-axis, then the score we return
+ * is sin^2(t) if af == Horizontal, and cos^2(t) if af == Vertical.
+ *
+ * So smaller deflection scores mean edges that are closer to axis-aligned.
+ */
+double ACALayout::deflection(int src, int tgt, ACAFlags af)
+{
+    vpsc::Rectangle *s = rs.at(src), *t = rs.at(tgt);
+    double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
+    double a;
+    if (ty>sy) {
+        a = atan2(ty-sy,tx-sx);
+    } else if (ty<sy) {
+        a = atan2(sy-ty,sx-tx);
+    } else {
+        a = 0;
+    }
+    double sn = sin(a);
+    double sn2 = sn*sn;
+    double dfl = af==ACAHORIZ ? sn2 : 1 - sn2;
+    return dfl;
+}
+
+// ----------------------------------------------------------------------------
 // BCLayout -------------------------------------------------------------------
 
 BCLayout::BCLayout(Canvas *canvas) :
@@ -1979,8 +2279,26 @@ void BCLayout::ortholayout2(void)
         II.append(I);
     }
 
-    // 4. Build the metagraph M.
+    // 4. Lay out each B in BB by FD+ACA.
     // TODO
+
+    // 5. Lay out each X in XX by OGDF TreeLayout.
+    // TODO
+
+    // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
+    //    of corresponding B and X.
+    // TODO
+
+    // 7. Lay out M using FD+ACA.
+    // TODO
+
+    // 8. Place each B where Bbar lies, orienting to minimize stress.
+    // TODO
+
+    // 9. Place each X where Xbar lies, orienting according to alignment
+    //    of the edge ( t(X), r(X) ).
+    // TODO
+
 }
 
 /* Expects a connected graph.
