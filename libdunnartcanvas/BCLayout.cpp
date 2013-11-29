@@ -628,6 +628,39 @@ QString ExternalTree::listNodes()
     return s;
 }
 
+void ExternalTree::treeLayout(void)
+{
+    // Set up an OGDF TreeLayout object.
+    TreeLayout tL;
+    tL.orientation(leftToRight);
+    tL.rootSelection(TreeLayout::rootByCoord);
+    tL.orthogonalLayout(true);
+    // Set GraphAttributes.
+    // For now we use a default size of 30x30 for the nodes.
+    m_graphAttributes = new GraphAttributes(*m_graph);
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        m_graphAttributes->width(n) = 30;
+        m_graphAttributes->height(n) = 30;
+        if (n==m_root) {
+            // Since we lay out left to right, we can make the root node
+            // be selected by the TreeLayout as the root by setting it off
+            // to the left. All other nodes will get an initial position of
+            // (0,0), and the root will get (-100,0).
+            m_graphAttributes->x(n) = -100;
+        }
+    }
+    // Do the layout.
+    tL.call(*m_graphAttributes);
+    // Infer constraints.
+    inferConstraints();
+}
+
+void ExternalTree::inferConstraints(void)
+{
+    // TODO (Copy from RootedTree, and modify as necessary.)
+}
+
 // ----------------------------------------------------------------------------
 // InternalTree ---------------------------------------------------------------
 
@@ -882,6 +915,12 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
 void BiComp::acaLayout(void)
 {
     m_graphAttributes = new GraphAttributes(*m_graph);
+    // For now we just use a default size of 30x30 for the nodes.
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        m_graphAttributes->width(n) = 30;
+        m_graphAttributes->height(n) = 30;
+    }
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
     aca.run();
     aca.readLayout(*m_graph, *m_graphAttributes);
@@ -2280,10 +2319,14 @@ void BCLayout::ortholayout2(void)
     }
 
     // 4. Lay out each B in BB by FD+ACA.
-    // TODO
+    foreach (BiComp *B, BB) {
+        B->acaLayout();
+    }
 
     // 5. Lay out each X in XX by OGDF TreeLayout.
-    // TODO
+    foreach (ExternalTree *X, XX) {
+        X->treeLayout();
+    }
 
     // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
     //    of corresponding B and X.

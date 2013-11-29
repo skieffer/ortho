@@ -143,10 +143,15 @@ class ExternalTree
 public:
     ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot,
                  QMap<node,int> dunnartIDs, int taprootID);
+    void treeLayout(void);
     //Testing:
     QString listNodes(void);
 private:
+    void inferConstraints(void);
+    QList<DunnartConstraint*> m_dunnartConstraints;
+
     Graph *m_graph;
+    GraphAttributes *m_graphAttributes;
     QMap<node,int> m_dunnartIDs; // maps own nodes to IDs of corresp. Dunnart shapes
     node m_root;    // a node in this object's m_graph
     node m_tapRoot; // a node in the original graph G
