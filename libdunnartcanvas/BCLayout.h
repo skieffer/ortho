@@ -147,7 +147,7 @@ public:
     //Testing:
     QString listNodes(void);
 private:
-    void inferConstraints(void);
+    void inferConstraints(Canvas::Dimension dim);
     QList<DunnartConstraint*> m_dunnartConstraints;
 
     Graph *m_graph;
@@ -156,6 +156,8 @@ private:
     node m_root;    // a node in this object's m_graph
     node m_tapRoot; // a node in the original graph G
     int m_tapRootID; // ID of Dunnart shape corresp. to m_tapRoot
+
+    QMap<node,ShapeObj*> m_shapeMap; // map from OGDF nodes to Dunnart shapes
 };
 
 class InternalTree

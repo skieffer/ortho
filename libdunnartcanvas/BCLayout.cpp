@@ -391,7 +391,7 @@ void RootedTree::inferConstraints()
         m_dunnartConstraints.append(dc);
 
         // Let's try skipping the rest if the parent is the root node.
-        //if (A==localRoot) continue;
+        if (A==localRoot) continue;
 
         // Separate parent and children.
         dc = new DunnartConstraint();
@@ -652,12 +652,18 @@ void ExternalTree::treeLayout(void)
     }
     // Do the layout.
     tL.call(*m_graphAttributes);
-    // Infer constraints.
-    inferConstraints();
 }
 
-void ExternalTree::inferConstraints(void)
+/** Assuming the tree layout has already been performed, infer constraints
+  * to maintain it.
+  *
+  * The Canvas::Dimension dim describes the dimension in which this tree
+  * is oriented. E.g. if the root is at the top and the leaves at the bottom,
+  * then dim == Canvas::VERT.
+  */
+void ExternalTree::inferConstraints(Canvas::Dimension dim)
 {
+    Canvas::Dimension counterDim = dim==Canvas::VERT ? Canvas::HORIZ : Canvas::VERT;
     // We use a top-down search through the tree. This works because
     // the tree already has a layout. (If you were starting from scratch
     // you would have to work bottom-up.)
@@ -688,8 +694,65 @@ void ExternalTree::inferConstraints(void)
         DunnartConstraint *dc;
 
         // TODO (Copy from RootedTree, and modify as necessary.)
-        // ...
+        dc = new DunnartConstraint();
+        dc->type = ALIGNMENT;
+        dc->dim = counterDim;
+        for(int i=0;i<numChil;i++){ dc->items.append(m_shapeMap.value(children.at(i))); }
+        m_dunnartConstraints.append(dc);
 
+        // For now we skip the rest if the parent is the root node.
+        if (A==m_root) continue;
+
+        // Separate parent and children.
+        dc = new DunnartConstraint();
+        dc->type = SEPARATION;
+        dc->dim = dim;
+        dc->items.append(m_shapeMap.value(A));
+        dc->items.append(m_shapeMap.value(children.at(0)));
+        // Determine the min sep.
+        QPointF p = m_shapeMap.value(A)->centrePos();
+        QPointF q = m_shapeMap.value(children.at(0))->centrePos();
+        double z = dim==Canvas::HORIZ ? p.x() : p.y();
+        double w = dim==Canvas::HORIZ ? q.x() : q.y();
+        dc->minSep = fabs(z-w);
+        m_dunnartConstraints.append(dc);
+
+        // Centre parent above children, and distribute children.
+        if (numChil==1) {
+            // In this case need just a single alignment.
+            dc = new DunnartConstraint();
+            dc->type = ALIGNMENT;
+            dc->dim = dim;
+            dc->items.append(m_shapeMap.value(A));
+            dc->items.append(m_shapeMap.value(children.at(0)));
+            m_dunnartConstraints.append(dc);
+        } else {
+            // In this case need two distributions.
+            // First distribute all the children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = counterDim;
+            for(int i=0;i<numChil;i++){ dc->items.append(m_shapeMap.value(children.at(i))); }
+            m_dunnartConstraints.append(dc);
+            // Now the parent and the two outer children:
+            dc = new DunnartConstraint();
+            dc->type = DISTRIBUTION;
+            dc->dim = counterDim;
+            dc->items.append(m_shapeMap.value(A));
+            // Find the two outermost children.
+            node minChild = NULL, maxChild = NULL;
+            double minZ = DBL_MAX, maxZ = DBL_MIN;
+            foreach (node c, children) {
+                QPointF p = m_shapeMap.value(c)->centrePos();
+                double z = dim==Canvas::HORIZ ? p.y() : p.x();
+                if (z<minZ) {minZ=z; minChild=c;}
+                if (z>maxZ) {maxZ=z; maxChild=c;}
+            }
+            dc->items.append(m_shapeMap.value(minChild));
+            dc->items.append(m_shapeMap.value(maxChild));
+            m_dunnartConstraints.append(dc);
+        }
+        // End constraint definitions -----------------------------------
     }
 }
 
