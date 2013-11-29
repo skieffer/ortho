@@ -880,12 +880,25 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
         // Then have edge from the lift of X to L.
         node t = X->taproot();
         node tLift = NULL;
+        /*
         if (m_internNodemap.values().contains(t)) {
             tLift = m_internNodemap.key(t);
         } else {
             BiComp *B = nodesToBCs.value(t);
             tLift = m_biconNodemap.key(B);
         }
+        */
+
+        if (nodesToBCs.keys().contains(t)) {
+            BiComp *B = nodesToBCs.value(t);
+            tLift = m_biconNodemap.key(B);
+            qDebug() << "tLift from B";
+        } else {
+            tLift = m_internNodemap.key(t);
+            qDebug() << "tLift from I";
+        }
+        assert(tLift!=NULL);
+
         node XLift = m_externNodemap.key(X);
         m_graph->newEdge(tLift,XLift);
     }
@@ -2570,9 +2583,10 @@ void BCLayout::ortholayout2(void)
     // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
     QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
-    QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
     // Fuse BCs that share cutnodes.
     BB = fuseBCs(BB);
+    // Make a map to say which BC each BC node belongs to.
+    QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
 
     // 3. Compute internal trees.
     // Get a new graph isomorphic to the result of removing the BC edges from G.
