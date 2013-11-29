@@ -614,6 +614,24 @@ ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
     }
 }
 
+QSizeF ExternalTree::getBoundingBoxSize(void)
+{
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double u = m_graphAttributes->x(n);
+        double v = m_graphAttributes->y(n);
+        double U = u + m_graphAttributes->width(n);
+        double V = v + m_graphAttributes->height(n);
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QSizeF(X-x,Y-y);
+}
+
 QString ExternalTree::listNodes()
 {
     QString s = "";
@@ -759,9 +777,87 @@ void ExternalTree::inferConstraints(Canvas::Dimension dim)
 // ----------------------------------------------------------------------------
 // InternalTree ---------------------------------------------------------------
 
-InternalTree::InternalTree(QList<node> nodes, QSet<node> cutnodes)
+InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes, Graph G)
 {
-    // TODO
+    // Nodes
+    foreach (node n, pNodes) {
+        nodes.append(n);
+        if (cutnodes.contains(n)) {
+            cutNodes.append(n);
+        } else {
+            nonCutNodes.append(n);
+        }
+    }
+    // Edges
+    edge e = NULL;
+    forall_edges(e,G) {
+        node src = e->source(), tgt = e->target();
+        if (pNodes.contains(src) && pNodes.contains(tgt)) {
+            edges.append(e);
+            if (cutnodes.contains(src) || cutnodes.contains(tgt)) {
+                cutEdges.append(e);
+            } else {
+                nonCutEdges.append(e);
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// MetaGraph ------------------------------------------------------------------
+
+MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB, QList<InternalTree *> II)
+{
+    m_graph = new Graph();
+    m_graphAttributes = new GraphAttributes(*m_graph);
+
+    // Nodes -----------------------------------
+
+    // Internal trees
+    foreach(InternalTree *I, II) {
+        foreach(node i, I->nonCutNodes) {
+            node m = m_graph->newNode();
+            m_nodeTypes.insert(m,MetaIntern);
+            m_internNodemap.insert(m,i);
+            // For now we use the default node size of 30x30.
+            m_graphAttributes->width(m) = 30;
+            m_graphAttributes->height(m) = 30;
+        }
+    }
+    // Biconnected components
+    foreach(BiComp *B, BB) {
+        node m = m_graph->newNode();
+        m_nodeTypes.insert(m,MetaBicon);
+        m_biconNodemap.insert(m,B);
+        QSizeF size = B->getOGDFBoundingBoxSize();
+        m_graphAttributes->width(m) = size.width();
+        m_graphAttributes->height(m) = size.height();
+    }
+    // External trees
+    foreach(ExternalTree *X, XX) {
+        node m = m_graph->newNode();
+        m_nodeTypes.insert(m,MetaExtern);
+        m_externNodemap.insert(m,X);
+        QSizeF size = X->getBoundingBoxSize();
+        m_graphAttributes->width(m) = size.width();
+        m_graphAttributes->height(m) = size.height();
+    }
+
+    // Edges ------------------------------------
+
+    // Internal tree non-cutedges
+
+    // Internal tree cutedges (connect to BCs)
+
+    // External tree taproot edges
+
+}
+
+void MetaGraph::acaLayout(void)
+{
+    ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
+    aca.run();
+    aca.readLayout(*m_graph, *m_graphAttributes);
 }
 
 
@@ -1019,6 +1115,24 @@ void BiComp::acaLayout(void)
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
     aca.run();
     aca.readLayout(*m_graph, *m_graphAttributes);
+}
+
+QSizeF BiComp::getOGDFBoundingBoxSize(void)
+{
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double u = m_graphAttributes->x(n);
+        double v = m_graphAttributes->y(n);
+        double U = u + m_graphAttributes->width(n);
+        double V = v + m_graphAttributes->height(n);
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QSizeF(X-x,Y-y);
 }
 
 void BiComp::colaLayout(void)
@@ -2409,7 +2523,7 @@ void BCLayout::ortholayout2(void)
     {
         QList<node> nodes = ccomps.values(i);
         if (nodes.size() < 2) continue;
-        InternalTree *I = new InternalTree(nodes, cutnodes);
+        InternalTree *I = new InternalTree(nodes, cutnodes, G);
         II.append(I);
     }
 
@@ -2425,14 +2539,10 @@ void BCLayout::ortholayout2(void)
 
     // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
     //    of corresponding B and X.
-    Graph *M = new Graph();
-    GraphAttributes *MA = new GraphAttributes(*M);
-    buildMetagraph(*M,*MA,XX,BB,II,cutnodes);
+    MetaGraph *M = new MetaGraph(XX,BB,II);
 
     // 7. Lay out M using FD+ACA.
-    ACALayout aca = ACALayout(*M, *MA);
-    aca.run();
-    aca.readLayout(*M, *MA);
+    //M->acaLayout();
 
     // 8. Place each B where Bbar lies, orienting to minimize stress.
     // TODO
@@ -2441,17 +2551,9 @@ void BCLayout::ortholayout2(void)
     //    of the edge ( t(X), r(X) ).
     // TODO
 
-    // 10. Draw it.
+    // 10. Apply constraints and new positions to existing Dunnart shapes.
     // TODO
 
-}
-
-Graph *BCLayout::buildMetagraph(Graph &M, GraphAttributes &MA,
-                     QList<ExternalTree *> XX, QList<BiComp *> BB, QList<InternalTree *> II,
-                     QSet<node> cutnodes)
-{
-    // TODO
-    return NULL;
 }
 
 /* Expects a connected graph.

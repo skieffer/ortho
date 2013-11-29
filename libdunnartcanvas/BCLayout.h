@@ -144,6 +144,7 @@ public:
     ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot,
                  QMap<node,int> dunnartIDs, int taprootID);
     void treeLayout(void);
+    QSizeF getBoundingBoxSize(void);
     //Testing:
     QString listNodes(void);
 private:
@@ -160,11 +161,35 @@ private:
     QMap<node,ShapeObj*> m_shapeMap; // map from OGDF nodes to Dunnart shapes
 };
 
-class InternalTree
+struct InternalTree
+{
+    InternalTree(QList<node> nodes, QSet<node> cutnodes, Graph G);
+    QList<node> nodes;          // all nodes
+    QList<node> cutNodes;
+    QList<node> nonCutNodes;
+    QList<edge> edges;          // all edges
+    QList<edge> cutEdges;       // one endpt is a cutnode
+    QList<edge> nonCutEdges;    // neither endpt is a cutnode
+};
+
+enum MetaGraphNodeType {
+    MetaIntern, MetaBicon, MetaExtern
+};
+
+class MetaGraph
 {
 public:
-    InternalTree(QList<node> nodes, QSet<node> cutnodes);
+    MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
+              QList<InternalTree *> II);
+    void acaLayout(void);
 private:
+    Graph *m_graph;
+    GraphAttributes *m_graphAttributes;
+    QMap<node,MetaGraphNodeType> m_nodeTypes;
+    // Nodemaps are from own nodes to other objects or their nodes.
+    QMap<node,node> m_internNodemap;
+    QMap<node,BiComp*> m_biconNodemap;
+    QMap<node,ExternalTree*> m_externNodemap;
 };
 
 class BiComp : public Chunk
@@ -195,6 +220,7 @@ public:
 
     // For ACA layout performed by separate ACALayout object -- preferred method
     void acaLayout(void);
+    QSizeF getOGDFBoundingBoxSize(void);
 
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
@@ -314,8 +340,6 @@ public:
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
     void orthoLayout(int method);
     void ortholayout2(void);
-    Graph *buildMetagraph(Graph &M, GraphAttributes &MA, QList<ExternalTree*> XX,
-                          QList<BiComp*> BB, QList<InternalTree*> II, QSet<node> cutnodes);
     void layoutBCTrees(void);
 
 private:
