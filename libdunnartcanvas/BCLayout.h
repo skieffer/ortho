@@ -314,6 +314,8 @@ public:
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
     void orthoLayout(int method);
     void ortholayout2(void);
+    Graph *buildMetagraph(Graph &M, GraphAttributes &MA, QList<ExternalTree*> XX,
+                          QList<BiComp*> BB, QList<InternalTree*> II, QSet<node> cutnodes);
     void layoutBCTrees(void);
 
 private:

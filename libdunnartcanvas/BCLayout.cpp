@@ -643,7 +643,7 @@ void ExternalTree::treeLayout(void)
         m_graphAttributes->width(n) = 30;
         m_graphAttributes->height(n) = 30;
         if (n==m_root) {
-            // Since we lay out left to right, we can make the root node
+            // Since we lay out left to right, we can make m_root
             // be selected by the TreeLayout as the root by setting it off
             // to the left. All other nodes will get an initial position of
             // (0,0), and the root will get (-100,0).
@@ -2425,10 +2425,14 @@ void BCLayout::ortholayout2(void)
 
     // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
     //    of corresponding B and X.
-    // TODO
+    Graph *M = new Graph();
+    GraphAttributes *MA = new GraphAttributes(*M);
+    buildMetagraph(*M,*MA,XX,BB,II,cutnodes);
 
     // 7. Lay out M using FD+ACA.
-    // TODO
+    ACALayout aca = ACALayout(*M, *MA);
+    aca.run();
+    aca.readLayout(*M, *MA);
 
     // 8. Place each B where Bbar lies, orienting to minimize stress.
     // TODO
@@ -2437,6 +2441,17 @@ void BCLayout::ortholayout2(void)
     //    of the edge ( t(X), r(X) ).
     // TODO
 
+    // 10. Draw it.
+    // TODO
+
+}
+
+Graph *BCLayout::buildMetagraph(Graph &M, GraphAttributes &MA,
+                     QList<ExternalTree *> XX, QList<BiComp *> BB, QList<InternalTree *> II,
+                     QSet<node> cutnodes)
+{
+    // TODO
+    return NULL;
 }
 
 /* Expects a connected graph.
