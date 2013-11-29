@@ -165,7 +165,7 @@ private:
 struct InternalTree
 {
     InternalTree(QList<node> nodes, QSet<node> cutnodes,
-                 QMap<node,BiComp*> pNodesToBCs, Graph G);
+                 QMap<node,BiComp*> pNodesToBCs, Graph &G);
     // Unlike most of the classes, which have their own Graph objects, and
     // maintain mappings from their own nodes to the nodes of the original
     // graph (i.e. the Graph G declared first in BCLayout::ortholayout2),

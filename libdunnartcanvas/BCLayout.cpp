@@ -783,7 +783,7 @@ void ExternalTree::inferConstraints(Canvas::Dimension dim)
 // InternalTree ---------------------------------------------------------------
 
 InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes,
-                           QMap<node,BiComp*> pNodesToBCs, Graph G)
+                           QMap<node,BiComp*> pNodesToBCs, Graph &G)
 {
     // Nodes
     foreach (node n, pNodes) {
@@ -2327,9 +2327,18 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
         bicomps.append(bc);
     }
     node vG;
+    /*
+      // This code is bad because it gets /all/ the cutnodes, even those
+      // of trivial BCs. We don't want those, at least not in ortholayout2.
+      // Not sure about ortholayout1.
     forall_nodes(vG, G)
     {
         if (bctree.typeOfGNode(vG)==BCTree::CutVertex) cutnodes.insert(vG);
+    }
+    */
+    foreach (BiComp *bc, bicomps) {
+        QList<node> nontrivialCutnodes = bc->getCutNodes();
+        cutnodes.unite(nontrivialCutnodes.toSet());
     }
     return bicomps;
 }
