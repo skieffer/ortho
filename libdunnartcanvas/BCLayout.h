@@ -166,6 +166,7 @@ struct InternalTree
 {
     InternalTree(QList<node> nodes, QSet<node> cutnodes,
                  QMap<node,BiComp*> pNodesToBCs, Graph &G);
+    QString listNodes(shapemap nodeShapes);
     // Unlike most of the classes, which have their own Graph objects, and
     // maintain mappings from their own nodes to the nodes of the original
     // graph (i.e. the Graph G declared first in BCLayout::ortholayout2),
@@ -238,6 +239,7 @@ public:
     bool containsOriginalEdge(edge e);
     QList<node> getCutNodes(void);
     QList<node> getAllOriginalNodes(void);
+    QString listNodes(shapemap nodeShapes);
     void setChildren(QList<Chunk*> children);
     void setParent(BiComp *bc);
     void setParentCutNode(node cn);
