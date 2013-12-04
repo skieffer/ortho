@@ -175,6 +175,7 @@ struct InternalTree
     QList<node> cutNodes;
     QList<node> nonCutNodes;
     QList<edge> edges;          // all edges
+    QList<edge> doubleCutEdges; // both endpts are cutnodes
     QList<edge> cutEdges;       // one endpt is a cutnode
     QList<edge> nonCutEdges;    // neither endpt is a cutnode
     QMap<node,BiComp*> nodesToBCs;
@@ -190,6 +191,8 @@ public:
     MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
               QList<InternalTree *> II, QMap<node,BiComp*> nodesToBCs);
     void acaLayout(void);
+    // Diagnostic method:
+    void drawMetaGraphAt(Canvas *canvas, QPointF base, shapemap origShapes);
 private:
     Graph *m_graph;
     GraphAttributes *m_graphAttributes;
@@ -299,6 +302,7 @@ public:
     ACALayout(Graph G, GraphAttributes GA);
     ACALayout(QList<ShapeObj*> shapes, QList<Connector*> connectors);
     void setIdealLength(double il);
+    void setPreventOverlaps(bool b);
     void run(void);
 
     void readLayout(Graph G, GraphAttributes &GA);
@@ -313,6 +317,7 @@ private:
 
     QMap<node,int> m_ogdfNodeIndices;
 
+    bool m_preventOverlaps;
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
     double idealLength;

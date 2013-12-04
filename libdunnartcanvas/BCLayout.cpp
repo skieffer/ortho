@@ -801,7 +801,9 @@ InternalTree::InternalTree(QList<node> pNodes, QSet<node> cutnodes,
         node src = e->source(), tgt = e->target();
         if (pNodes.contains(src) && pNodes.contains(tgt)) {
             edges.append(e);
-            if (cutnodes.contains(src) || cutnodes.contains(tgt)) {
+            if (cutnodes.contains(src) && cutnodes.contains(tgt)) {
+                doubleCutEdges.append(e);
+            } else if (cutnodes.contains(src) || cutnodes.contains(tgt)) {
                 cutEdges.append(e);
             } else {
                 nonCutEdges.append(e);
@@ -887,25 +889,24 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
             node mCut = m_biconNodemap.key(B);
             m_graph->newEdge(mInt,mCut);
         }
+        // double-cut-edges (connect two BCs)
+        foreach (edge g, I->doubleCutEdges) {
+            BiComp *B1 = I->nodesToBCs.value(g->source());
+            BiComp *B2 = I->nodesToBCs.value(g->target());
+            node m1 = m_biconNodemap.key(B1);
+            node m2 = m_biconNodemap.key(B2);
+            m_graph->newEdge(m1,m2);
+        }
     }
 
     // External tree taproot edges
     foreach (ExternalTree *X, XX) {
-        // TODO: taproot of X must either belong to some B in BB,
+        // Taproot of X must either belong to some B in BB,
         // or else be a noncutnode i in some I in II.
         // Need the lift L of B or i.
         // Then have edge from the lift of X to L.
         node t = X->taproot();
         node tLift = NULL;
-        /*
-        if (m_internNodemap.values().contains(t)) {
-            tLift = m_internNodemap.key(t);
-        } else {
-            BiComp *B = nodesToBCs.value(t);
-            tLift = m_biconNodemap.key(B);
-        }
-        */
-
         if (nodesToBCs.keys().contains(t)) {
             BiComp *B = nodesToBCs.value(t);
             tLift = m_biconNodemap.key(B);
@@ -915,7 +916,6 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
             //qDebug() << "tLift from I";
         }
         assert(tLift!=NULL);
-
         node XLift = m_externNodemap.key(X);
         m_graph->newEdge(tLift,XLift);
     }
@@ -927,6 +927,43 @@ void MetaGraph::acaLayout(void)
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
     aca.run();
     aca.readLayout(*m_graph, *m_graphAttributes);
+}
+
+void MetaGraph::drawMetaGraphAt(Canvas *canvas, QPointF base, shapemap origShapes)
+{
+    canvas->stop_graph_layout();
+    // Nodes
+    shapemap nodeShapes;
+    node n = NULL;
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
+        sh->setCentrePos(QPointF(x,y)+base);
+        sh->setSize(QSizeF(w,h));
+        sh->setFillColour(QColor(255,192,0));
+        // Set numerical ID label if member of internal tree.
+        if (m_nodeTypes.value(n)==MetaIntern) {
+            int id = origShapes.value(m_internNodemap.value(n))->internalId();
+            sh->setLabel(QString::number(id));
+        }
+        nodeShapes.insert(n,sh);
+        canvas->addItem(sh);
+    }
+    // Edges
+    edge e = NULL;
+    forall_edges(e,*m_graph) {
+        node src = e->source();
+        node dst = e->target();
+        ShapeObj *srcSh = nodeShapes.value(src);
+        ShapeObj *dstSh = nodeShapes.value(dst);
+        Connector *conn = new Connector();
+        conn->initWithConnection(srcSh, dstSh);
+        conn->setRoutingType(Connector::orthogonal);
+        canvas->addItem(conn);
+    }
+    canvas->restart_graph_layout();
 }
 
 
@@ -1902,6 +1939,7 @@ ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
 /** Build an ACA layout object for the passed OGDF graph.
   */
 ACALayout::ACALayout(Graph G, GraphAttributes GA) :
+    m_preventOverlaps(true),
     idealLength(100)
 {
     node n = NULL;
@@ -1941,13 +1979,19 @@ void ACALayout::setIdealLength(double il)
     idealLength = il;
 }
 
+void ACALayout::setPreventOverlaps(bool b)
+{
+    m_preventOverlaps = b;
+}
+
 /** Run the layout algorithm.
   */
 void ACALayout::run(void)
 {
     // Do an initial unconstrained FD layout.
+    cola::TestConvergence *convTest = new cola::TestConvergence(1e-5,200);
     cola::ConstrainedFDLayout *fdlayout =
-            new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+            new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps,false,10.0,NULL,convTest);
     fdlayout->run(true,true);
     // Prepare the alignment state matrix.
     initAlignmentState();
@@ -1961,7 +2005,7 @@ void ACALayout::run(void)
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
         delete fdlayout;
-        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,false);
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps);
         fdlayout->setConstraints(ccs);
         fdlayout->run(true,true);
         // Update state.
@@ -2672,7 +2716,11 @@ void BCLayout::ortholayout2(void)
     MetaGraph *M = new MetaGraph(XX,BB,II,origNodesToBCs);
 
     // 7. Lay out M using FD+ACA.
-    //M->acaLayout();
+    M->acaLayout();
+    // Debug:
+    if (debug) {
+        M->drawMetaGraphAt(m_canvas,QPointF(1000,0),nodeShapes);
+    }
 
     // 8. Place each B where Bbar lies, orienting to minimize stress.
     // TODO
