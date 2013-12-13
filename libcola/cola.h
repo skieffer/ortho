@@ -737,6 +737,8 @@ public:
      * C++ instances, and let them be cleaned up later via this method.
      */
     void freeAssociatedObjects(void);
+
+    void setConvergenceTest(TestConvergence *doneTest){done=doneTest;}
     
     void outputInstanceToSVG(std::string filename = std::string());
     double computeStress() const;

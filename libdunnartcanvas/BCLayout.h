@@ -23,6 +23,8 @@
  * Author(s): Steven Kieffer  <http://skieffer.info/>
 */
 
+#include <string>
+#include <sstream>
 #include <QList>
 #include <QMap>
 #include <QPointF>
@@ -30,6 +32,7 @@
 
 #include "libogdf/ogdf/basic/Graph_d.h"
 #include "libcola/compound_constraints.h"
+#include "libcola/cola.h"
 #include "libvpsc/rectangle.h"
 #include "libdunnartcanvas/canvas.h"
 
@@ -191,6 +194,8 @@ public:
     MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
               QList<InternalTree *> II, QMap<node,BiComp*> nodesToBCs);
     void acaLayout(void);
+    void plugInBiComps(void);
+    void plugInExternalTrees(void);
     // Diagnostic method:
     void drawMetaGraphAt(Canvas *canvas, QPointF base, shapemap origShapes);
 private:
@@ -231,7 +236,12 @@ public:
 
     // For ACA layout performed by separate ACALayout object -- preferred method
     void acaLayout(void);
+    // FIXME: the following two methods should just draw on a single
+    // computation of the bounding box.
+    QPointF getOGDFBoundingBoxULC(void);
     QSizeF getOGDFBoundingBoxSize(void);
+
+    void translateOGDFGraph(QPointF dv);
 
     void improveOrthogonalTopology(void);
     void recursiveLayout(shapemap& origShapes, node origBaseNode,
@@ -255,6 +265,7 @@ public:
     void dfs(QMap<node,BiComp*> endpts, QList<BiComp*> &elements);
     BiComp *fuse(BiComp *other);
     ShapeObj *getShapeForOriginalNode(node orig);
+    void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
 private:
     Graph *m_graph;
     GraphAttributes *m_graphAttributes;
@@ -293,6 +304,38 @@ struct ACASeparatedAlignment {
     ACAFlags af;
     ShapeObj *shape1;
     ShapeObj *shape2;
+};
+
+struct ACATest : public cola::TestConvergence
+{
+    ACATest(const double d,const unsigned i)
+        : TestConvergence(d,i),
+          m_layout(NULL),
+          m_count(1)
+    {
+    }
+    void setLayout(cola::ConstrainedFDLayout *layout)
+    {
+        m_layout = layout;
+    }
+    bool operator()(const double new_stress, std::valarray<double> & X,
+            std::valarray<double> & Y)
+    {
+        //std::string outFName="Debug";
+        QString outFName = "Debug";
+        bool converged = cola::TestConvergence::operator()(new_stress, X, Y);
+        cout << "stress="<<new_stress<<" iteration="<<m_count<<endl;
+        std::stringstream ss;
+        //ss<<outFName<<"-"<< setfill('0') << setw(3) << m_count++;
+        //ss << outFName+QString("-%1").arg(m_count++,4,10,QLatin1Char('0'));
+        QString f = outFName+QString("-%1").arg(m_count++,4,10,QLatin1Char('0'));
+        //m_layout->outputInstanceToSVG(ss.str());
+        m_layout->outputInstanceToSVG(f.toStdString());
+        return converged;
+    }
+
+    cola::ConstrainedFDLayout *m_layout;
+    int m_count;
 };
 
 class ACALayout

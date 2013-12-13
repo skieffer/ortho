@@ -929,6 +929,29 @@ void MetaGraph::acaLayout(void)
     aca.readLayout(*m_graph, *m_graphAttributes);
 }
 
+void MetaGraph::plugInBiComps(void)
+{
+    foreach (node n, m_biconNodemap.keys()) {
+        // Compute the translation vector.
+        double cx = m_graphAttributes->x(n), cy = m_graphAttributes->y(n);
+        double w = m_graphAttributes->width(n), h = m_graphAttributes->height(n);
+        double x1 = cx-w/2.0, y1 = cy-h/2.0;
+        BiComp *B = m_biconNodemap.value(n);
+        QPointF p0 = B->getOGDFBoundingBoxULC();
+        double dx = x1-p0.x(), dy = y1-p0.y();
+        QPointF dv = QPointF(dx,dy);
+        // Translate all nodes in B by this vector.
+        B->translateOGDFGraph(dv);
+    }
+}
+
+void MetaGraph::plugInExternalTrees(void)
+{
+    foreach (node n, m_externNodemap.keys()) {
+        // TODO
+    }
+}
+
 void MetaGraph::drawMetaGraphAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
     canvas->stop_graph_layout();
@@ -1242,6 +1265,28 @@ void BiComp::acaLayout(void)
     aca.readLayout(*m_graph, *m_graphAttributes);
 }
 
+QPointF BiComp::getOGDFBoundingBoxULC(void)
+{
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double cx = m_graphAttributes->x(n);
+        double cy = m_graphAttributes->y(n);
+        double w = m_graphAttributes->width(n);
+        double h = m_graphAttributes->height(n);
+        double u = cx - w/2.0;
+        double v = cy - h/2.0;
+        double U = u + w;
+        double V = v + h;
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QPointF(x,y);
+}
+
 QSizeF BiComp::getOGDFBoundingBoxSize(void)
 {
     double x = DBL_MAX, X = DBL_MIN;
@@ -1258,6 +1303,16 @@ QSizeF BiComp::getOGDFBoundingBoxSize(void)
         if (V>Y) Y = V;
     }
     return QSizeF(X-x,Y-y);
+}
+
+void BiComp::translateOGDFGraph(QPointF dv)
+{
+    node n = NULL;
+    forall_nodes(n,*m_graph)
+    {
+        m_graphAttributes->x(n) += dv.x();
+        m_graphAttributes->y(n) += dv.y();
+    }
 }
 
 void BiComp::colaLayout(void)
@@ -1917,6 +1972,41 @@ BiComp *BiComp::fuse(BiComp *other)
     return fusion;
 }
 
+void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
+{
+    canvas->stop_graph_layout();
+    // Nodes
+    shapemap nodeShapes;
+    node n = NULL;
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
+        sh->setCentrePos(QPointF(x,y)+base);
+        sh->setSize(QSizeF(w,h));
+        sh->setFillColour(QColor(0,192,255));
+        // Set numerical ID label
+        int id = origShapes.value(m_nodemap.value(n))->internalId();
+        sh->setLabel(QString::number(id));
+        nodeShapes.insert(n,sh);
+        canvas->addItem(sh);
+    }
+    // Edges
+    edge e = NULL;
+    forall_edges(e,*m_graph) {
+        node src = e->source();
+        node dst = e->target();
+        ShapeObj *srcSh = nodeShapes.value(src);
+        ShapeObj *dstSh = nodeShapes.value(dst);
+        Connector *conn = new Connector();
+        conn->initWithConnection(srcSh, dstSh);
+        conn->setRoutingType(Connector::orthogonal);
+        canvas->addItem(conn);
+    }
+    canvas->restart_graph_layout();
+}
+
 // ----------------------------------------------------------------------------
 // ACALayout ------------------------------------------------------------------
 
@@ -1989,9 +2079,18 @@ void ACALayout::setPreventOverlaps(bool b)
 void ACALayout::run(void)
 {
     // Do an initial unconstrained FD layout.
-    cola::TestConvergence *convTest = new cola::TestConvergence(1e-5,200);
+    // Need low enough threshold / high enough iteration bound to let it settle sufficiently.
+    //cola::TestConvergence *convTest = new cola::TestConvergence(1e-6,1000);
+
+    ACATest *test = new ACATest(1e-6,1000);
+
+    //cola::ConstrainedFDLayout *fdlayout =
+    //        new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps,false,10.0,NULL,convTest);
     cola::ConstrainedFDLayout *fdlayout =
-            new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps,false,10.0,NULL,convTest);
+            new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps);
+    test->setLayout(fdlayout);
+    fdlayout->setConvergenceTest(test);
+
     fdlayout->run(true,true);
     // Prepare the alignment state matrix.
     initAlignmentState();
@@ -2723,11 +2822,18 @@ void BCLayout::ortholayout2(void)
     }
 
     // 8. Place each B where Bbar lies, orienting to minimize stress.
-    // TODO
+    // Compute translation vector.
+    M->plugInBiComps();
+    // Debug:
+    if (debug) {
+        foreach (BiComp *B, BB) {
+            B->drawAt(m_canvas,QPointF(1000,0),nodeShapes);
+        }
+    }
 
     // 9. Place each X where Xbar lies, orienting according to alignment
     //    of the edge ( t(X), r(X) ).
-    // TODO
+    M->plugInExternalTrees();
 
     // 10. Apply constraints and new positions to existing Dunnart shapes.
     // TODO
