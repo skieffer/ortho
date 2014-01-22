@@ -840,6 +840,8 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
 
     // Nodes -----------------------------------
 
+    int n = 0;
+
     // Internal trees
     foreach(InternalTree *I, II) {
         foreach(node i, I->nonCutNodes) {
@@ -849,6 +851,9 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
             // For now we use the default node size of 30x30.
             m_graphAttributes->width(m) = 30;
             m_graphAttributes->height(m) = 30;
+            m_graphAttributes->x(m) = 10*n*(n%4<2?1:-1);
+            m_graphAttributes->y(m) = 10*n*(n%2==0?1:-1);
+            n++;
         }
     }
     // Biconnected components
@@ -859,6 +864,9 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
         QSizeF size = B->getOGDFBoundingBoxSize();
         m_graphAttributes->width(m) = size.width();
         m_graphAttributes->height(m) = size.height();
+        m_graphAttributes->x(m) = 10*n*(n%4<2?1:-1);
+        m_graphAttributes->y(m) = 10*n*(n%2==0?1:-1);
+        n++;
     }
     // External trees
     foreach(ExternalTree *X, XX) {
@@ -868,6 +876,9 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
         QSizeF size = X->getBoundingBoxSize();
         m_graphAttributes->width(m) = size.width();
         m_graphAttributes->height(m) = size.height();
+        m_graphAttributes->x(m) = 10*n*(n%4<2?1:-1);
+        m_graphAttributes->y(m) = 10*n*(n%2==0?1:-1);
+        n++;
     }
 
     // Edges ------------------------------------
@@ -925,7 +936,7 @@ MetaGraph::MetaGraph(QList<ExternalTree *> XX, QList<BiComp *> BB,
 void MetaGraph::acaLayout(void)
 {
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
-    aca.run();
+    aca.run("MG");
     aca.readLayout(*m_graph, *m_graphAttributes);
 }
 
@@ -1020,7 +1031,7 @@ BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Gr
         } else
         {
             m_normalNodes.append(m);
-        }
+        }        
     }
     foreach (edge e, edges)
     {
@@ -1256,12 +1267,16 @@ void BiComp::acaLayout(void)
     m_graphAttributes = new GraphAttributes(*m_graph);
     // For now we just use a default size of 30x30 for the nodes.
     node n = NULL;
+    int k = 0;
     forall_nodes(n,*m_graph) {
         m_graphAttributes->width(n) = 30;
         m_graphAttributes->height(n) = 30;
+        m_graphAttributes->x(n) = 10*k*(k%4<2?1:-1);
+        m_graphAttributes->y(n) = 10*k*(k%2==0?1:-1);
+        k++;
     }
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
-    aca.run();
+    aca.run("BC");
     aca.readLayout(*m_graph, *m_graphAttributes);
 }
 
@@ -2029,8 +2044,8 @@ ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
 /** Build an ACA layout object for the passed OGDF graph.
   */
 ACALayout::ACALayout(Graph G, GraphAttributes GA) :
-    m_preventOverlaps(true),
-    idealLength(100)
+    m_preventOverlaps(false),
+    idealLength(300)
 {
     node n = NULL;
     int i = 0;
@@ -2076,22 +2091,36 @@ void ACALayout::setPreventOverlaps(bool b)
 
 /** Run the layout algorithm.
   */
-void ACALayout::run(void)
+void ACALayout::run(QString name)
 {
     // Do an initial unconstrained FD layout.
     // Need low enough threshold / high enough iteration bound to let it settle sufficiently.
     //cola::TestConvergence *convTest = new cola::TestConvergence(1e-6,1000);
 
-    ACATest *test = new ACATest(1e-6,1000);
+
 
     //cola::ConstrainedFDLayout *fdlayout =
     //        new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps,false,10.0,NULL,convTest);
+    bool preventOverlaps = false;
+    double iL = 300;
     cola::ConstrainedFDLayout *fdlayout =
-            new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps);
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    ACATest *test = new ACATest(1e-6,1000);
     test->setLayout(fdlayout);
+    test->name = name+QString("-noOP");
     fdlayout->setConvergenceTest(test);
-
     fdlayout->run(true,true);
+
+    preventOverlaps = true;
+    //delete fdlayout;
+    //delete test;
+    fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    test = new ACATest(1e-6,1000);
+    test->setLayout(fdlayout);
+    test->name = name+QString("-yesOP");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+
     // Prepare the alignment state matrix.
     initAlignmentState();
     // Start main loop.
