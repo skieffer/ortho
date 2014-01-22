@@ -944,9 +944,7 @@ void MetaGraph::plugInBiComps(void)
 {
     foreach (node n, m_biconNodemap.keys()) {
         // Compute the translation vector.
-        double cx = m_graphAttributes->x(n), cy = m_graphAttributes->y(n);
-        double w = m_graphAttributes->width(n), h = m_graphAttributes->height(n);
-        double x1 = cx-w/2.0, y1 = cy-h/2.0;
+        double x1 = m_graphAttributes->x(n), y1 = m_graphAttributes->y(n);
         BiComp *B = m_biconNodemap.value(n);
         QPointF p0 = B->getOGDFBoundingBoxULC();
         double dx = x1-p0.x(), dy = y1-p0.y();
@@ -973,6 +971,8 @@ void MetaGraph::drawMetaGraphAt(Canvas *canvas, QPointF base, shapemap origShape
     forall_nodes(n,*m_graph) {
         double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
         double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        // (x,y) is ULC. Convert to centre point.
+        x += w/2; y += h/2;
         ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
         sh->setCentrePos(QPointF(x,y)+base);
         sh->setSize(QSizeF(w,h));
@@ -2045,7 +2045,7 @@ ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
   */
 ACALayout::ACALayout(Graph G, GraphAttributes GA) :
     m_preventOverlaps(false),
-    idealLength(300)
+    idealLength(100)
 {
     node n = NULL;
     int i = 0;
@@ -2105,19 +2105,22 @@ void ACALayout::run(QString name)
     double iL = 300;
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
-    ACATest *test = new ACATest(1e-6,1000);
+    ACATest *test = new ACATest(1e-3,100);
     test->setLayout(fdlayout);
-    test->name = name+QString("-noOP");
+    test->name = name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
 
     preventOverlaps = true;
-    //delete fdlayout;
+    iL = 100;
+    delete fdlayout;
+    // FIXME Deleting 'test' is causing a segfault.
+    // Why? Accept memory leak for now.
     //delete test;
     fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
-    test = new ACATest(1e-6,1000);
+    test = new ACATest(1e-3,100);
     test->setLayout(fdlayout);
-    test->name = name+QString("-yesOP");
+    test->name = name+QString("-S2-yesOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
 
@@ -2126,6 +2129,8 @@ void ACALayout::run(QString name)
     // Start main loop.
     cola::CompoundConstraints ccs;
     ACASeparatedAlignment *sa = chooseSA();
+    preventOverlaps = true;
+    int N = 0;
     while (sa) {
         //debugOutput(sa);
         // Add the new separated alignment constraints.
@@ -2133,7 +2138,13 @@ void ACALayout::run(QString name)
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
         delete fdlayout;
-        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps);
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+
+        test = new ACATest(1e-3,100);
+        test->setLayout(fdlayout);
+        test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
+        fdlayout->setConvergenceTest(test);
+
         fdlayout->setConstraints(ccs);
         fdlayout->run(true,true);
         // Update state.
@@ -2321,17 +2332,10 @@ double ACALayout::deflection(int src, int tgt, ACAFlags af)
 {
     vpsc::Rectangle *s = rs.at(src), *t = rs.at(tgt);
     double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
-    double a;
-    if (ty>sy) {
-        a = atan2(ty-sy,tx-sx);
-    } else if (ty<sy) {
-        a = atan2(sy-ty,sx-tx);
-    } else {
-        a = 0;
-    }
-    double sn = sin(a);
-    double sn2 = sn*sn;
-    double dfl = af==ACAHORIZ ? sn2 : 1 - sn2;
+    double dx = tx-sx, dy = ty-sy;
+    double dx2 = dx*dx, dy2 = dy*dy;
+    double l = dx2 + dy2;
+    double dfl = af==ACAHORIZ ? dy2/l : dx2/l;
     return dfl;
 }
 

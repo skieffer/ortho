@@ -336,8 +336,8 @@ struct ACATest : public cola::TestConvergence
     {
         //std::string outFName="Debug";
         QString outFName = "Debug-"+name;
-        //bool converged = cola::TestConvergence::operator()(new_stress, X, Y);
-        bool converged = test1(new_stress, X, Y);
+        bool converged = cola::TestConvergence::operator()(new_stress, X, Y);
+        //bool converged = test1(new_stress, X, Y);
         cout << "stress="<<new_stress<<" iteration="<<m_count<<endl;
         std::stringstream ss;
         //ss<<outFName<<"-"<< setfill('0') << setw(3) << m_count++;
