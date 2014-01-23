@@ -1132,6 +1132,15 @@ ShapeObj *BiComp::getShapeForOriginalNode(node orig)
     return sh;
 }
 
+void BiComp::addStubNodeForTree(ExternalTree *X)
+{
+    node orig = X->taproot();
+    node own = m_nodemap.key(orig);
+    node stub = m_graph->newNode();
+    m_graph->newEdge(own,stub);
+    m_stubNodeMap.insert(stub,X);
+}
+
 // pass shapemap for the shapes in the original graph
 void BiComp::constructDunnartGraph(shapemap& origShapes,
                                    QPointF cardinal, QList<node> cutnodes)
@@ -2000,10 +2009,14 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
         ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
         sh->setCentrePos(QPointF(x,y)+base);
         sh->setSize(QSizeF(w,h));
-        sh->setFillColour(QColor(0,192,255));
+        QColor col = m_stubNodeMap.contains(n) ? QColor(0,192,0) : QColor(0,192,255);
+        //sh->setFillColour(QColor(0,192,255));
+        sh->setFillColour(col);
         // Set numerical ID label
-        int id = origShapes.value(m_nodemap.value(n))->internalId();
-        sh->setLabel(QString::number(id));
+        if (origShapes.contains(m_nodemap.value(n))) {
+            int id = origShapes.value(m_nodemap.value(n))->internalId();
+            sh->setLabel(QString::number(id));
+        }
         nodeShapes.insert(n,sh);
         canvas->addItem(sh);
     }
@@ -2872,6 +2885,123 @@ void BCLayout::ortholayout2(void)
     // TODO
 
 }
+
+
+/** 23 Jan 2014. ortholayout2 is not looking so good with the metagraph,
+  * so here we're going to try the "tree stubs" method.
+  * Operates on all the nodes and edges currently on the Dunnart canvas.
+  * Expects this to be a connected graph.
+  */
+void BCLayout::ortholayout3(void)
+{
+    bool debug = true;
+    BiComp::method = 0;
+    shapemap nodeShapes;
+    connmap edgeConns;
+    Graph G;
+    ogdfGraph(G, nodeShapes, edgeConns);
+
+    // 1. Compute external trees.
+    QList<ExternalTree*> XX = removeExternalTrees(G, nodeShapes);
+    // Debug:
+    if (debug) {
+        qDebug() << "External Trees:";
+        foreach (ExternalTree *X, XX) {
+            qDebug() << X->listNodes();
+        }
+    }
+
+    // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
+    QSet<node> cutnodes;
+    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
+    // Fuse BCs that share cutnodes.
+    BB = fuseBCs(BB);
+    // Make a map to say which BC each BC node belongs to.
+    QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
+    // Debug:
+    if (debug) {
+        qDebug() << "\nCompound nontrivial biconnected components:";
+        foreach (BiComp *B, BB) {
+            qDebug() << B->listNodes(nodeShapes);
+        }
+    }
+
+    // 3. Compute internal trees.
+    // Get a new graph isomorphic to the result of removing the BC edges from G.
+    QMap<node,node> nodeMapG2ToG;
+    Graph *G2 = removeBiComps(G, BB, nodeMapG2ToG);
+    // Get connected components of original graph G corresponding to those of G2.
+    QMap<int,node> ccomps = getConnComps2(G2, nodeMapG2ToG);
+    // Form trees on those components, throwing away isolated
+    // nodes (which must have been the noncutnodes belonging to nontrivial BCs).
+    QList<InternalTree*> II;
+    foreach (int i, ccomps.keys().toSet())
+    {
+        QList<node> nodes = ccomps.values(i);
+        if (nodes.size() < 2) continue;
+        InternalTree *I = new InternalTree(nodes, cutnodes, origNodesToBCs, G);
+        II.append(I);
+    }
+    // Debug:
+    if (debug) {
+        qDebug() << "\nInternal trees:";
+        foreach (InternalTree *I, II) {
+            qDebug() << I->listNodes(nodeShapes);
+        }
+    }
+
+    // Here we diverge from ortholayout2.
+
+    // Tack onto each B a "stub node" representing each of the X trees that are attached to it.
+    foreach (ExternalTree *X, XX) {
+        node t = X->taproot();
+        BiComp *B = origNodesToBCs.value(t);
+        B->addStubNodeForTree(X);
+    }
+
+
+    // 4. Lay out each B in BB by FD+ACA.
+    foreach (BiComp *B, BB) {
+        B->acaLayout();
+    }
+
+    // 5. Lay out each X in XX by OGDF TreeLayout.
+    foreach (ExternalTree *X, XX) {
+        X->treeLayout();
+    }
+
+    // 6. Build the metagraph M, reading Bbar and Xbar sizes from layouts
+    //    of corresponding B and X.
+    MetaGraph *M = new MetaGraph(XX,BB,II,origNodesToBCs);
+
+    // 7. Lay out M using FD+ACA.
+    M->acaLayout();
+    // Debug:
+    if (debug) {
+        M->drawMetaGraphAt(m_canvas,QPointF(1000,0),nodeShapes);
+    }
+
+    // 8. Place each B where Bbar lies, orienting to minimize stress.
+    // Compute translation vector.
+    M->plugInBiComps();
+    // Debug:
+    if (debug) {
+        foreach (BiComp *B, BB) {
+            B->drawAt(m_canvas,QPointF(1000,0),nodeShapes);
+        }
+    }
+
+    // 9. Place each X where Xbar lies, orienting according to alignment
+    //    of the edge ( t(X), r(X) ).
+    M->plugInExternalTrees();
+
+    // 10. Apply constraints and new positions to existing Dunnart shapes.
+    // TODO
+
+}
+
+
+
 
 /* Expects a connected graph.
   * Prunes all external trees, and returns them in a list.

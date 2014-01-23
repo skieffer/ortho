@@ -266,6 +266,8 @@ public:
     BiComp *fuse(BiComp *other);
     ShapeObj *getShapeForOriginalNode(node orig);
     void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
+    void addStubNodeForTree(ExternalTree *X);
+
 private:
     Graph *m_graph;
     GraphAttributes *m_graphAttributes;
@@ -273,6 +275,8 @@ private:
     QList<node> m_cutNodes; // subdomain of nodemap which are cutnodes
     QList<node> m_normalNodes; // subdomain of those which are not
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
+    QMap<node,ExternalTree*> m_stubNodeMap; // maps own stub nodes to the
+                                            // external trees they represent
 
     Graph& copyGraph(QMap<node,node>& nodemap);
 
@@ -414,6 +418,7 @@ public:
     Graph *removeBiComps(Graph& G, bclist& bcs, QMap<node,node>& nodeMapNewToOld);
     void orthoLayout(int method);
     void ortholayout2(void);
+    void ortholayout3(void);
     void layoutBCTrees(void);
 
 private:

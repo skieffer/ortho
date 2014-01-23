@@ -5708,7 +5708,8 @@ void Canvas::BCOther()
 
 void Canvas::orthoLayout2()
 {
-    m_bclayout->ortholayout2();
+    // Switching to ortholayout3 instead.
+    m_bclayout->ortholayout3();
 }
 
 }
