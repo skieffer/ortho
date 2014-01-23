@@ -31,6 +31,7 @@
 #include <QRectF>
 
 #include "libogdf/ogdf/basic/Graph_d.h"
+#include "libogdf/ogdf/tree/TreeLayout.h"
 #include "libcola/compound_constraints.h"
 #include "libcola/cola.h"
 #include "libvpsc/rectangle.h"
@@ -149,6 +150,7 @@ public:
     void treeLayout(void);
     QSizeF getBoundingBoxSize(void);
     node taproot(void);
+    void setOrientation(ogdf::Orientation o);
     //Testing:
     QString listNodes(void);
 private:
@@ -161,7 +163,7 @@ private:
     node m_root;    // a node in this object's m_graph
     node m_tapRoot; // a node in the original graph G
     int m_tapRootID; // ID of Dunnart shape corresp. to m_tapRoot
-
+    ogdf::Orientation m_orientation;
     QMap<node,ShapeObj*> m_shapeMap; // map from OGDF nodes to Dunnart shapes
 };
 
@@ -235,7 +237,7 @@ public:
     // -----------
 
     // For ACA layout performed by separate ACALayout object -- preferred method
-    void acaLayout(void);
+    QMap<node,int> acaLayout(void);
     // FIXME: the following two methods should just draw on a single
     // computation of the bounding box.
     QPointF getOGDFBoundingBoxULC(void);
@@ -267,6 +269,10 @@ public:
     ShapeObj *getShapeForOriginalNode(node orig);
     void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
     void addStubNodeForTree(ExternalTree *X);
+    void setSizeForTree(ExternalTree *X);
+    void ortholayout3(Canvas *canvas, shapemap nodeShapes);
+    void postACACola(bool preventOverlaps, double idealLength,
+                     QMap<node,int> nodeIndices);
 
 private:
     Graph *m_graph;
@@ -277,6 +283,8 @@ private:
     QMap<edge,edge> m_edgemap; // maps own edges to orig. graph edges
     QMap<node,ExternalTree*> m_stubNodeMap; // maps own stub nodes to the
                                             // external trees they represent
+    shapemap m_shapes;
+    cola::CompoundConstraints m_ccs;
 
     Graph& copyGraph(QMap<node,node>& nodemap);
 
@@ -368,6 +376,8 @@ public:
     void run(QString name);
 
     void readLayout(Graph G, GraphAttributes &GA);
+    QMap<node,int> m_ogdfNodeIndices;
+    cola::CompoundConstraints m_ccs;
 private:
     void initAlignmentState(void);
     void updateAlignmentState(ACASeparatedAlignment *sa);
@@ -376,8 +386,6 @@ private:
     double deflection(int src, int tgt, ACAFlags af);
 
     void debugOutput(ACASeparatedAlignment *sa);
-
-    QMap<node,int> m_ogdfNodeIndices;
 
     bool m_preventOverlaps;
     vpsc::Rectangles rs;

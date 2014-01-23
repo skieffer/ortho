@@ -597,7 +597,8 @@ QRectF RootedTree::bbox()
 ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
                            node taproot, QMap<node,int> dunnartIDs, int taprootID) :
     m_tapRoot(taproot),
-    m_tapRootID(taprootID)
+    m_tapRootID(taprootID),
+    m_orientation(leftToRight)
 {
     m_graph = new Graph;
     QMap<node,node> nodemap; // maps passed nodes (from H) to own nodes
@@ -651,11 +652,16 @@ QString ExternalTree::listNodes()
     return s;
 }
 
+void ExternalTree::setOrientation(Orientation o)
+{
+    m_orientation = o;
+}
+
 void ExternalTree::treeLayout(void)
 {
     // Set up an OGDF TreeLayout object.
     TreeLayout tL;
-    tL.orientation(leftToRight);
+    tL.orientation(m_orientation);
     tL.rootSelection(TreeLayout::rootByCoord);
     tL.orthogonalLayout(true);
     // Set GraphAttributes.
@@ -1141,6 +1147,98 @@ void BiComp::addStubNodeForTree(ExternalTree *X)
     m_stubNodeMap.insert(stub,X);
 }
 
+void BiComp::setSizeForTree(ExternalTree *X)
+{
+    QSizeF size = X->getBoundingBoxSize();
+    node stub = m_stubNodeMap.key(X);
+    // TODO
+}
+
+void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
+{
+    bool debug = true;
+    QMap<node,int> nodeIndices = acaLayout();
+    // Save constraints.
+    // TODO
+    if (debug) {
+        drawAt(canvas,QPointF(1000,0),nodeShapes);
+    }
+    // Lay out external trees, and get their sizes.
+    foreach (node stub, m_stubNodeMap.keys()) {
+        ExternalTree *X = m_stubNodeMap.value(stub);
+        node tap = m_nodemap.key(X->taproot());
+        // Determine closest cardinal direction of line from tap to stub.
+        double tx=m_graphAttributes->x(tap),ty=m_graphAttributes->y(tap);
+        double sx=m_graphAttributes->x(stub),sy=m_graphAttributes->y(stub);
+        double vx=sx-tx, vy=sy-ty;
+        ogdf::Orientation orient = vx >= vy ?
+                    (vx >= -vy ? leftToRight : topToBottom) :
+                    (vx >= -vy ? bottomToTop : rightToLeft) ;
+        // Lay out tree.
+        X->setOrientation(orient);
+        X->treeLayout();
+        // Get size.
+        QSizeF size = X->getBoundingBoxSize();
+        m_graphAttributes->width(stub) = size.width();
+        m_graphAttributes->height(stub) = size.height();
+    }
+    // Run FD layout again.
+    bool preventOverlaps = true;
+    double idealLength = 100;
+    postACACola(preventOverlaps,idealLength, nodeIndices);
+}
+
+void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int> nodeIndices) {
+    Graph G = *m_graph;
+    GraphAttributes GA = *m_graphAttributes;
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+
+    // Build nodes and edges.
+    /*
+    node n = NULL;
+    int i = 0;
+    forall_nodes(n,G) {
+        double x = GA.x(n), y = GA.y(n);
+        double X = x + GA.width(n), Y = y + GA.height(n);
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        nodeIndices.insert(n,i);
+        i++;
+    }
+    */
+
+    int N = nodeIndices.values().size();
+    for (int i = 0; i < N; i++) {
+        node n = nodeIndices.key(i);
+        double x = GA.x(n), y = GA.y(n);
+        double X = x + GA.width(n), Y = y + GA.height(n);
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+    }
+
+    edge e = NULL;
+    forall_edges(e,G) {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        es.push_back(cola::Edge(srcIndex, tgtIndex) );
+    }
+
+    // Do layout.
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+    fdlayout->setConstraints(m_ccs);
+    fdlayout->run(true,true);
+
+    // Read positions.
+    node n;
+    forall_nodes(n,G) {
+        vpsc::Rectangle *r = rs.at(nodeIndices.value(n));
+        GA.x(n) = r->getMinX();
+        GA.y(n) = r->getMinY();
+    }
+}
+
 // pass shapemap for the shapes in the original graph
 void BiComp::constructDunnartGraph(shapemap& origShapes,
                                    QPointF cardinal, QList<node> cutnodes)
@@ -1271,7 +1369,7 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     }
 }
 
-void BiComp::acaLayout(void)
+QMap<node,int> BiComp::acaLayout(void)
 {
     m_graphAttributes = new GraphAttributes(*m_graph);
     // For now we just use a default size of 30x30 for the nodes.
@@ -1287,6 +1385,8 @@ void BiComp::acaLayout(void)
     ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
     aca.run("BC");
     aca.readLayout(*m_graph, *m_graphAttributes);
+    m_ccs = aca.m_ccs;
+    return aca.m_ogdfNodeIndices;
 }
 
 QPointF BiComp::getOGDFBoundingBoxULC(void)
@@ -2000,7 +2100,6 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
     canvas->stop_graph_layout();
     // Nodes
-    shapemap nodeShapes;
     node n = NULL;
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     forall_nodes(n,*m_graph) {
@@ -2017,7 +2116,7 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
             int id = origShapes.value(m_nodemap.value(n))->internalId();
             sh->setLabel(QString::number(id));
         }
-        nodeShapes.insert(n,sh);
+        m_shapes.insert(n,sh);
         canvas->addItem(sh);
     }
     // Edges
@@ -2025,8 +2124,8 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
     forall_edges(e,*m_graph) {
         node src = e->source();
         node dst = e->target();
-        ShapeObj *srcSh = nodeShapes.value(src);
-        ShapeObj *dstSh = nodeShapes.value(dst);
+        ShapeObj *srcSh = m_shapes.value(src);
+        ShapeObj *dstSh = m_shapes.value(dst);
         Connector *conn = new Connector();
         conn->initWithConnection(srcSh, dstSh);
         conn->setRoutingType(Connector::orthogonal);
@@ -2106,14 +2205,8 @@ void ACALayout::setPreventOverlaps(bool b)
   */
 void ACALayout::run(QString name)
 {
-    // Do an initial unconstrained FD layout.
-    // Need low enough threshold / high enough iteration bound to let it settle sufficiently.
-    //cola::TestConvergence *convTest = new cola::TestConvergence(1e-6,1000);
-
-
-
-    //cola::ConstrainedFDLayout *fdlayout =
-    //        new cola::ConstrainedFDLayout(rs,es,idealLength,m_preventOverlaps,false,10.0,NULL,convTest);
+    // Do an initial unconstrained FD layout
+    //with no overlap prevention, and long ideal edge length.
     bool preventOverlaps = false;
     double iL = 300;
     cola::ConstrainedFDLayout *fdlayout =
@@ -2123,7 +2216,8 @@ void ACALayout::run(QString name)
     test->name = name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
-
+    // Do another FD layout this time with
+    //overlap prevention, and shorter ideal edge length.
     preventOverlaps = true;
     iL = 100;
     delete fdlayout;
@@ -2137,6 +2231,7 @@ void ACALayout::run(QString name)
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
 
+    // Now do the ACA iteration.
     // Prepare the alignment state matrix.
     initAlignmentState();
     // Start main loop.
@@ -2166,6 +2261,7 @@ void ACALayout::run(QString name)
         sepAligns.append(sa);
         sa = chooseSA();
     }
+    m_ccs = ccs;
 }
 
 void ACALayout::debugOutput(ACASeparatedAlignment *sa)
@@ -2959,10 +3055,16 @@ void BCLayout::ortholayout3(void)
         B->addStubNodeForTree(X);
     }
 
-
     // 4. Lay out each B in BB by FD+ACA.
     foreach (BiComp *B, BB) {
-        B->acaLayout();
+        //B->acaLayout();
+        B->ortholayout3(m_canvas, nodeShapes);
+    }
+    /*
+    if (debug) {
+        foreach (BiComp *B, BB) {
+            B->drawAt(m_canvas,QPointF(1000,0),nodeShapes);
+        }
     }
 
     // 5. Lay out each X in XX by OGDF TreeLayout.
@@ -2994,6 +3096,7 @@ void BCLayout::ortholayout3(void)
     // 9. Place each X where Xbar lies, orienting according to alignment
     //    of the edge ( t(X), r(X) ).
     M->plugInExternalTrees();
+    */
 
     // 10. Apply constraints and new positions to existing Dunnart shapes.
     // TODO
