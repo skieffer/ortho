@@ -332,7 +332,8 @@ struct ACATest : public cola::TestConvergence
         : TestConvergence(d,i),
           m_layout(NULL),
           m_count(1),
-          name("")
+          name(""),
+          minIterations(0)
     {
     }
 
@@ -344,7 +345,7 @@ struct ACATest : public cola::TestConvergence
     bool test1(const double new_stress, std::valarray<double> & X,
                std::valarray<double> & Y)
     {
-        if (m_count < 50) {
+        if (m_count < minIterations) {
             return false;
         } else {
             return cola::TestConvergence::operator()(new_stress, X, Y);
@@ -356,8 +357,8 @@ struct ACATest : public cola::TestConvergence
     {
         //std::string outFName="Debug";
         QString outFName = "Debug-"+name;
-        bool converged = cola::TestConvergence::operator()(new_stress, X, Y);
-        //bool converged = test1(new_stress, X, Y);
+        //bool converged = cola::TestConvergence::operator()(new_stress, X, Y);
+        bool converged = test1(new_stress, X, Y);
         cout << "stress="<<new_stress<<" iteration="<<m_count<<endl;
         std::stringstream ss;
         //ss<<outFName<<"-"<< setfill('0') << setw(3) << m_count++;
@@ -371,6 +372,7 @@ struct ACATest : public cola::TestConvergence
     cola::ConstrainedFDLayout *m_layout;
     int m_count;
     QString name;
+    int minIterations;
 };
 
 class ACALayout

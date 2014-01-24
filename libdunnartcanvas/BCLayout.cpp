@@ -623,10 +623,11 @@ QSizeF ExternalTree::getBoundingBoxSize(void)
     double y = DBL_MAX, Y = DBL_MIN;
     node n = NULL;
     forall_nodes(n,*m_graph) {
-        double u = m_graphAttributes->x(n);
-        double v = m_graphAttributes->y(n);
-        double U = u + m_graphAttributes->width(n);
-        double V = v + m_graphAttributes->height(n);
+        double w = m_graphAttributes->width(n), h = m_graphAttributes->height(n);
+        double u = m_graphAttributes->x(n) - w/2;
+        double v = m_graphAttributes->y(n) - h/2;
+        double U = u + w;
+        double V = v + h;
         if (u<x) x = u;
         if (U>X) X = U;
         if (v<y) y = v;
@@ -1255,17 +1256,45 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
         m_graphAttributes->width(stub) = size.width();
         m_graphAttributes->height(stub) = size.height();
     }
+    // DEBUG:
+    /*
+    qDebug() << "\nbefore final FD layout:";
+    node n;
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n),y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n),h=m_graphAttributes->height(n);
+        if (w > 30 || h > 30) {
+            qDebug() << QString("%1 by %2 at %3,%4").arg(w).arg(h).arg(x).arg(y);
+        }
+    }
+    */
+    //
+
     // Run FD layout again.
     bool preventOverlaps = true;
     double idealLength = 100;
     postACACola(preventOverlaps,idealLength, nodeIndices);
 
+    // DEBUG:
+    /*
+    qDebug() << "\nafter return to main function:";
+    n;
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n),y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n),h=m_graphAttributes->height(n);
+        if (w > 30 || h > 30) {
+            qDebug() << QString("%1 by %2 at %3,%4").arg(w).arg(h).arg(x).arg(y);
+        }
+    }
+    */
+    //
+
     // Translate trees.
     foreach (node stub, m_stubNodeMap.keys()) {
         ExternalTree *X = m_stubNodeMap.value(stub);
-        double x=m_graphAttributes->x(stub), y=m_graphAttributes->y(stub);
+        double cx=m_graphAttributes->x(stub), cy=m_graphAttributes->y(stub);
         double w=m_graphAttributes->width(stub),h=m_graphAttributes->height(stub);
-        x-=w/2; y-=h/2;
+        double x = cx-w/2, y = cy-h/2;
         QPointF p = X->getBoundingBoxULC();
         double dx=x-p.x(), dy=y-p.y();
         X->translate(QPointF(dx,dy));
@@ -1310,11 +1339,12 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int
     int N = nodeIndices.values().size();
     for (int i = 0; i < N; i++) {
         node n = nodeIndices.key(i);
-        double x = GA.x(n), y = GA.y(n);
-        double X = x + GA.width(n), Y = y + GA.height(n);
+        double w = GA.width(n), h = GA.height(n);
+        double x = GA.x(n) - w/2, y = GA.y(n) - h/2;
+        double X = x + w, Y = y + h;
         /*
-        if (m_stubNodeMap.contains(n)) {
-            qDebug() < QString("stub node %1: %2 by %3").arg(i).arg(GA.width(n)).arg(GA.height(n));
+        if (w > 30 || h > 30) {
+            qDebug() << QString("%1 by %2 at %3,%4").arg(w).arg(h).arg(x).arg(y);
         }
         */
         rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
@@ -1333,14 +1363,33 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
     fdlayout->setConstraints(m_ccs);
+
+    ACATest *test = new ACATest(1e-3,100);
+    test->setLayout(fdlayout);
+    test->name = QString("BC-S4-postACA");
+    fdlayout->setConvergenceTest(test);
+
     fdlayout->run(true,true);
 
     // Read positions.
     node n;
     forall_nodes(n,G) {
         vpsc::Rectangle *r = rs.at(nodeIndices.value(n));
-        GA.x(n) = r->getMinX();
-        GA.y(n) = r->getMinY();
+        //GA.x(n) = r->getCentreX();
+        //GA.y(n) = r->getCentreY();
+        // Cannot set values in GA. Must access m_graphAttributes, or else the global
+        // values will not be affected.
+        m_graphAttributes->x(n) = r->getCentreX();
+        m_graphAttributes->y(n) = r->getCentreY();
+
+        /*
+        if (GA.width(n) > 30 || GA.height(n) > 30) {
+            qDebug() << QString("%1 by %2 at %3,%4").arg(GA.width(n)).arg(GA.height(n)).arg(GA.x(n)).arg(GA.y(n));
+        }
+        */
+
+        //GA.x(n) = r->getMinX();
+        //GA.y(n) = r->getMinY();
     }
 }
 
@@ -2315,8 +2364,10 @@ void ACALayout::readLayout(Graph G, GraphAttributes &GA)
     node n = NULL;
     forall_nodes(n,G) {
         vpsc::Rectangle *r = rs.at(m_ogdfNodeIndices.value(n));
-        GA.x(n) = r->getMinX();
-        GA.y(n) = r->getMinY();
+        GA.x(n) = r->getCentreX();
+        GA.y(n) = r->getCentreY();
+        //GA.x(n) = r->getMinX();
+        //GA.y(n) = r->getMinY();
     }
 }
 
@@ -2342,6 +2393,7 @@ void ACALayout::initialLayout(void) {
     test->name = m_name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
+
     // Do another FD layout this time with
     //overlap prevention, and shorter ideal edge length.
     preventOverlaps = true;
@@ -2352,6 +2404,7 @@ void ACALayout::initialLayout(void) {
     //delete test;
     fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     test = new ACATest(1e-3,100);
+    test->minIterations = 20;
     test->setLayout(fdlayout);
     test->name = m_name+QString("-S2-yesOP");
     fdlayout->setConvergenceTest(test);
