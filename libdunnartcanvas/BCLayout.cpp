@@ -1312,6 +1312,11 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int
         node n = nodeIndices.key(i);
         double x = GA.x(n), y = GA.y(n);
         double X = x + GA.width(n), Y = y + GA.height(n);
+        /*
+        if (m_stubNodeMap.contains(n)) {
+            qDebug() < QString("stub node %1: %2 by %3").arg(i).arg(GA.width(n)).arg(GA.height(n));
+        }
+        */
         rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
     }
 
