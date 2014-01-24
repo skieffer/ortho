@@ -2337,6 +2337,7 @@ ACALayout::ACALayout(Graph G, GraphAttributes GA) :
     m_preventOverlaps(false),
     idealLength(100)
 {
+    QMap<int,int> deg; // compute degrees of nodes
     node n = NULL;
     int i = 0;
     forall_nodes(n,G) {
@@ -2353,6 +2354,16 @@ ACALayout::ACALayout(Graph G, GraphAttributes GA) :
         int srcIndex = m_ogdfNodeIndices.value(src);
         int tgtIndex = m_ogdfNodeIndices.value(tgt);
         es.push_back( cola::Edge(srcIndex, tgtIndex) );
+        deg.insertMulti(srcIndex,tgtIndex);
+        deg.insertMulti(tgtIndex,srcIndex);
+    }
+    // Build deg2Nodes structure.
+    foreach (int i, deg.keys()) {
+        QList<int> J = deg.values(i);
+        if (J.size()==2) {
+            deg2Nodes.insertMulti(i,J.at(0));
+            deg2Nodes.insertMulti(i,J.at(1));
+        }
     }
 }
 
@@ -2393,18 +2404,20 @@ void ACALayout::initialLayout(void) {
     test->name = m_name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
+    delete fdlayout;
+
+    //return;
 
     // Do another FD layout this time with
     //overlap prevention, and shorter ideal edge length.
     preventOverlaps = true;
     iL = 100;
-    delete fdlayout;
     // FIXME Deleting 'test' is causing a segfault.
     // Why? Accept memory leak for now.
     //delete test;
     fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
-    test = new ACATest(1e-3,100);
-    test->minIterations = 20;
+    test = new ACATest(1e-4,200);
+    test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_name+QString("-S2-yesOP");
     fdlayout->setConvergenceTest(test);
@@ -2555,6 +2568,7 @@ void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
 
 ACASeparatedAlignment *ACALayout::chooseSA(void)
 {
+    bool bpp = true;
     ACASeparatedAlignment *sa = NULL;
     double minDeflection = 1.0;
     // Consisder each edge for potential alignment.
@@ -2569,6 +2583,7 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         // Consider horizontal alignment.
         if (!createsCoincidence(src,tgt,ACAHORIZ)) {
             double dH = deflection(src,tgt,ACAHORIZ);
+            if (bpp) dH += bendPointPenalty(src,tgt,ACAHORIZ);
             //qDebug() << QString("    deflection: %1").arg(dH);
             if (dH < minDeflection) {
                 minDeflection = dH;
@@ -2581,6 +2596,7 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         // Consider vertical alignment.
         if (!createsCoincidence(src,tgt,ACAVERT)) {
             double dV = deflection(src,tgt,ACAVERT);
+            if (bpp) dV += bendPointPenalty(src,tgt,ACAVERT);
             //qDebug() << QString("    deflection: %1").arg(dV);
             if (dV < minDeflection) {
                 minDeflection = dV;
@@ -2674,6 +2690,25 @@ double ACALayout::deflection(int src, int tgt, ACAFlags af)
     double l = dx2 + dy2;
     double dfl = af==ACAHORIZ ? dy2/l : dx2/l;
     return dfl;
+}
+
+double ACALayout::bendPointPenalty(int src, int tgt, ACAFlags af)
+{
+    double penalty = 2;
+    ACAFlags op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
+    if (deg2Nodes.contains(src)) {
+        QList<int> J = deg2Nodes.values(src);
+        int j = J.at(0) == tgt ? J.at(1) : J.at(0);
+        int as = alignmentState(src,j);
+        if (as & op) return penalty;
+    }
+    if (deg2Nodes.contains(tgt)) {
+        QList<int> J = deg2Nodes.values(tgt);
+        int j = J.at(0) == src ? J.at(1) : J.at(0);
+        int as = alignmentState(tgt,j);
+        if (as & op) return penalty;
+    }
+    return 0;
 }
 
 // ----------------------------------------------------------------------------

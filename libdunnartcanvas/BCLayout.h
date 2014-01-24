@@ -398,6 +398,8 @@ private:
     ACASeparatedAlignment *chooseSA(void);
     bool createsCoincidence(int src, int tgt, ACAFlags af);
     double deflection(int src, int tgt, ACAFlags af);
+    double bendPointPenalty(int src, int tgt, ACAFlags af);
+    bool existsAlignment(int nd, ACAFlags af);
 
     void debugOutput(ACASeparatedAlignment *sa);
 
@@ -409,6 +411,7 @@ private:
     double idealLength;
     Matrix2d<int> alignmentState;
     QList<ACASeparatedAlignment*> sepAligns;
+    QMap<int,int> deg2Nodes;
 };
 
 class BCLayout
