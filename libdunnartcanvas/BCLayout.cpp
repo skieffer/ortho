@@ -595,10 +595,12 @@ QRectF RootedTree::bbox()
 // ExternalTree ---------------------------------------------------------------
 
 ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
-                           node taproot, QMap<node,int> dunnartIDs, int taprootID) :
+                           node taproot, QMap<node,int> dunnartIDs, int taprootID,
+                           shapemap origShapes) :
     m_tapRoot(taproot),
     m_tapRootID(taprootID),
-    m_orientation(leftToRight)
+    m_orientation(leftToRight),
+    m_origShapes(origShapes)
 {
     m_graph = new Graph;
     QMap<node,node> nodemap; // maps passed nodes (from H) to own nodes
@@ -655,6 +657,81 @@ QString ExternalTree::listNodes()
 void ExternalTree::setOrientation(Orientation o)
 {
     m_orientation = o;
+}
+
+QPointF ExternalTree::getBoundingBoxULC(void)
+{
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double cx = m_graphAttributes->x(n);
+        double cy = m_graphAttributes->y(n);
+        double w = m_graphAttributes->width(n);
+        double h = m_graphAttributes->height(n);
+        double u = cx - w/2.0;
+        double v = cy - h/2.0;
+        double U = u + w;
+        double V = v + h;
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QPointF(x,y);
+}
+
+void ExternalTree::translate(QPointF v)
+{
+    node n = NULL;
+    forall_nodes(n,*m_graph)
+    {
+        m_graphAttributes->x(n) += v.x();
+        m_graphAttributes->y(n) += v.y();
+    }
+}
+
+void ExternalTree::arrangeOriginalGraph(shapemap origShapes)
+{
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
+        //double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        ShapeObj *sh = m_origShapes.value(n);
+        sh->setCentrePos(QPointF(x,y));
+    }
+}
+
+void ExternalTree::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
+{
+    canvas->stop_graph_layout();
+    // Nodes
+    node n = NULL;
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    forall_nodes(n,*m_graph) {
+        double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
+        sh->setCentrePos(QPointF(x,y)+base);
+        sh->setSize(QSizeF(w,h));
+        QColor col = QColor(192,192,0);
+        sh->setFillColour(col);
+        m_shapes.insert(n,sh);
+        canvas->addItem(sh);
+    }
+    // Edges
+    edge e = NULL;
+    forall_edges(e,*m_graph) {
+        node src = e->source();
+        node dst = e->target();
+        ShapeObj *srcSh = m_shapes.value(src);
+        ShapeObj *dstSh = m_shapes.value(dst);
+        Connector *conn = new Connector();
+        conn->initWithConnection(srcSh, dstSh);
+        conn->setRoutingType(Connector::orthogonal);
+        canvas->addItem(conn);
+    }
+    canvas->restart_graph_layout();
 }
 
 void ExternalTree::treeLayout(void)
@@ -1158,11 +1235,7 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
 {
     bool debug = true;
     QMap<node,int> nodeIndices = acaLayout();
-    // Save constraints.
-    // TODO
-    if (debug) {
-        drawAt(canvas,QPointF(1000,0),nodeShapes);
-    }
+
     // Lay out external trees, and get their sizes.
     foreach (node stub, m_stubNodeMap.keys()) {
         ExternalTree *X = m_stubNodeMap.value(stub);
@@ -1186,6 +1259,31 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     bool preventOverlaps = true;
     double idealLength = 100;
     postACACola(preventOverlaps,idealLength, nodeIndices);
+
+    // Translate trees.
+    foreach (node stub, m_stubNodeMap.keys()) {
+        ExternalTree *X = m_stubNodeMap.value(stub);
+        double x=m_graphAttributes->x(stub), y=m_graphAttributes->y(stub);
+        double w=m_graphAttributes->width(stub),h=m_graphAttributes->height(stub);
+        x-=w/2; y-=h/2;
+        QPointF p = X->getBoundingBoxULC();
+        double dx=x-p.x(), dy=y-p.y();
+        X->translate(QPointF(dx,dy));
+    }
+
+    if (debug) {
+        drawAt(canvas,QPointF(1000,0),nodeShapes);
+        foreach (node stub, m_stubNodeMap.keys()) {
+            ExternalTree *X = m_stubNodeMap.value(stub);
+            X->drawAt(canvas,QPointF(1000,0),nodeShapes);
+        }
+    }
+
+    arrangeOriginalGraph(nodeShapes);
+    foreach (node stub, m_stubNodeMap.keys()) {
+        ExternalTree *X = m_stubNodeMap.value(stub);
+        X->arrangeOriginalGraph(nodeShapes);
+    }
 }
 
 void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int> nodeIndices) {
@@ -2096,13 +2194,29 @@ BiComp *BiComp::fuse(BiComp *other)
     return fusion;
 }
 
+void BiComp::arrangeOriginalGraph(shapemap origShapes)
+{
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        if (m_stubNodeMap.contains(n)) continue;
+        double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
+        double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
+        if (origShapes.contains(m_nodemap.value(n))) {
+            ShapeObj *sh = origShapes.value(m_nodemap.value(n));
+            sh->setCentrePos(QPointF(x,y));
+        }
+    }
+}
+
 void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
+    bool drawStubs = false;
     canvas->stop_graph_layout();
     // Nodes
     node n = NULL;
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     forall_nodes(n,*m_graph) {
+        if (m_stubNodeMap.contains(n) && !drawStubs) continue;
         double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
         double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
         ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
@@ -2122,13 +2236,21 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
     // Edges
     edge e = NULL;
     forall_edges(e,*m_graph) {
+
         node src = e->source();
         node dst = e->target();
+
+        if ((m_stubNodeMap.contains(src) || m_stubNodeMap.contains(dst))
+                && !drawStubs
+                ) continue;
+
         ShapeObj *srcSh = m_shapes.value(src);
         ShapeObj *dstSh = m_shapes.value(dst);
         Connector *conn = new Connector();
         conn->initWithConnection(srcSh, dstSh);
-        conn->setRoutingType(Connector::orthogonal);
+        dunnart::Connector::RoutingType t = Connector::polyline;
+        //dunnart::Connector::RoutingType t = Connector::orthogonal;
+        conn->setRoutingType(t);
         canvas->addItem(conn);
     }
     canvas->restart_graph_layout();
@@ -2248,7 +2370,7 @@ void ACALayout::run(QString name)
         delete fdlayout;
         fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
 
-        test = new ACATest(1e-3,100);
+        test = new ACATest(1e-3,3);
         test->setLayout(fdlayout);
         test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
         fdlayout->setConvergenceTest(test);
@@ -3141,6 +3263,8 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
     // For debugging purposes, let's keep track of the id numbers of the Dunnart ShapeObj
     // objects to which the nodes in H correspond.
     QMap<node, int> dunnartIDs; // domain is H
+    // Also a map from nodes of H to nodes of G:
+    QMap<node, ShapeObj*> origShapes;
     // For each node r of H, we will keep track of the node t in G which was its parent.
     // We imagine r as a "root" and t as a "taproot". If subsequently t gets removed from
     // G (and t' is its copy added to H), then we delete the mapping r-->t from the map.
@@ -3164,6 +3288,7 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
             // Note ID of corresp. Dunnart shape obj.
             ShapeObj *sh = nodeShapes.value(r);
             dunnartIDs.insert(rH,sh->internalId());
+            origShapes.insert(rH,sh);
             // Prepare lists of the nodes and edges for the tree of which rH is the new root.
             // Note: the root IS included in the list of nodes belonging to the tree.
             QList<node> treeNodes;
@@ -3232,7 +3357,10 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
         QList<node> nodes = rootsToNodes.value(r);
         QList<edge> edges = rootsToEdges.value(r);
         ShapeObj *tapRootShape = nodeShapes.value(t);
-        ExternalTree *X = new ExternalTree(nodes,edges,r,t,dunnartIDs,tapRootShape->internalId());
+        ExternalTree *X = new ExternalTree(
+                    nodes,edges,r,t,dunnartIDs,tapRootShape->internalId(),
+                    origShapes
+                    );
         XX.append(X);
     }
     return XX;

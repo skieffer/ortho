@@ -146,11 +146,15 @@ class ExternalTree
 {
 public:
     ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot,
-                 QMap<node,int> dunnartIDs, int taprootID);
+                 QMap<node,int> dunnartIDs, int taprootID, shapemap origShapes);
     void treeLayout(void);
     QSizeF getBoundingBoxSize(void);
+    QPointF getBoundingBoxULC(void);
+    void translate(QPointF v);
     node taproot(void);
     void setOrientation(ogdf::Orientation o);
+    void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
+    void arrangeOriginalGraph(shapemap origShapes);
     //Testing:
     QString listNodes(void);
 private:
@@ -165,6 +169,9 @@ private:
     int m_tapRootID; // ID of Dunnart shape corresp. to m_tapRoot
     ogdf::Orientation m_orientation;
     QMap<node,ShapeObj*> m_shapeMap; // map from OGDF nodes to Dunnart shapes
+    shapemap m_shapes;
+
+    shapemap m_origShapes;
 };
 
 struct InternalTree
@@ -273,6 +280,7 @@ public:
     void ortholayout3(Canvas *canvas, shapemap nodeShapes);
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices);
+    void arrangeOriginalGraph(shapemap origShapes);
 
 private:
     Graph *m_graph;
