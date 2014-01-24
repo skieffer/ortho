@@ -387,6 +387,10 @@ public:
     QMap<node,int> m_ogdfNodeIndices;
     cola::CompoundConstraints m_ccs;
 private:
+    void initialLayout(void);
+    void acaLoopOneByOne(void);
+    void acaLoopAllAtOnce(void);
+
     void initAlignmentState(void);
     void updateAlignmentState(ACASeparatedAlignment *sa);
     ACASeparatedAlignment *chooseSA(void);
@@ -394,6 +398,8 @@ private:
     double deflection(int src, int tgt, ACAFlags af);
 
     void debugOutput(ACASeparatedAlignment *sa);
+
+    QString m_name; // for debug output
 
     bool m_preventOverlaps;
     vpsc::Rectangles rs;

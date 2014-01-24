@@ -1279,11 +1279,13 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
         }
     }
 
+    /*
     arrangeOriginalGraph(nodeShapes);
     foreach (node stub, m_stubNodeMap.keys()) {
         ExternalTree *X = m_stubNodeMap.value(stub);
         X->arrangeOriginalGraph(nodeShapes);
     }
+    */
 }
 
 void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int> nodeIndices) {
@@ -2210,7 +2212,7 @@ void BiComp::arrangeOriginalGraph(shapemap origShapes)
 
 void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
-    bool drawStubs = false;
+    bool drawStubs = true;
     canvas->stop_graph_layout();
     // Nodes
     node n = NULL;
@@ -2323,10 +2325,7 @@ void ACALayout::setPreventOverlaps(bool b)
     m_preventOverlaps = b;
 }
 
-/** Run the layout algorithm.
-  */
-void ACALayout::run(QString name)
-{
+void ACALayout::initialLayout(void) {
     // Do an initial unconstrained FD layout
     //with no overlap prevention, and long ideal edge length.
     bool preventOverlaps = false;
@@ -2335,7 +2334,7 @@ void ACALayout::run(QString name)
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ACATest *test = new ACATest(1e-3,100);
     test->setLayout(fdlayout);
-    test->name = name+QString("-S1-noOP");
+    test->name = m_name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
     // Do another FD layout this time with
@@ -2349,28 +2348,31 @@ void ACALayout::run(QString name)
     fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     test = new ACATest(1e-3,100);
     test->setLayout(fdlayout);
-    test->name = name+QString("-S2-yesOP");
+    test->name = m_name+QString("-S2-yesOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
+    delete fdlayout;
+}
 
-    // Now do the ACA iteration.
+void ACALayout::acaLoopOneByOne(void) {
+    QString name = m_name;
     // Prepare the alignment state matrix.
     initAlignmentState();
     // Start main loop.
     cola::CompoundConstraints ccs;
     ACASeparatedAlignment *sa = chooseSA();
-    preventOverlaps = true;
+    bool preventOverlaps = true;
     int N = 0;
+    cola::ConstrainedFDLayout *fdlayout;
     while (sa) {
         //debugOutput(sa);
         // Add the new separated alignment constraints.
         ccs.push_back(sa->separation);
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
-        delete fdlayout;
+        //if (fdlayout!=NULL) delete fdlayout;
         fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
-
-        test = new ACATest(1e-3,3);
+        ACATest *test = new ACATest(1e-3,3);
         test->setLayout(fdlayout);
         test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
         fdlayout->setConvergenceTest(test);
@@ -2384,6 +2386,52 @@ void ACALayout::run(QString name)
         sa = chooseSA();
     }
     m_ccs = ccs;
+}
+
+void ACALayout::acaLoopAllAtOnce(void) {
+    QString name = m_name;
+    // Prepare the alignment state matrix.
+    initAlignmentState();
+    // Start main loop.
+    cola::CompoundConstraints ccs;
+    ACASeparatedAlignment *sa = chooseSA();
+    bool preventOverlaps = true;
+    int N = 0;
+    while (sa) {
+        //debugOutput(sa);
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Update state.
+        updateAlignmentState(sa);
+        // Store SA and choose next one.
+        sepAligns.append(sa);
+        sa = chooseSA();
+    }
+    // Do the layout with the new constraints.
+    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+    ACATest *test = new ACATest(1e-3,3);
+    test->setLayout(fdlayout);
+    test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
+    fdlayout->setConvergenceTest(test);
+    fdlayout->setConstraints(ccs);
+    fdlayout->run(true,true);
+    delete fdlayout;
+    m_ccs = ccs;
+}
+
+/** Run the layout algorithm.
+  */
+void ACALayout::run(QString name)
+{
+    m_name = name;
+    initialLayout();
+    bool allAtOnce = true;
+    if (allAtOnce) {
+        acaLoopAllAtOnce();
+    } else {
+        acaLoopOneByOne();
+    }
 }
 
 void ACALayout::debugOutput(ACASeparatedAlignment *sa)
