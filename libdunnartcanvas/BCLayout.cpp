@@ -703,6 +703,12 @@ void ExternalTree::arrangeOriginalGraph(shapemap origShapes)
     }
 }
 
+void ExternalTree::placeRootAt(QPointF p)
+{
+    m_graphAttributes->x(m_root) = p.x();
+    m_graphAttributes->y(m_root) = p.y();
+}
+
 void ExternalTree::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
     canvas->stop_graph_layout();
@@ -1310,6 +1316,12 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
         QPointF p = X->getBoundingBoxULC();
         double dx=x-p.x(), dy=y-p.y();
         X->translate(QPointF(dx,dy));
+        // Place root of tree over taproot in BC.
+        node orig = X->taproot();
+        node own = m_nodemap.key(orig);
+        cx = m_graphAttributes->x(own);
+        cy = m_graphAttributes->y(own);
+        X->placeRootAt(QPointF(cx,cy));
     }
 
     if (debug) {
@@ -2278,13 +2290,13 @@ void BiComp::arrangeOriginalGraph(shapemap origShapes)
 
 void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
-    bool drawStubs = true;
+    bool drawStubs = false;
     canvas->stop_graph_layout();
     // Nodes
     node n = NULL;
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     forall_nodes(n,*m_graph) {
-        if (m_stubNodeMap.contains(n) && !drawStubs) continue;
+        //if (m_stubNodeMap.contains(n) && !drawStubs) continue;
         double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
         double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
         ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
@@ -2299,6 +2311,7 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
             sh->setLabel(QString::number(id));
         }
         m_shapes.insert(n,sh);
+        if (m_stubNodeMap.contains(n) && !drawStubs) continue;
         canvas->addItem(sh);
     }
     // Edges
@@ -3517,6 +3530,7 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
     // T will keep t as its taproot, and will get a copy of t in H as its root r.
     // So the interpretation will now be different: t will be G's copy of r, instead of
     // the node in G to which G's copy of r attaches.
+    QMap<node,node> rToT;
     foreach (node t, rootsToTaproots.values()) {
         // Create a copy in H.
         node tH = H.newNode();
@@ -3538,7 +3552,11 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
         }
         rootsToNodes.insert(tH,treeNodes);
         rootsToEdges.insert(tH,treeEdges);
-        rootsToTaproots.insert(tH,t);
+        //rootsToTaproots.insert(tH,t);
+        rToT.insert(tH,t);
+    }
+    foreach (node tH, rToT.keys()) {
+        rootsToTaproots.insert(tH,rToT.value(tH));
     }
     // End code for new approach ---------------------------------------------------------
 

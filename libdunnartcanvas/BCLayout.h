@@ -155,6 +155,7 @@ public:
     void setOrientation(ogdf::Orientation o);
     void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
     void arrangeOriginalGraph(shapemap origShapes);
+    void placeRootAt(QPointF p);
     //Testing:
     QString listNodes(void);
 private:
