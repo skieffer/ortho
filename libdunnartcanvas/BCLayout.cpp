@@ -1787,7 +1787,7 @@ SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignme
                                      QMap<node, int> nodeIndices)
 {
     SeparatedAlignment *sa = NULL;
-    double minDeflection = 10.0;
+    double minDeflection = 1.0;
     edge ed = NULL;
     forall_edges(ed,*m_graph) {
         node src = ed->source();
@@ -2351,7 +2351,7 @@ ACALayout::ACALayout(Graph G, GraphAttributes GA) :
     m_addBendPointPenalty(true),
     m_postponeLeaves(true),
     m_useNonLeafDegree(true),
-    m_allAtOnce(false)
+    m_allAtOnce(true)
 {
     QMap<int,int> deg; // compute degrees of nodes
     node n = NULL;
@@ -2605,7 +2605,7 @@ void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
 ACASeparatedAlignment *ACALayout::chooseSA(void)
 {
     ACASeparatedAlignment *sa = NULL;
-    double minDeflection = 1.0;
+    double minDeflection = 10.0;
     // Consisder each edge for potential alignment.
     foreach (cola::Edge e, es) {
         int src = e.first, tgt = e.second;
@@ -2750,7 +2750,7 @@ double ACALayout::bendPointPenalty(int src, int tgt, ACAFlags af)
 
 double ACALayout::leafPenalty(int src, int tgt)
 {
-    double penalty = 2;
+    double penalty = 3;
     return leaves.contains(src) || leaves.contains(tgt) ? penalty : 0;
 }
 
