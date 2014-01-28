@@ -2351,7 +2351,7 @@ ACALayout::ACALayout(Graph G, GraphAttributes GA) :
     m_addBendPointPenalty(true),
     m_postponeLeaves(true),
     m_useNonLeafDegree(true),
-    m_allAtOnce(true)
+    m_allAtOnce(false)
 {
     QMap<int,int> deg; // compute degrees of nodes
     node n = NULL;
@@ -3511,6 +3511,38 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
             nodesByDegree.insert(n,degN);
         }
     }
+
+    // New approach (28 Jan 14) ----------------------------------------------------------
+    // We will combine trees T1,...,Tn sharing a common taproot t into a single tree T.
+    // T will keep t as its taproot, and will get a copy of t in H as its root r.
+    // So the interpretation will now be different: t will be G's copy of r, instead of
+    // the node in G to which G's copy of r attaches.
+    foreach (node t, rootsToTaproots.values()) {
+        // Create a copy in H.
+        node tH = H.newNode();
+        // Prepare lists of the nodes and edges for the tree of which tH is the new root.
+        QList<node> treeNodes;
+        treeNodes.append(tH);
+        QList<edge> treeEdges;
+        // Get the roots of the trees that share the taproot t.
+        QList<node> children = rootsToTaproots.keys(t);
+        // All trees T1,...,Tn with roots in 'children' will now be combined.
+        foreach (node c, children) {
+            edge f = H.newEdge(tH,c);
+            treeEdges.append(f);
+            treeNodes.append(rootsToNodes.value(c));
+            treeEdges.append(rootsToEdges.value(c));
+            rootsToTaproots.remove(c);
+            rootsToNodes.remove(c);
+            rootsToEdges.remove(c);
+        }
+        rootsToNodes.insert(tH,treeNodes);
+        rootsToEdges.insert(tH,treeEdges);
+        rootsToTaproots.insert(tH,t);
+    }
+    // End code for new approach ---------------------------------------------------------
+
+
     /*
     // Compute the connected components of H, and node the root node of each.
     QMap<int,node> CC;
