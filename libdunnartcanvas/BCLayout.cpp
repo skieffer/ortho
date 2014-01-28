@@ -1234,8 +1234,20 @@ void BiComp::setSizeForTree(ExternalTree *X)
 
 void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
 {
+    m_origShapes = nodeShapes;
     bool debug = true;
     QMap<node,int> nodeIndices = acaLayout();
+
+    // DEBUG:
+    /*
+    node n;
+    forall_nodes(n, *m_graph) {
+        int i = nodeIndices.value(n);
+        ShapeObj *sh = nodeShapes.value(n);
+        int id = sh->internalId();
+        qDebug() << QString("Rect index %1 is for shape %2").arg(i).arg(id);
+    }
+    */
 
     // Lay out external trees, and get their sizes.
     foreach (node stub, m_stubNodeMap.keys()) {
@@ -1775,7 +1787,7 @@ SeparatedAlignment *BiComp::chooseSA(vpsc::Rectangles rs, Matrix2d<int> &alignme
                                      QMap<node, int> nodeIndices)
 {
     SeparatedAlignment *sa = NULL;
-    double minDeflection = 1.0;
+    double minDeflection = 10.0;
     edge ed = NULL;
     forall_edges(ed,*m_graph) {
         node src = ed->source();
@@ -2335,7 +2347,11 @@ ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
   */
 ACALayout::ACALayout(Graph G, GraphAttributes GA) :
     m_preventOverlaps(false),
-    idealLength(100)
+    idealLength(100),
+    m_addBendPointPenalty(true),
+    m_postponeLeaves(true),
+    m_useNonLeafDegree(true),
+    m_allAtOnce(false)
 {
     QMap<int,int> deg; // compute degrees of nodes
     node n = NULL;
@@ -2357,9 +2373,30 @@ ACALayout::ACALayout(Graph G, GraphAttributes GA) :
         deg.insertMulti(srcIndex,tgtIndex);
         deg.insertMulti(tgtIndex,srcIndex);
     }
-    // Build deg2Nodes structure.
-    foreach (int i, deg.keys()) {
+    // Note leaves.
+    foreach (int i, deg.uniqueKeys()) {
         QList<int> J = deg.values(i);
+        if (J.size()==1) {
+            leaves.append(i);
+        }
+    }
+    if (m_useNonLeafDegree) {
+        // Use non-leaf degree.
+        QMap<int,int> nld;
+        foreach (int i, deg.uniqueKeys()) {
+            QList<int> J = deg.values(i);
+            foreach (int j, J) {
+                if (!leaves.contains(j)) {
+                    nld.insertMulti(i,j);
+                }
+            }
+        }
+        deg = nld;
+    }
+    // Build deg2Nodes structure.
+    foreach (int i, deg.uniqueKeys()) {
+        QList<int> J = deg.values(i);
+        qDebug() << QString("Node %1 degree %2").arg(i).arg(J.size());
         if (J.size()==2) {
             deg2Nodes.insertMulti(i,J.at(0));
             deg2Nodes.insertMulti(i,J.at(1));
@@ -2497,8 +2534,7 @@ void ACALayout::run(QString name)
 {
     m_name = name;
     initialLayout();
-    bool allAtOnce = true;
-    if (allAtOnce) {
+    if (m_allAtOnce) {
         acaLoopAllAtOnce();
     } else {
         acaLoopOneByOne();
@@ -2568,7 +2604,6 @@ void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
 
 ACASeparatedAlignment *ACALayout::chooseSA(void)
 {
-    bool bpp = true;
     ACASeparatedAlignment *sa = NULL;
     double minDeflection = 1.0;
     // Consisder each edge for potential alignment.
@@ -2583,7 +2618,8 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         // Consider horizontal alignment.
         if (!createsCoincidence(src,tgt,ACAHORIZ)) {
             double dH = deflection(src,tgt,ACAHORIZ);
-            if (bpp) dH += bendPointPenalty(src,tgt,ACAHORIZ);
+            if (m_addBendPointPenalty) dH += bendPointPenalty(src,tgt,ACAHORIZ);
+            if (m_postponeLeaves) dH += leafPenalty(src,tgt);
             //qDebug() << QString("    deflection: %1").arg(dH);
             if (dH < minDeflection) {
                 minDeflection = dH;
@@ -2596,7 +2632,8 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         // Consider vertical alignment.
         if (!createsCoincidence(src,tgt,ACAVERT)) {
             double dV = deflection(src,tgt,ACAVERT);
-            if (bpp) dV += bendPointPenalty(src,tgt,ACAVERT);
+            if (m_addBendPointPenalty) dV += bendPointPenalty(src,tgt,ACAVERT);
+            if (m_postponeLeaves) dV += leafPenalty(src,tgt);
             //qDebug() << QString("    deflection: %1").arg(dV);
             if (dV < minDeflection) {
                 minDeflection = dV;
@@ -2709,6 +2746,12 @@ double ACALayout::bendPointPenalty(int src, int tgt, ACAFlags af)
         if (as & op) return penalty;
     }
     return 0;
+}
+
+double ACALayout::leafPenalty(int src, int tgt)
+{
+    double penalty = 2;
+    return leaves.contains(src) || leaves.contains(tgt) ? penalty : 0;
 }
 
 // ----------------------------------------------------------------------------

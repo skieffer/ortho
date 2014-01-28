@@ -293,6 +293,7 @@ private:
                                             // external trees they represent
     shapemap m_shapes;
     cola::CompoundConstraints m_ccs;
+    shapemap m_origShapes;
 
     Graph& copyGraph(QMap<node,node>& nodemap);
 
@@ -388,6 +389,9 @@ public:
     void readLayout(Graph G, GraphAttributes &GA);
     QMap<node,int> m_ogdfNodeIndices;
     cola::CompoundConstraints m_ccs;
+
+    void mapRectNumsToShapeIDs(shapemap origShapes);
+
 private:
     void initialLayout(void);
     void acaLoopOneByOne(void);
@@ -399,6 +403,7 @@ private:
     bool createsCoincidence(int src, int tgt, ACAFlags af);
     double deflection(int src, int tgt, ACAFlags af);
     double bendPointPenalty(int src, int tgt, ACAFlags af);
+    double leafPenalty(int src, int tgt);
     bool existsAlignment(int nd, ACAFlags af);
 
     void debugOutput(ACASeparatedAlignment *sa);
@@ -406,12 +411,17 @@ private:
     QString m_name; // for debug output
 
     bool m_preventOverlaps;
+    double idealLength;
+    bool m_addBendPointPenalty;
+    bool m_postponeLeaves;
+    bool m_useNonLeafDegree;
+    bool m_allAtOnce;
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
-    double idealLength;
     Matrix2d<int> alignmentState;
     QList<ACASeparatedAlignment*> sepAligns;
     QMap<int,int> deg2Nodes;
+    QList<int> leaves;
 };
 
 class BCLayout
