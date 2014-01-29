@@ -430,7 +430,7 @@ class BCLayout
 {
 public:
     BCLayout(Canvas *canvas);
-    void ogdfGraph(Graph& G, shapemap& nodeShapes, connmap& edgeConns);
+    void ogdfGraph(Graph& G, GraphAttributes &GA, shapemap &nodeShapes, connmap &edgeConns);
 
     static void extractSizes(shapemap& nodeShapes, GraphAttributes& GA);
     static void extractSizes(

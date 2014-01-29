@@ -599,14 +599,15 @@ ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
                            shapemap origShapes) :
     m_tapRoot(taproot),
     m_tapRootID(taprootID),
-    m_orientation(leftToRight),
-    m_origShapes(origShapes)
+    m_orientation(leftToRight)
 {
-    qDebug() << QString("X-tree with %1 nodes").arg(nodes.size());
+    //qDebug() << QString("X-tree with %1 nodes").arg(nodes.size());
+    assert(nodes.size() > 1);
     m_graph = new Graph;
     QMap<node,node> nodemap; // maps passed nodes (from H) to own nodes
     foreach (node n, nodes) { // n belongs to H
         node m = m_graph->newNode(); // m belongs to own graph
+        m_origShapes.insert(m,origShapes.value(n));
         nodemap.insert(n,m);
         m_dunnartIDs.insert(m,dunnartIDs.value(n));
         if (n==root) m_root = m;
@@ -744,18 +745,32 @@ void ExternalTree::treeLayout(void)
     tL.rootSelection(TreeLayout::rootByCoord);
     tL.orthogonalLayout(true);
     // Set GraphAttributes.
-    // For now we use a default size of 30x30 for the nodes.
     m_graphAttributes = new GraphAttributes(*m_graph);
     node n = NULL;
     forall_nodes(n,*m_graph) {
-        m_graphAttributes->width(n) = 30;
-        m_graphAttributes->height(n) = 30;
+        ShapeObj *sh = m_origShapes.value(n);
+        QSizeF size = sh->size();
+        m_graphAttributes->width(n) = size.width();
+        m_graphAttributes->height(n) = size.height();
         if (n==m_root) {
-            // Since we lay out left to right, we can make m_root
-            // be selected by the TreeLayout as the root by setting it off
-            // to the left. All other nodes will get an initial position of
-            // (0,0), and the root will get (-100,0).
-            m_graphAttributes->x(n) = -100;
+            // Place root node so that TreeLayout will select it as the
+            // root of the tree. (All other nodes get (0,0) as initial pos.)
+            QPointF p;
+            switch (m_orientation) {
+            case leftToRight:
+                p = QPointF(-100,0);
+                break;
+            case rightToLeft:
+                p = QPointF(100,0);
+                break;
+            case topToBottom:
+                p = QPointF(0,-100);
+                break;
+            case bottomToTop:
+                p = QPointF(0,100);
+            }
+            m_graphAttributes->x(n) = p.x();
+            m_graphAttributes->y(n) = p.y();
         }
     }
     // Do the layout.
@@ -2804,13 +2819,16 @@ void BCLayout::buildBFSTree(QList<Chunk *> chunks, Chunk *root, QList<node>& use
     }
 }
 
-void BCLayout::ogdfGraph(Graph& G, shapemap &nodeShapes, connmap &edgeConns)
+void BCLayout::ogdfGraph(Graph& G, GraphAttributes& GA, shapemap &nodeShapes, connmap &edgeConns)
 {
     foreach (CanvasItem *item, m_canvas->items())
     {
         if (ShapeObj *shape = isShapeForLayout(item))
         {
             node n = G.newNode();
+            QSizeF size = shape->size();
+            GA.width(n) = size.width();
+            GA.height(n) = size.height();
             nodeShapes.insert(n,shape);
 #define showIDs
 #ifdef showIDs
@@ -3109,7 +3127,8 @@ void BCLayout::orthoLayout(int method)
     //Graph *Gp = new Graph;
     //Graph G = *Gp;
     Graph G;
-    ogdfGraph(G, nodeShapes, edgeConns);
+    GraphAttributes GA = GraphAttributes(G);
+    ogdfGraph(G, GA, nodeShapes, edgeConns);
     //diag:
     /*
     node v;
@@ -3205,7 +3224,8 @@ void BCLayout::ortholayout2(void)
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;
-    ogdfGraph(G, nodeShapes, edgeConns);
+    GraphAttributes GA = GraphAttributes(G);
+    ogdfGraph(G, GA, nodeShapes, edgeConns);
 
     // 1. Compute external trees.
     QList<ExternalTree*> XX = removeExternalTrees(G, nodeShapes);
@@ -3309,7 +3329,25 @@ void BCLayout::ortholayout3(void)
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;
-    ogdfGraph(G, nodeShapes, edgeConns);
+    GraphAttributes GA(G);
+    ogdfGraph(G, GA, nodeShapes, edgeConns);
+
+    // 0. Compute average dimensions.
+    double avgHeight=0, avgWidth=0, avgDim=0;
+    node n;
+    int N = 0;
+    forall_nodes(n,G) {
+        double w = GA.width(n), h = GA.height(n);
+        avgWidth += w;
+        avgHeight += h;
+        N++;
+        if (debug) {
+            qDebug() << QString("node size: %1 x %2").arg(GA.width(n)).arg(GA.height(n));
+        }
+    }
+    avgWidth /= N;
+    avgHeight /= N;
+    avgDim = (avgWidth+avgHeight)/2;
 
     // 1. Compute external trees.
     QList<ExternalTree*> XX = removeExternalTrees(G, nodeShapes);
@@ -3455,7 +3493,7 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
     // For debugging purposes, let's keep track of the id numbers of the Dunnart ShapeObj
     // objects to which the nodes in H correspond.
     QMap<node, int> dunnartIDs; // domain is H
-    // Also a map from nodes of H to nodes of G:
+    // Also a map from nodes of H to nodes in Dunnart.
     QMap<node, ShapeObj*> origShapes;
     // For each node r of H, we will keep track of the node t in G which was its parent.
     // We imagine r as a "root" and t as a "taproot". If subsequently t gets removed from
@@ -3605,8 +3643,8 @@ void BCLayout::applyFM3()
     shapemap nodeShapes;
     connmap edgeConns;
     Graph *G = new Graph;
-    ogdfGraph(*G, nodeShapes, edgeConns);
     GraphAttributes GA(*G);
+    ogdfGraph(*G, GA, nodeShapes, edgeConns);
     extractSizes(nodeShapes, GA);
     FMMMLayout fm3;
     fm3.call(GA);
