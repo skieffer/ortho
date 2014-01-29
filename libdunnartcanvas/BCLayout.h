@@ -223,7 +223,7 @@ class BiComp : public Chunk
 {
 public:
     BiComp(void);
-    BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G);
+    BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G, shapemap origShapes);
     void setRelPt(QPointF p);
     void removeSelf(Graph& G);
     size_t size(void);
@@ -277,7 +277,7 @@ public:
     BiComp *fuse(BiComp *other);
     ShapeObj *getShapeForOriginalNode(node orig);
     void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
-    void addStubNodeForTree(ExternalTree *X);
+    void addStubNodeForTree(ExternalTree *X, QSizeF size);
     void setSizeForTree(ExternalTree *X);
     void ortholayout3(Canvas *canvas, shapemap nodeShapes);
     void postACACola(bool preventOverlaps, double idealLength,
@@ -296,6 +296,10 @@ private:
     shapemap m_shapes;
     cola::CompoundConstraints m_ccs;
     shapemap m_origShapes;
+
+    QMap<node,QSizeF> m_stubNodeSizes;
+
+    shapemap m_reallyReallyOrigShapes;
 
     Graph& copyGraph(QMap<node,node>& nodemap);
 
@@ -449,7 +453,7 @@ public:
     void applyFM3(void);
 
     QList<ExternalTree*> removeExternalTrees(Graph &G, shapemap nodeShapes);
-    QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes);
+    QList<BiComp*> getNontrivialBCs(Graph& G, QSet<node>& cutnodes, shapemap origShapes);
     QMap<node,BiComp*> makeGnodeToBCmap(QList<BiComp*> BB);
     QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     QMap<int,node> getConnComps(Graph& G);

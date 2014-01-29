@@ -1113,7 +1113,7 @@ BiComp::BiComp() :
     m_parentCutNode(NULL)
 {}
 
-BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G) :
+BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Graph& G, shapemap origShapes):
     m_graph(NULL),
     m_basept(QPointF(0,0)),
     m_relpt(QPointF(0,0)),
@@ -1124,6 +1124,7 @@ BiComp::BiComp(QList<edge>& edges, QList<node>& nodes, QList<node>& cutNodes, Gr
     foreach (node n, nodes)
     {
         node m = m_graph->newNode();
+        m_origShapes.insert(m,origShapes.value(n));
         m_nodemap.insert(m,n);
         if (cutNodes.contains(n))
         {
@@ -1232,13 +1233,20 @@ ShapeObj *BiComp::getShapeForOriginalNode(node orig)
     return sh;
 }
 
-void BiComp::addStubNodeForTree(ExternalTree *X)
+void BiComp::addStubNodeForTree(ExternalTree *X, QSizeF size)
 {
     node orig = X->taproot();
     node own = m_nodemap.key(orig);
     node stub = m_graph->newNode();
     m_graph->newEdge(own,stub);
     m_stubNodeMap.insert(stub,X);
+    // TODO: set the size. When do we create our GraphAttributes object?
+    // Do we need one? Don't we always do libcola layout on BCs? Is there any
+    // need for an OGDF representation, or should be just store a cola rep.
+    // internally?
+    // Ans: We need the OGDF representation for further processing in which
+    // we compute the InternalTrees.
+    m_stubNodeSizes.insert(stub,size);
 }
 
 void BiComp::setSizeForTree(ExternalTree *X)
@@ -1250,7 +1258,7 @@ void BiComp::setSizeForTree(ExternalTree *X)
 
 void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
 {
-    m_origShapes = nodeShapes;
+    //m_origShapes = nodeShapes;
     bool debug = true;
     QMap<node,int> nodeIndices = acaLayout();
 
@@ -1564,8 +1572,17 @@ QMap<node,int> BiComp::acaLayout(void)
     node n = NULL;
     int k = 0;
     forall_nodes(n,*m_graph) {
-        m_graphAttributes->width(n) = 30;
-        m_graphAttributes->height(n) = 30;
+        QSizeF size;
+        ShapeObj *sh = m_origShapes.value(n);
+        if (sh!=NULL) {
+            size = sh->size();
+        } else if (m_stubNodeSizes.contains(n)){
+            size = m_stubNodeSizes.value(n);
+        } else {
+            assert(false);
+        }
+        m_graphAttributes->width(n) = size.width();
+        m_graphAttributes->height(n) = size.height();
         m_graphAttributes->x(n) = 10*k*(k%4<2?1:-1);
         m_graphAttributes->y(n) = 10*k*(k%2==0?1:-1);
         k++;
@@ -2920,7 +2937,7 @@ void BCLayout::injectSizes(shapemap& nodeShapes, GraphAttributes& GA)
     }
 }
 
-QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
+QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes, shapemap origShapes)
 {
     QList<BiComp*> bicomps;
     BCTree bctree(G);
@@ -2968,19 +2985,20 @@ QList<BiComp*> BCLayout::getNontrivialBCs(Graph& G, QSet<node>& cutnodes)
         }
         QList<node> gNodeList = gNodes.toList();
         QList<node> gCutNodeList = gCutNodes.toList();
-        BiComp *bc = new BiComp(gEdges, gNodeList, gCutNodeList, G);
+        BiComp *bc = new BiComp(gEdges, gNodeList, gCutNodeList, G, origShapes);
         bicomps.append(bc);
     }
-    node vG;
     /*
       // This code is bad because it gets /all/ the cutnodes, even those
       // of trivial BCs. We don't want those, at least not in ortholayout2.
       // Not sure about ortholayout1.
+    node vG;
     forall_nodes(vG, G)
     {
         if (bctree.typeOfGNode(vG)==BCTree::CutVertex) cutnodes.insert(vG);
     }
     */
+    // Finally, compute the set of cutnodes.
     foreach (BiComp *bc, bicomps) {
         QList<node> nontrivialCutnodes = bc->getCutNodes();
         cutnodes.unite(nontrivialCutnodes.toSet());
@@ -3147,7 +3165,7 @@ void BCLayout::orthoLayout(int method)
 
     // Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
-    QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes);
+    QList<BiComp*> bicomps = getNontrivialBCs(G, cutnodes, nodeShapes);
     // Fuse BCs that share cutnodes.
     bicomps = fuseBCs(bicomps);
 
@@ -3239,7 +3257,7 @@ void BCLayout::ortholayout2(void)
 
     // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
-    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
+    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes, nodeShapes);
     // Fuse BCs that share cutnodes.
     BB = fuseBCs(BB);
     // Make a map to say which BC each BC node belongs to.
@@ -3361,10 +3379,10 @@ void BCLayout::ortholayout3(void)
 
     // 2. Get nontrivial biconnected components (size >= 3), and get the set of cutnodes in G.
     QSet<node> cutnodes;
-    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes);
+    QList<BiComp*> BB = getNontrivialBCs(G, cutnodes, nodeShapes);
     // Fuse BCs that share cutnodes.
     BB = fuseBCs(BB);
-    // Make a map to say which BC each BC node belongs to.
+    // Make a map to say to which BC each BC node belongs.
     QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
     // Debug:
     if (debug) {
@@ -3401,17 +3419,24 @@ void BCLayout::ortholayout3(void)
     // Here we diverge from ortholayout2.
 
     // Tack onto each B a "stub node" representing each of the X trees that are attached to it.
+    QSizeF stubsize = QSizeF(avgDim,avgDim);
     foreach (ExternalTree *X, XX) {
         node t = X->taproot();
         BiComp *B = origNodesToBCs.value(t);
-        B->addStubNodeForTree(X);
+        B->addStubNodeForTree(X,stubsize);
     }
 
-    // 4. Lay out each B in BB by FD+ACA.
+    // 4. Lay out each B in BB.
     foreach (BiComp *B, BB) {
-        //B->acaLayout();
         B->ortholayout3(m_canvas, nodeShapes);
     }
+
+    // 5. Finally, need to do layout of "metagraph" consisting of the
+    // chunks so far laid out, linked together by the internal trees.
+
+    // TODO...
+
+
     /*
     if (debug) {
         foreach (BiComp *B, BB) {
