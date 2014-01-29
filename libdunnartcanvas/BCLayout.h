@@ -148,6 +148,7 @@ public:
     ExternalTree(QList<node> nodes, QList<edge> edges, node root, node taproot,
                  QMap<node,int> dunnartIDs, int taprootID, shapemap origShapes);
     void treeLayout(void);
+    QRectF getBoundingBox(void);
     QSizeF getBoundingBoxSize(void);
     QPointF getBoundingBoxULC(void);
     void translate(QPointF v);

@@ -602,6 +602,7 @@ ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
     m_orientation(leftToRight),
     m_origShapes(origShapes)
 {
+    qDebug() << QString("X-tree with %1 nodes").arg(nodes.size());
     m_graph = new Graph;
     QMap<node,node> nodemap; // maps passed nodes (from H) to own nodes
     foreach (node n, nodes) { // n belongs to H
@@ -615,25 +616,6 @@ ExternalTree::ExternalTree(QList<node> nodes, QList<edge> edges, node root,
         node m2 = nodemap.value(e->target());
         m_graph->newEdge(m1,m2);
     }
-}
-
-QSizeF ExternalTree::getBoundingBoxSize(void)
-{
-    double x = DBL_MAX, X = DBL_MIN;
-    double y = DBL_MAX, Y = DBL_MIN;
-    node n = NULL;
-    forall_nodes(n,*m_graph) {
-        double w = m_graphAttributes->width(n), h = m_graphAttributes->height(n);
-        double u = m_graphAttributes->x(n) - w/2;
-        double v = m_graphAttributes->y(n) - h/2;
-        double U = u + w;
-        double V = v + h;
-        if (u<x) x = u;
-        if (U>X) X = U;
-        if (v<y) y = v;
-        if (V>Y) Y = V;
-    }
-    return QSizeF(X-x,Y-y);
 }
 
 node ExternalTree::taproot(void)
@@ -660,12 +642,15 @@ void ExternalTree::setOrientation(Orientation o)
     m_orientation = o;
 }
 
-QPointF ExternalTree::getBoundingBoxULC(void)
+QRectF ExternalTree::getBoundingBox(void)
 {
     double x = DBL_MAX, X = DBL_MIN;
     double y = DBL_MAX, Y = DBL_MIN;
     node n = NULL;
     forall_nodes(n,*m_graph) {
+        // We leave the root node out of the bounding box.
+        if (n == m_root) continue;
+        //
         double cx = m_graphAttributes->x(n);
         double cy = m_graphAttributes->y(n);
         double w = m_graphAttributes->width(n);
@@ -679,7 +664,17 @@ QPointF ExternalTree::getBoundingBoxULC(void)
         if (v<y) y = v;
         if (V>Y) Y = V;
     }
-    return QPointF(x,y);
+    return QRectF(QPointF(x,y),QPointF(X,Y));
+}
+
+QSizeF ExternalTree::getBoundingBoxSize(void)
+{
+    return getBoundingBox().size();
+}
+
+QPointF ExternalTree::getBoundingBoxULC(void)
+{
+    return getBoundingBox().topLeft();
 }
 
 void ExternalTree::translate(QPointF v)
@@ -2290,7 +2285,7 @@ void BiComp::arrangeOriginalGraph(shapemap origShapes)
 
 void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
 {
-    bool drawStubs = false;
+    bool drawStubs = true;
     canvas->stop_graph_layout();
     // Nodes
     node n = NULL;
@@ -3513,7 +3508,7 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
                 rootsToTaproots.insert(rH,t);
             }
             // Now we can delete r.
-            G.delNode(r);
+            G.delNode(r); // Removes node and all incident edges from the graph.
             // Let t bubble up in the lists by degree, since its degree just dropped.
             int n = t->degree();
             QSet<node> degNplus1 = nodesByDegree.value(n+1);
@@ -3531,9 +3526,14 @@ QList<ExternalTree*> BCLayout::removeExternalTrees(Graph &G, shapemap nodeShapes
     // So the interpretation will now be different: t will be G's copy of r, instead of
     // the node in G to which G's copy of r attaches.
     QMap<node,node> rToT;
-    foreach (node t, rootsToTaproots.values()) {
+    QSet<node> taproots = rootsToTaproots.values().toSet(); // use set since don't want duplicates
+    foreach (node t, taproots) {
         // Create a copy in H.
         node tH = H.newNode();
+        // Note ID of corresp. Dunnart shape obj.
+        ShapeObj *sh = nodeShapes.value(t);
+        dunnartIDs.insert(tH,sh->internalId());
+        origShapes.insert(tH,sh);
         // Prepare lists of the nodes and edges for the tree of which tH is the new root.
         QList<node> treeNodes;
         treeNodes.append(tH);
