@@ -38,6 +38,7 @@
 #include "libvpsc/rectangle.h"
 #include "libcola/cola.h"
 #include "libcola/compound_constraints.h"
+#include "libcola/cc_nonoverlapconstraints.h"
 
 #include "libdunnartcanvas/BCLayout.h"
 #include "libdunnartcanvas/canvas.h"
@@ -1258,9 +1259,11 @@ void BiComp::setSizeForTree(ExternalTree *X)
 
 void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
 {
-    //m_origShapes = nodeShapes;
     bool debug = true;
-    QMap<node,int> nodeIndices = acaLayout();
+
+    // Build and run ACALayout object.
+    ACALayout *aca = acaLayout();
+    QMap<node,int> nodeIndices = aca->m_ogdfNodeIndices;
 
     // DEBUG:
     /*
@@ -1306,10 +1309,22 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     */
     //
 
+    // Build EdgeNodes, and generate sep-co's between them and the stubnodes.
+    QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
+    double padding = 100;
+    cola::CompoundConstraints hSepcos =
+            generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints vSepcos =
+            generateStubEdgeSepCos(vpsc::VERTICAL, ens.values(vpsc::VERTICAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints sepcos;
+    foreach (cola::CompoundConstraint *cc, hSepcos) sepcos.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, vSepcos) sepcos.push_back(cc);
     // Run FD layout again.
     bool preventOverlaps = true;
     double idealLength = 100;
-    postACACola(preventOverlaps,idealLength, nodeIndices);
+    postACACola(preventOverlaps, idealLength, nodeIndices, sepcos);
 
     // DEBUG:
     /*
@@ -1342,6 +1357,7 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
         X->placeRootAt(QPointF(cx,cy));
     }
 
+    // Draw separate representation.
     if (debug) {
         drawAt(canvas,QPointF(1000,0),nodeShapes);
         foreach (node stub, m_stubNodeMap.keys()) {
@@ -1359,7 +1375,56 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     */
 }
 
-void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int> nodeIndices) {
+cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
+        vpsc::Dim dim, QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap)
+{
+    double pad = gap/2;
+    cola::CompoundConstraints ccs;
+    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1;
+    cola::NonOverlapConstraints *noc =
+            new cola::NonOverlapConstraints(priority);
+    QList<node> sns = m_stubNodeMap.keys();
+    int Ne = ens.size();
+    int Ns = sns.size();
+    // Variables
+    vpsc::Variables vs;
+    // Add edgenodes first.
+    for (int i = 0; i < Ne; i++) {
+        EdgeNode E = ens.at(i);
+        noc->addShape(i, E.bbox.width()/2 + pad, E.bbox.height()/2 + pad);
+        double p = dim==vpsc::HORIZONTAL ? E.bbox.center().x() : E.bbox.center().y();
+        vpsc::Variable *v = new vpsc::Variable(i,p);
+        vs.push_back(v);
+    }
+    // Add stubnodes.
+    for (int j = 0; j < Ns; j++) {
+        node s = sns.at(j);
+        double w=m_graphAttributes->width(s), h=m_graphAttributes->height(s);
+        double p=dim==vpsc::HORIZONTAL?m_graphAttributes->x(s):m_graphAttributes->y(s);
+        noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
+        vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
+        vs.push_back(v);
+    }
+    // Generate vpsc constraints.
+    vpsc::Constraints cs;
+    noc->generateSeparationConstraints(dim,vs,cs);
+    // Convert into cola constraints.
+    foreach (vpsc::Constraint *c, cs) {
+        int l = c->left->id, r = c->right->id;
+        // Convert IDs to indices assigned by original ACA layout.
+        l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l));
+        r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r));
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,gap);
+        ccs.push_back(s);
+    }
+    // Clean up
+    foreach (vpsc::Variable *v, vs) delete v;
+    return ccs;
+}
+
+void BiComp::postACACola(bool preventOverlaps, double idealLength,
+                         QMap<node,int> nodeIndices,
+                         cola::CompoundConstraints sepcos) {
     Graph G = *m_graph;
     GraphAttributes GA = *m_graphAttributes;
     vpsc::Rectangles rs;
@@ -1401,10 +1466,15 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength, QMap<node,int
         es.push_back(cola::Edge(srcIndex, tgtIndex) );
     }
 
+    // Prepare list of constraints.
+    cola::CompoundConstraints ccs;
+    foreach (cola::CompoundConstraint *cc, m_ccs) ccs.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, sepcos) ccs.push_back(cc);
+
     // Do layout.
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
-    fdlayout->setConstraints(m_ccs);
+    fdlayout->setConstraints(ccs);
 
     ACATest *test = new ACATest(1e-3,100);
     test->setLayout(fdlayout);
@@ -1565,13 +1635,13 @@ void BiComp::constructDunnartGraph(shapemap& origShapes,
     }
 }
 
-QMap<node,int> BiComp::acaLayout(void)
+ACALayout *BiComp::acaLayout(void)
 {
     m_graphAttributes = new GraphAttributes(*m_graph);
-    // For now we just use a default size of 30x30 for the nodes.
     node n = NULL;
     int k = 0;
     forall_nodes(n,*m_graph) {
+        // Set size of node.
         QSizeF size;
         ShapeObj *sh = m_origShapes.value(n);
         if (sh!=NULL) {
@@ -1579,19 +1649,24 @@ QMap<node,int> BiComp::acaLayout(void)
         } else if (m_stubNodeSizes.contains(n)){
             size = m_stubNodeSizes.value(n);
         } else {
-            assert(false);
+            // FIXME: We should never come to this case.
+            qDebug() << "BiComp has node without size.\n";
+            //assert(false);
+            m_foobar.append(n);
+            size = QSizeF(30,30);
         }
         m_graphAttributes->width(n) = size.width();
         m_graphAttributes->height(n) = size.height();
+        // For now we just use a spiral of initial positions.
         m_graphAttributes->x(n) = 10*k*(k%4<2?1:-1);
         m_graphAttributes->y(n) = 10*k*(k%2==0?1:-1);
         k++;
     }
-    ACALayout aca = ACALayout(*m_graph, *m_graphAttributes);
-    aca.run("BC");
-    aca.readLayout(*m_graph, *m_graphAttributes);
-    m_ccs = aca.m_ccs;
-    return aca.m_ogdfNodeIndices;
+    ACALayout *aca = new ACALayout(*m_graph, *m_graphAttributes);
+    aca->run("BC");
+    aca->readLayout(*m_graph, *m_graphAttributes);
+    m_ccs = aca->m_ccs;
+    return aca;
 }
 
 QPointF BiComp::getOGDFBoundingBoxULC(void)
@@ -2330,6 +2405,11 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
         sh->setCentrePos(QPointF(x,y)+base);
         sh->setSize(QSizeF(w,h));
         QColor col = m_stubNodeMap.contains(n) ? QColor(0,192,0) : QColor(0,192,255);
+
+        // FIXME: remove after problem is solved.
+        if (m_foobar.contains(n)) col = QColor(200,0,0);
+        //
+
         //sh->setFillColour(QColor(0,192,255));
         sh->setFillColour(col);
         // Set numerical ID label
@@ -2642,11 +2722,37 @@ void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
     }
 }
 
+QMap<vpsc::Dim, EdgeNode> ACALayout::generateEdgeNodes(void)
+{
+    QMap<vpsc::Dim,EdgeNode> ens;
+    int N = rs.size();
+    for (int i = 0; i < N; i++) {
+        for (int j = i+1; j < N; j++) {
+            int as = alignmentState(i,j);
+            if (as & (ACAHORIZ | ACAVERT) ) {
+                vpsc::Rectangle *ri = rs.at(i);
+                vpsc::Rectangle *rj = rs.at(j);
+                double xi = ri->getMinX(), Xi = ri->getMaxX();
+                double yi = ri->getMinY(), Yi = ri->getMaxY();
+                double xj = rj->getMinX(), Xj = rj->getMaxX();
+                double yj = rj->getMinY(), Yj = rj->getMaxY();
+                QRectF Ri(QPointF(xi,yi),QPointF(Xi,Yi));
+                QRectF Rj(QPointF(xj,yj),QPointF(Xj,Yj));
+                EdgeNode E(Ri,Rj);
+                E.setIndices(i,j);
+                E.dim = as & ACAHORIZ ? vpsc::VERTICAL : vpsc::HORIZONTAL;
+                ens.insertMulti(E.dim,E);
+            }
+        }
+    }
+    return ens;
+}
+
 ACASeparatedAlignment *ACALayout::chooseSA(void)
 {
     ACASeparatedAlignment *sa = NULL;
     double minDeflection = 10.0;
-    // Consisder each edge for potential alignment.
+    // Consider each edge for potential alignment.
     foreach (cola::Edge e, es) {
         int src = e.first, tgt = e.second;
         // If already aligned, skip this edge.

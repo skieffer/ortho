@@ -79,6 +79,8 @@ struct DunnartConstraint {
     double minSep;
 };
 
+class ACALayout;
+
 class Chunk {
 public:
     virtual void setRelPt(QPointF p) = 0;
@@ -219,6 +221,28 @@ private:
     QMap<node,ExternalTree*> m_externNodemap;
 };
 
+struct EdgeNode {
+    EdgeNode(QRectF src, QRectF tgt)
+        : srcRect(src),
+          tgtRect(tgt)
+    {
+        bbox = srcRect.united(tgtRect);
+    }
+    void setIndices(int si, int ti) {
+        srcIndex = si;
+        tgtIndex = ti;
+    }
+    // 'dim' is the dimension in which constraints should be
+    // generated, thus, perpendicular to the orientation of
+    // the edge.
+    vpsc::Dim dim;
+    int srcIndex;
+    int tgtIndex;
+    QRectF srcRect;
+    QRectF tgtRect;
+    QRectF bbox;
+};
+
 class BiComp : public Chunk
 {
 public:
@@ -246,7 +270,7 @@ public:
     // -----------
 
     // For ACA layout performed by separate ACALayout object -- preferred method
-    QMap<node,int> acaLayout(void);
+    ACALayout *acaLayout(void);
     // FIXME: the following two methods should just draw on a single
     // computation of the bounding box.
     QPointF getOGDFBoundingBoxULC(void);
@@ -281,8 +305,10 @@ public:
     void setSizeForTree(ExternalTree *X);
     void ortholayout3(Canvas *canvas, shapemap nodeShapes);
     void postACACola(bool preventOverlaps, double idealLength,
-                     QMap<node,int> nodeIndices);
+                     QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
     void arrangeOriginalGraph(shapemap origShapes);
+    cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim, QList<EdgeNode> ens,
+                                             QMap<node,int> nodeIndices, double gap);
 
 private:
     Graph *m_graph;
@@ -299,7 +325,8 @@ private:
 
     QMap<node,QSizeF> m_stubNodeSizes;
 
-    shapemap m_reallyReallyOrigShapes;
+    QList<node> m_foobar; // temporary list for nodes not getting sizes by the time
+                          // we call acaLayout -- FIXME
 
     Graph& copyGraph(QMap<node,node>& nodemap);
 
@@ -397,6 +424,8 @@ public:
     cola::CompoundConstraints m_ccs;
 
     void mapRectNumsToShapeIDs(shapemap origShapes);
+
+    QMap<vpsc::Dim,EdgeNode> generateEdgeNodes(void);
 
 private:
     void initialLayout(void);
