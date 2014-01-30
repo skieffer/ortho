@@ -1321,8 +1321,19 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     cola::CompoundConstraints sepcos;
     foreach (cola::CompoundConstraint *cc, hSepcos) sepcos.push_back(cc);
     foreach (cola::CompoundConstraint *cc, vSepcos) sepcos.push_back(cc);
+
+    if (debug) {
+        foreach (cola::CompoundConstraint *cc, sepcos) {
+            cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
+            int l = sc->left(), r = sc->right();
+            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
+            ShapeObj *sl = nodeShapes.value(nl), *sr = nodeShapes.value(nr);
+            qDebug() << QString("sepco %1 less than %2 by %3").arg(sl->internalId()).arg(sr->internalId()).arg(sc->gap);
+        }
+    }
+
     // Run FD layout again.
-    bool preventOverlaps = true;
+    bool preventOverlaps = false;
     double idealLength = 100;
     postACACola(preventOverlaps, idealLength, nodeIndices, sepcos);
 
@@ -1386,8 +1397,9 @@ cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
     QList<node> sns = m_stubNodeMap.keys();
     int Ne = ens.size();
     int Ns = sns.size();
-    // Variables
+    // Variables and Rectangles.
     vpsc::Variables vs;
+    vpsc::Rectangles rs;
     // Add edgenodes first.
     for (int i = 0; i < Ne; i++) {
         EdgeNode E = ens.at(i);
@@ -1395,30 +1407,35 @@ cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
         double p = dim==vpsc::HORIZONTAL ? E.bbox.center().x() : E.bbox.center().y();
         vpsc::Variable *v = new vpsc::Variable(i,p);
         vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(E.bbox.left(),E.bbox.right(),E.bbox.top(),E.bbox.bottom());
+        rs.push_back(r);
     }
     // Add stubnodes.
     for (int j = 0; j < Ns; j++) {
         node s = sns.at(j);
         double w=m_graphAttributes->width(s), h=m_graphAttributes->height(s);
-        double p=dim==vpsc::HORIZONTAL?m_graphAttributes->x(s):m_graphAttributes->y(s);
+        double cx=m_graphAttributes->x(s), cy=m_graphAttributes->y(s);
+        double p = dim == vpsc::HORIZONTAL ? cx : cy;
         noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
         vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
         vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2,cx+w/2,cy-h/2,cy+h/2);
+        rs.push_back(r);
     }
     // Generate vpsc constraints.
     vpsc::Constraints cs;
-    noc->generateSeparationConstraints(dim,vs,cs);
+    noc->generateSeparationConstraints(dim,vs,cs,rs);
     // Convert into cola constraints.
     foreach (vpsc::Constraint *c, cs) {
         int l = c->left->id, r = c->right->id;
         // Convert IDs to indices assigned by original ACA layout.
-        l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l));
-        r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r));
+        l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l-Ne));
+        r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r-Ne));
         cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,gap);
         ccs.push_back(s);
     }
     // Clean up
-    foreach (vpsc::Variable *v, vs) delete v;
+    //foreach (vpsc::Variable *v, vs) delete v;
     return ccs;
 }
 
@@ -1661,6 +1678,29 @@ ACALayout *BiComp::acaLayout(void)
         m_graphAttributes->x(n) = 10*k*(k%4<2?1:-1);
         m_graphAttributes->y(n) = 10*k*(k%2==0?1:-1);
         k++;
+
+        //DEBUG:
+        /*
+        int w = round(size.width());
+        int x = 0, y = 0;
+        switch(w) {
+        case 10:
+            x=-100; y=-100; break;
+        case 20:
+            x=-100; y=100; break;
+        case 35:
+            x=0; y=100; break;
+        case 40:
+            x=100; y=100; break;
+        case 50:
+            x=100; y=-100; break;
+        }
+        m_graphAttributes->x(n) = x;
+        m_graphAttributes->y(n) = y;
+        */
+        //-----
+
+
     }
     ACALayout *aca = new ACALayout(*m_graph, *m_graphAttributes);
     aca->run("BC");
@@ -2557,13 +2597,15 @@ void ACALayout::initialLayout(void) {
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ACATest *test = new ACATest(1e-3,100);
+    test->minIterations = 50;
     test->setLayout(fdlayout);
     test->name = m_name+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
     delete fdlayout;
 
-    //return;
+    bool justFirst = true;
+    if (justFirst) return;
 
     // Do another FD layout this time with
     //overlap prevention, and shorter ideal edge length.
@@ -2583,6 +2625,8 @@ void ACALayout::initialLayout(void) {
 }
 
 void ACALayout::acaLoopOneByOne(void) {
+    //double iL = idealLength;
+    double iL = 300;
     QString name = m_name;
     // Prepare the alignment state matrix.
     initAlignmentState();
@@ -2599,7 +2643,7 @@ void ACALayout::acaLoopOneByOne(void) {
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
         //if (fdlayout!=NULL) delete fdlayout;
-        fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
         ACATest *test = new ACATest(1e-3,3);
         test->setLayout(fdlayout);
         test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
@@ -2617,6 +2661,8 @@ void ACALayout::acaLoopOneByOne(void) {
 }
 
 void ACALayout::acaLoopAllAtOnce(void) {
+    //double iL = idealLength;
+    double iL = 300;
     QString name = m_name;
     // Prepare the alignment state matrix.
     initAlignmentState();
@@ -2637,7 +2683,7 @@ void ACALayout::acaLoopAllAtOnce(void) {
         sa = chooseSA();
     }
     // Do the layout with the new constraints.
-    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ACATest *test = new ACATest(1e-3,3);
     test->setLayout(fdlayout);
     test->name = name+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
@@ -2727,9 +2773,11 @@ QMap<vpsc::Dim, EdgeNode> ACALayout::generateEdgeNodes(void)
     QMap<vpsc::Dim,EdgeNode> ens;
     int N = rs.size();
     for (int i = 0; i < N; i++) {
+        if (leaves.contains(i)) continue;
         for (int j = i+1; j < N; j++) {
+            if (leaves.contains(j)) continue;
             int as = alignmentState(i,j);
-            if (as & (ACAHORIZ | ACAVERT) ) {
+            if ( (as & ACACONN) && (as & (ACAHORIZ | ACAVERT)) ) {
                 vpsc::Rectangle *ri = rs.at(i);
                 vpsc::Rectangle *rj = rs.at(j);
                 double xi = ri->getMinX(), Xi = ri->getMaxX();
