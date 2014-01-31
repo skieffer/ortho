@@ -50,10 +50,11 @@ class Canvas;
 class ShapeObj;
 class Connector;
 
-/*
+
 typedef QMap<node, ShapeObj *> shapemap;
 typedef QMap<edge, Connector *> connmap;
 
+/*
 class BiComp;
 typedef QList<BiComp*> bclist;
 
@@ -82,8 +83,11 @@ struct DunnartConstraint {
 class Orthowontist {
 public:
     Orthowontist(Canvas *canvas);
-    void run1(void);
+    void run1(QList<CanvasItem*> items);
 private:
+    void buildOGDFGraph(CanvasItemsList items,
+            Graph& G, GraphAttributes& GA, shapemap &nodeShapes, connmap &edgeConns);
+
     Canvas *m_canvas;
 };
 

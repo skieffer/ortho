@@ -86,12 +86,25 @@ namespace dunnart {
 Orthowontist::Orthowontist(Canvas *canvas) :
     m_canvas(canvas)
 {
-    qDebug() << "bar";
 }
 
-void Orthowontist::run1(void)
+void Orthowontist::run1(QList<CanvasItem*> items)
 {
-    qDebug() << "spam";
+    bool debug = true;
+    shapemap nodeShapes;
+    connmap edgeConns;
+    Graph G;
+    GraphAttributes GA(G);
+    buildOGDFGraph(items,G,GA,nodeShapes,edgeConns);
+
+    //...
+
+}
+
+void Orthowontist::buildOGDFGraph(CanvasItemsList items,
+        Graph &G, GraphAttributes &GA, shapemap &nodeShapes, connmap &edgeConns)
+{
+    // ...
 }
 
 
