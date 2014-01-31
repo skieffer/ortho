@@ -300,7 +300,7 @@ public:
     void dfs(QMap<node,BiComp*> endpts, QList<BiComp*> &elements);
     BiComp *fuse(BiComp *other);
     ShapeObj *getShapeForOriginalNode(node orig);
-    void drawAt(Canvas *canvas, QPointF base, shapemap origShapes);
+    void drawAt(Canvas *canvas, QPointF base, shapemap origShapes, QMap<node, int> nodeIndices);
     void addStubNodeForTree(ExternalTree *X, QSizeF size);
     void setSizeForTree(ExternalTree *X);
     void ortholayout3(Canvas *canvas, shapemap nodeShapes);
@@ -413,7 +413,7 @@ class ACALayout
 {
 public:
     ACALayout(Canvas *canvas, bool selection = false);
-    ACALayout(Graph G, GraphAttributes GA);
+    ACALayout(Graph &G, GraphAttributes &GA);
     ACALayout(QList<ShapeObj*> shapes, QList<Connector*> connectors);
     void setIdealLength(double il);
     void setPreventOverlaps(bool b);

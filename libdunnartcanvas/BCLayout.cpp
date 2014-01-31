@@ -715,7 +715,7 @@ void ExternalTree::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
     forall_nodes(n,*m_graph) {
         double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
         double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
-        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
+        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rect");
         sh->setCentrePos(QPointF(x,y)+base);
         sh->setSize(QSizeF(w,h));
         QColor col = QColor(192,192,0);
@@ -1266,6 +1266,12 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     QMap<node,int> nodeIndices = aca->m_ogdfNodeIndices;
 
     // DEBUG:
+    node foo;
+    forall_nodes(foo,*m_graph) {
+        qDebug() << QString("%1").arg(nodeIndices.value(foo));
+    }
+
+    // DEBUG:
     /*
     node n;
     forall_nodes(n, *m_graph) {
@@ -1325,16 +1331,37 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
     if (debug) {
         foreach (cola::CompoundConstraint *cc, sepcos) {
             cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
+            QList<QString> names;
             int l = sc->left(), r = sc->right();
+
+            names.append(QString("%1").arg(l));
+            names.append(QString("%1").arg(r));
+           /*
             node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
-            ShapeObj *sl = nodeShapes.value(nl), *sr = nodeShapes.value(nr);
-            qDebug() << QString("sepco %1 less than %2 by %3").arg(sl->internalId()).arg(sr->internalId()).arg(sc->gap);
+            QList<node> nodes;
+            nodes.push_back(nl); nodes.push_back(nr);
+            foreach (node n, nodes) {
+                if (m_stubNodeMap.contains(n)) {
+                    names.append(QString("stub"));
+                } else {
+                    ShapeObj *sh = nodeShapes.value(n);
+                    names.append((QString("%1").arg(sh->internalId())));
+                }
+            }
+            */
+
+            QString rel = sc->dimension() == vpsc::HORIZONTAL ? "left of" : "above";
+            qDebug() << QString("sepco %1 %2 %3 by %4")
+                        .arg(names.at(0))
+                        .arg(rel)
+                        .arg(names.at(1))
+                        .arg(sc->gap);
         }
     }
 
     // Run FD layout again.
     bool preventOverlaps = false;
-    double idealLength = 100;
+    double idealLength = 300;
     postACACola(preventOverlaps, idealLength, nodeIndices, sepcos);
 
     // DEBUG:
@@ -1370,7 +1397,7 @@ void BiComp::ortholayout3(Canvas *canvas, shapemap nodeShapes)
 
     // Draw separate representation.
     if (debug) {
-        drawAt(canvas,QPointF(1000,0),nodeShapes);
+        drawAt(canvas,QPointF(1000,0),nodeShapes,nodeIndices);
         foreach (node stub, m_stubNodeMap.keys()) {
             ExternalTree *X = m_stubNodeMap.value(stub);
             X->drawAt(canvas,QPointF(1000,0),nodeShapes);
@@ -1428,6 +1455,8 @@ cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
     // Convert into cola constraints.
     foreach (vpsc::Constraint *c, cs) {
         int l = c->left->id, r = c->right->id;
+        // Reject constraints that hold between two edgenodes or two stubnodes.
+        if ( (l < Ne && r < Ne) || (l >= Ne && r >= Ne) ) continue;
         // Convert IDs to indices assigned by original ACA layout.
         l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l-Ne));
         r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r-Ne));
@@ -2430,7 +2459,8 @@ void BiComp::arrangeOriginalGraph(shapemap origShapes)
     }
 }
 
-void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
+void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes,
+                    QMap<node,int> nodeIndices)
 {
     bool drawStubs = true;
     canvas->stop_graph_layout();
@@ -2441,7 +2471,11 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
         //if (m_stubNodeMap.contains(n) && !drawStubs) continue;
         double x=m_graphAttributes->x(n), y=m_graphAttributes->y(n);
         double w=m_graphAttributes->width(n), h=m_graphAttributes->height(n);
-        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rectangle");
+
+        qDebug() << QString("%1 %2 %3 %4")
+                    .arg(x).arg(y).arg(w).arg(h);
+
+        ShapeObj *sh = factory->createShape("org.dunnart.shapes.rect");
         sh->setCentrePos(QPointF(x,y)+base);
         sh->setSize(QSizeF(w,h));
         QColor col = m_stubNodeMap.contains(n) ? QColor(0,192,0) : QColor(0,192,255);
@@ -2453,10 +2487,16 @@ void BiComp::drawAt(Canvas *canvas, QPointF base, shapemap origShapes)
         //sh->setFillColour(QColor(0,192,255));
         sh->setFillColour(col);
         // Set numerical ID label
+
+        sh->setLabel(QString::number(nodeIndices.value(n)));
+
+        /*
         if (origShapes.contains(m_nodemap.value(n))) {
             int id = origShapes.value(m_nodemap.value(n))->internalId();
             sh->setLabel(QString::number(id));
         }
+        */
+
         m_shapes.insert(n,sh);
         if (m_stubNodeMap.contains(n) && !drawStubs) continue;
         canvas->addItem(sh);
@@ -2505,7 +2545,7 @@ ACALayout::ACALayout(QList<ShapeObj *> shapes, QList<Connector *> connectors)
 
 /** Build an ACA layout object for the passed OGDF graph.
   */
-ACALayout::ACALayout(Graph G, GraphAttributes GA) :
+ACALayout::ACALayout(Graph &G, GraphAttributes &GA) :
     m_preventOverlaps(false),
     idealLength(100),
     m_addBendPointPenalty(true),
@@ -3474,8 +3514,9 @@ void BCLayout::ortholayout2(void)
     M->plugInBiComps();
     // Debug:
     if (debug) {
+        QMap<node,int> foo;
         foreach (BiComp *B, BB) {
-            B->drawAt(m_canvas,QPointF(1000,0),nodeShapes);
+            B->drawAt(m_canvas,QPointF(1000,0),nodeShapes,foo);
         }
     }
 
