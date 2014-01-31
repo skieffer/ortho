@@ -379,6 +379,7 @@ class Canvas : public QGraphicsScene
         void BCWithPlanarizationGrid(void);
         void BCOther(void);
         void orthoLayout2(void);
+        void orthowontist(void);
 
         void customEvent(QEvent *event);
         void setOptIdealEdgeLengthModifierFromSlider(int int_modifier);

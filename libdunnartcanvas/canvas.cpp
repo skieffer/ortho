@@ -49,6 +49,7 @@
 #include "libdunnartcanvas/ui/createtemplate.h"
 
 #include "libdunnartcanvas/BCLayout.h"
+#include "libdunnartcanvas/orthowontist.h"
 
 #include "libavoid/libavoid.h"
 #include "libtopology/orthogonal_topology.h"
@@ -5710,6 +5711,12 @@ void Canvas::orthoLayout2()
 {
     // Switching to ortholayout3 instead.
     m_bclayout->ortholayout3();
+}
+
+void Canvas::orthowontist(void)
+{
+    Orthowontist ow(this);
+    ow.run1();
 }
 
 }

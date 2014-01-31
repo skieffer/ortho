@@ -163,6 +163,7 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
     m_action_BCOther = new QAction("other",this);
 
     m_action_orthoLayout2 = new QAction("Ortho Layout 2",this);
+    m_action_orthowontist = new QAction("Orthowontist",this);
 
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);
@@ -357,6 +358,9 @@ void CanvasTabWidget::currentChanged(int index)
 
     m_action_orthoLayout2->disconnect();
     connect(m_action_orthoLayout2, SIGNAL(triggered()), m_canvas, SLOT(orthoLayout2()));
+
+    m_action_orthowontist->disconnect();
+    connect(m_action_orthowontist, SIGNAL(triggered()), m_canvas, SLOT(orthowontist()));
 
     m_action_lock->disconnect();
     connect(m_action_lock, SIGNAL(triggered()),
@@ -604,6 +608,7 @@ void CanvasTabWidget::addLayoutMenuActions(QMenu *layout_menu)
     BCOrthoLayoutMenu->addAction(m_action_BCWithPlanarizationGrid);
     BCOrthoLayoutMenu->addAction(m_action_BCOther);
     layout_menu->addAction(m_action_orthoLayout2);
+    layout_menu->addAction(m_action_orthowontist);
 }
 
 

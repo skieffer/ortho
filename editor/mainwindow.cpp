@@ -267,7 +267,7 @@ MainWindow::MainWindow(Application *app)
 
     m_layout_menu = menuBar()->addMenu("Layout");
     m_tab_widget->addLayoutMenuActions(m_layout_menu);
-    m_layout_menu->addAction(m_action_auto_align_selection);
+    //m_layout_menu->addAction(m_action_auto_align_selection);
     
     m_edit_toolbar = addToolBar(tr("Edit toolbar"));
     m_edit_toolbar->setIconSize(QSize(24, 24));

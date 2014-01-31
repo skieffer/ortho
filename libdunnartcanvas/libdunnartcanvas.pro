@@ -93,7 +93,8 @@ SOURCES += \
     connectionpininfo.cpp \
     canvasapplication.cpp \
     pluginapplicationmanager.cpp \
-    ui/canvasoverview.cpp
+    ui/canvasoverview.cpp \
+    orthowontist.cpp
 
 HEADERS += \
         align3.h \
@@ -152,7 +153,8 @@ HEADERS += \
     applicationplugininterface.h \
     canvasapplication.h \
     pluginapplicationmanager.h \
-    ui/canvasoverview.h
+    ui/canvasoverview.h \
+    orthowontist.h
 
 
 displaygithash {
