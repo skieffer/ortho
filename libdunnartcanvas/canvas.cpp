@@ -5715,7 +5715,7 @@ void Canvas::orthoLayout2()
 
 void Canvas::orthowontist(void)
 {
-    Orthowontist ow(this);
+    ow::Orthowontist ow(this);
     CanvasItemsList L = items();
     ow.run1(L);
 }

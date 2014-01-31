@@ -39,22 +39,24 @@
 //#include "libdunnartcanvas/BCLayout.h"
 
 using namespace ogdf;
+using namespace dunnart;
+
+namespace dunnart {
+class Canvas;
+class ShapeObj;
+class Connector;
+}
 
 namespace ogdf {
 class GraphAttributes;
 }
 
-namespace dunnart {
-
-class Canvas;
-class ShapeObj;
-class Connector;
-
+namespace ow {
 
 typedef QMap<node, ShapeObj *> shapemap;
 typedef QMap<edge, Connector *> connmap;
 
-/*
+
 class BiComp;
 typedef QList<BiComp*> bclist;
 
@@ -78,7 +80,38 @@ struct DunnartConstraint {
     QList<CanvasItem*> items;
     double minSep;
 };
-*/
+
+class ExternalTree {
+public:
+    ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
+                 shapemap nodeShapes, connmap edgeConns);
+    QString listNodes(void);
+private:
+    Graph *m_graph;
+    GraphAttributes *m_ga;
+    node m_root;
+    node m_rootInG;
+    shapemap m_dunnartShapes;
+    connmap m_dunnartConns;
+};
+
+class BiComp {
+public:
+    BiComp(void);
+    BiComp(QList<node> nodes, QList<edge> edges, QList<node> cutnodes,
+           shapemap nodeShapes, connmap edgeConns);
+    QList<node> cutnodes(void);
+    QString listNodes(void);
+    ShapeObj *getShape(node m);
+    void dfs(QMap<ShapeObj *, BiComp *> endpts, QList<BiComp *> &elements);
+    BiComp *fuse(BiComp *other);
+private:
+    Graph *m_graph;
+    GraphAttributes *m_ga;
+    QList<node> m_cutnodes;
+    shapemap m_dunnartShapes;
+    connmap m_dunnartConns;
+};
 
 class Orthowontist {
 public:
@@ -87,7 +120,11 @@ public:
 private:
     void buildOGDFGraph(CanvasItemsList items,
             Graph& G, GraphAttributes& GA, shapemap &nodeShapes, connmap &edgeConns);
-
+    void removeExternalTrees(QList<ExternalTree*> &EE, Graph &G,
+                             shapemap &nodeShapes, connmap &edgeConns);
+    void buildNBCs(QList<BiComp*> &BB, QSet<node> &cutnodes, Graph &G,
+                             shapemap &nodeShapes, connmap &edgeConns);
+    QList<BiComp*> fuseBCs(QList<BiComp*> bicomps);
     Canvas *m_canvas;
 };
 
