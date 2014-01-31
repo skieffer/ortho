@@ -141,6 +141,10 @@ ShapeObj *BiComp::getShape(node m) {
     return m_dunnartShapes.value(m);
 }
 
+QList<ShapeObj*> BiComp::allShapes(void) {
+    return m_dunnartShapes.values();
+}
+
 /* Perform depth-first search through the network whose nodes are the
  * BiComps and whose hyperedges are the cutnodes.
  *
@@ -258,6 +262,22 @@ BiComp *BiComp::fuse(BiComp *other)
     return fusion;
 }
 
+void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
+    ShapeObj *Eshape = E->rootShape();
+    node ownNode = m_dunnartShapes.key(Eshape);
+    node stub = m_graph->newNode();
+    m_ga->width(stub) = size.width();
+    m_ga->height(stub) = size.height();
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    ShapeObj *stubShape = factory->createShape("org.dunnart.shapes.rect");
+    double d = (size.width()+size.height())/2;
+    stubShape->setSize(size);
+    // Set size and position. For pos, use random vector from Eshape.
+    // ...
+    // Create a ShapeObj for the stub node now, and insert pair into
+    // m_dunnartShapes. Do not add to canvas until later though.
+}
+
 // ------------------------------------------------------------------
 // ExternalTree -----------------------------------------------------
 
@@ -311,6 +331,10 @@ void ExternalTree::colourShapes(void) {
     }
 }
 
+ShapeObj *ExternalTree::rootShape(void) {
+    return m_dunnartShapes.value(m_root);
+}
+
 
 // ------------------------------------------------------------------
 // Orthowontist -----------------------------------------------------
@@ -362,8 +386,6 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     buildNBCs(BB, cutnodes, G, nodeShapes, edgeConns);
     // Fuse BCs that share cutnodes.
     BB = fuseBCs(BB);
-    // Make a map to say to which BC each BC node belongs.
-    // TODO: QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
     // Debug:
     if (debug) {
         qDebug() << "\nCompound nontrivial biconnected components:";
@@ -374,6 +396,28 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         foreach (ExternalTree *E, EE) {
             E->colourShapes();
         }
+    }
+
+    // 3. Compute internal trees...
+
+    // Make a map to say to which BC each BC shape belongs.
+    QMap<ShapeObj*,BiComp*> shapesToBCs;
+    foreach (BiComp *B, BB) {
+        QList<ShapeObj*> shapes = B->allShapes();
+        foreach (ShapeObj *sh, shapes) {
+            shapesToBCs.insert(sh,B);
+        }
+    }
+
+    // ...
+
+    // Tack onto each B a "stub node" representing each of
+    // the external trees that are attached to it.
+    QSizeF stubsize = QSizeF(avgDim,avgDim);
+    foreach (ExternalTree *E, EE) {
+        ShapeObj *sh = E->rootShape();
+        BiComp *B = shapesToBCs.value(sh);
+        B->addStubNodeForTree(E,stubsize);
     }
 
 }

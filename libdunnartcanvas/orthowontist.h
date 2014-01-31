@@ -87,6 +87,7 @@ public:
                  shapemap nodeShapes, connmap edgeConns);
     QString listNodes(void);
     void colourShapes(void);
+    ShapeObj *rootShape(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -105,8 +106,10 @@ public:
     QString listNodes(void);
     void colourShapes(void);
     ShapeObj *getShape(node m);
+    QList<ShapeObj*> allShapes(void);
     void dfs(QMap<ShapeObj *, BiComp *> endpts, QList<BiComp *> &elements);
     BiComp *fuse(BiComp *other);
+    void addStubNodeForTree(ExternalTree *E, QSizeF size);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
