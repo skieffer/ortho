@@ -86,6 +86,7 @@ public:
     ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                  shapemap nodeShapes, connmap edgeConns);
     QString listNodes(void);
+    void colourShapes(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -102,6 +103,7 @@ public:
            shapemap nodeShapes, connmap edgeConns);
     QList<node> cutnodes(void);
     QString listNodes(void);
+    void colourShapes(void);
     ShapeObj *getShape(node m);
     void dfs(QMap<ShapeObj *, BiComp *> endpts, QList<BiComp *> &elements);
     BiComp *fuse(BiComp *other);

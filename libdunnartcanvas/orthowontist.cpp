@@ -129,6 +129,18 @@ QString BiComp::listNodes(void) {
     return s;
 }
 
+void BiComp::colourShapes(void) {
+    foreach (node m, m_dunnartShapes.keys()) {
+        ShapeObj *sh = m_dunnartShapes.value(m);
+        QColor col = m_cutnodes.contains(m) ? QColor(0,192,0) : QColor(0,192,255);
+        sh->setFillColour(col);
+    }
+}
+
+ShapeObj *BiComp::getShape(node m) {
+    return m_dunnartShapes.value(m);
+}
+
 /* Perform depth-first search through the network whose nodes are the
  * BiComps and whose hyperedges are the cutnodes.
  *
@@ -291,6 +303,14 @@ QString ExternalTree::listNodes(void) {
     return s;
 }
 
+void ExternalTree::colourShapes(void) {
+    foreach (node m, m_dunnartShapes.keys()) {
+        ShapeObj *sh = m_dunnartShapes.value(m);
+        QColor col = m==m_root ? QColor(255,192,0) : QColor(192,192,0);
+        sh->setFillColour(col);
+    }
+}
+
 
 // ------------------------------------------------------------------
 // Orthowontist -----------------------------------------------------
@@ -341,7 +361,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     QSet<node> cutnodes;
     buildNBCs(BB, cutnodes, G, nodeShapes, edgeConns);
     // Fuse BCs that share cutnodes.
-    // TODO: BB = fuseBCs(BB);
+    BB = fuseBCs(BB);
     // Make a map to say to which BC each BC node belongs.
     // TODO: QMap<node,BiComp*> origNodesToBCs = makeGnodeToBCmap(BB);
     // Debug:
@@ -349,6 +369,10 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         qDebug() << "\nCompound nontrivial biconnected components:";
         foreach (BiComp *B, BB) {
             qDebug() << B->listNodes();
+            B->colourShapes();
+        }
+        foreach (ExternalTree *E, EE) {
+            E->colourShapes();
         }
     }
 
