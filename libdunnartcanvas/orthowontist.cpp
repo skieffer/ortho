@@ -97,6 +97,23 @@ void Orthowontist::run1(QList<CanvasItem*> items)
     GraphAttributes GA(G);
     buildOGDFGraph(items,G,GA,nodeShapes,edgeConns);
 
+    // 0. Compute average dimensions.
+    double avgHeight=0, avgWidth=0, avgDim=0;
+    node n;
+    int N = 0;
+    forall_nodes(n,G) {
+        double w = GA.width(n), h = GA.height(n);
+        avgWidth += w;
+        avgHeight += h;
+        N++;
+        if (debug) {
+            qDebug() << QString("node size: %1 x %2").arg(GA.width(n)).arg(GA.height(n));
+        }
+    }
+    avgWidth /= N;
+    avgHeight /= N;
+    avgDim = (avgWidth+avgHeight)/2;
+
     //...
 
 }
@@ -104,7 +121,34 @@ void Orthowontist::run1(QList<CanvasItem*> items)
 void Orthowontist::buildOGDFGraph(CanvasItemsList items,
         Graph &G, GraphAttributes &GA, shapemap &nodeShapes, connmap &edgeConns)
 {
-    // ...
+    foreach (CanvasItem *item, items)
+    {
+        if (ShapeObj *shape = isShapeForLayout(item))
+        {
+            node n = G.newNode();
+            QSizeF size = shape->size();
+            GA.width(n) = size.width();
+            GA.height(n) = size.height();
+            nodeShapes.insert(n,shape);
+            // Show IDs?
+            bool showIDs = true;
+            if (showIDs) {
+                QString label = QString("%1").arg(shape->internalId());
+                shape->setLabel(label);
+            }
+        }
+    }
+    foreach (CanvasItem *item, m_canvas->items())
+    {
+        if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
+            node u = nodeShapes.key(endpts.first);
+            node v = nodeShapes.key(endpts.second);
+            edge e = G.newEdge(u,v);
+            edgeConns.insert(e,conn);
+        }
+    }
 }
 
 
