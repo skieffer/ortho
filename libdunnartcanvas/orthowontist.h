@@ -99,6 +99,28 @@ struct ACASeparatedAlignment {
     ShapeObj *shape2;
 };
 
+struct EdgeNode {
+    EdgeNode(QRectF src, QRectF tgt)
+        : srcRect(src),
+          tgtRect(tgt)
+    {
+        bbox = srcRect.united(tgtRect);
+    }
+    void setIndices(int si, int ti) {
+        srcIndex = si;
+        tgtIndex = ti;
+    }
+    // If e.g. it is a vertical edge, then 'orientation' is VERTICAL,
+    // while 'constraintDimension' is HORIZONTAL.
+    vpsc::Dim orientation;
+    vpsc::Dim constraintDimension;
+    int srcIndex;
+    int tgtIndex;
+    QRectF srcRect;
+    QRectF tgtRect;
+    QRectF bbox;
+};
+
 class ExternalTree {
 public:
     ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
@@ -136,6 +158,8 @@ public:
     void layout(void);
     void updateShapePositions(void);
     void addStubNodeShapesToCanvas(Canvas *canvas);
+    cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim,
+        QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -196,6 +220,7 @@ public:
     void debugName(QString s) { m_debugName = s; }
     void run(void);
     void readPositions(Graph &G, GraphAttributes &GA);
+    QMap<vpsc::Dim,EdgeNode> generateEdgeNodes(void);
 private:
     void initialPositions(void);
     void moveCoincidentNodes(void);

@@ -281,6 +281,7 @@ void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     ShapeObj *stubShape = factory->createShape("org.dunnart.shapes.rect");
     stubShape->setFillColour(QColor(0,192,0));
+    stubShape->setLabel(QString::number(stubShape->internalId()));
     // Map the stub node to the shape.
     m_dunnartShapes.insert(stub,stubShape);
     // Map stub to tree.
@@ -308,6 +309,7 @@ void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
 }
 
 void BiComp::layout(void) {
+    bool debug = true;
 
     // 1. Build and run ACA Layout.
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
@@ -340,8 +342,59 @@ void BiComp::layout(void) {
         stubShape->setSize(size);
     }
 
-    // 3.
-    // ...
+    // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
+    QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
+    QMap<node,int> nodeIndices = aca->nodeIndices();
+    double padding = 100;
+    cola::CompoundConstraints hSepcos =
+            generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints vSepcos =
+            generateStubEdgeSepCos(vpsc::VERTICAL, ens.values(vpsc::VERTICAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints sepcos;
+    foreach (cola::CompoundConstraint *cc, hSepcos) sepcos.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, vSepcos) sepcos.push_back(cc);
+
+    if (debug) {
+        foreach (cola::CompoundConstraint *cc, sepcos) {
+            cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
+            QList<QString> names;
+            int l = sc->left(), r = sc->right();
+
+            //names.append(QString("%1").arg(l));
+            //names.append(QString("%1").arg(r));
+
+            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
+            ShapeObj *shl = m_dunnartShapes.value(nl);
+            ShapeObj *shr = m_dunnartShapes.value(nr);
+            names.append((QString("%1").arg(shl->internalId())));
+            names.append((QString("%1").arg(shr->internalId())));
+
+           /*
+            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
+            QList<node> nodes;
+            nodes.push_back(nl); nodes.push_back(nr);
+            foreach (node n, nodes) {
+                if (m_stubNodeMap.contains(n)) {
+                    names.append(QString("stub"));
+                } else {
+                    ShapeObj *sh = nodeShapes.value(n);
+                    names.append((QString("%1").arg(sh->internalId())));
+                }
+            }
+            */
+
+            QString rel = sc->dimension() == vpsc::HORIZONTAL ? "left of" : "above";
+            qDebug() << QString("sepco %1 %2 %3 by %4")
+                        .arg(names.at(0))
+                        .arg(rel)
+                        .arg(names.at(1))
+                        .arg(sc->gap);
+        }
+    }
+
+    //...
 
 }
 
@@ -363,6 +416,62 @@ void BiComp::addStubNodeShapesToCanvas(Canvas *canvas) {
     }
     canvas->restart_graph_layout();
     m_stubNodeShapesHaveBeenAddedToCanvas = true;
+}
+
+cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
+        vpsc::Dim dim, QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap)
+{
+    double pad = gap/2;
+    cola::CompoundConstraints ccs;
+    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
+    cola::NonOverlapConstraints *noc =
+            new cola::NonOverlapConstraints(priority);
+    QList<node> sns = m_stubnodesToTrees.keys();
+    int Ne = ens.size();
+    int Ns = sns.size();
+    // Variables and Rectangles.
+    vpsc::Variables vs;
+    vpsc::Rectangles rs;
+    // Add edgenodes first.
+    for (int i = 0; i < Ne; i++) {
+        EdgeNode E = ens.at(i);
+        noc->addShape(i, E.bbox.width()/2 + pad, E.bbox.height()/2 + pad);
+        double p = dim==vpsc::HORIZONTAL ? E.bbox.center().x() : E.bbox.center().y();
+        vpsc::Variable *v = new vpsc::Variable(i,p);
+        vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(E.bbox.left(),E.bbox.right(),E.bbox.top(),E.bbox.bottom());
+        rs.push_back(r);
+    }
+    // Add stubnodes.
+    for (int j = 0; j < Ns; j++) {
+        node s = sns.at(j);
+        double w=m_ga->width(s), h=m_ga->height(s);
+        double cx=m_ga->x(s), cy=m_ga->y(s);
+        double p = dim == vpsc::HORIZONTAL ? cx : cy;
+        noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
+        vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
+        vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2,cx+w/2,cy-h/2,cy+h/2);
+        rs.push_back(r);
+    }
+    // Generate vpsc constraints.
+    vpsc::Constraints cs;
+    noc->generateSeparationConstraints(dim,vs,cs,rs);
+    // Convert into cola constraints.
+    foreach (vpsc::Constraint *c, cs) {
+        int l = c->left->id, r = c->right->id;
+        // Reject constraints that hold between two edgenodes or two stubnodes.
+        if ( (l < Ne && r < Ne) || (l >= Ne && r >= Ne) ) continue;
+        // Convert IDs to indices assigned by original ACA layout.
+        l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l-Ne));
+        r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r-Ne));
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,gap);
+        ccs.push_back(s);
+    }
+    // Clean up
+    // FIXME: why does this cause segfaults?
+    //foreach (vpsc::Variable *v, vs) delete v;
+    return ccs;
 }
 
 // ------------------------------------------------------------------
@@ -451,6 +560,34 @@ void ACALayout::readPositions(Graph &G, GraphAttributes &GA)
         GA.x(n) = r->getCentreX();
         GA.y(n) = r->getCentreY();
     }
+}
+
+QMap<vpsc::Dim,EdgeNode> ACALayout::generateEdgeNodes(void) {
+    QMap<vpsc::Dim,EdgeNode> ens;
+    int N = rs.size();
+    for (int i = 0; i < N; i++) {
+        if (leaves.contains(i)) continue;
+        for (int j = i+1; j < N; j++) {
+            if (leaves.contains(j)) continue;
+            int as = alignmentState(i,j);
+            if ( (as & ACACONN) && (as & (ACAHORIZ | ACAVERT)) ) {
+                vpsc::Rectangle *ri = rs.at(i);
+                vpsc::Rectangle *rj = rs.at(j);
+                double xi = ri->getMinX(), Xi = ri->getMaxX();
+                double yi = ri->getMinY(), Yi = ri->getMaxY();
+                double xj = rj->getMinX(), Xj = rj->getMaxX();
+                double yj = rj->getMinY(), Yj = rj->getMaxY();
+                QRectF Ri(QPointF(xi,yi),QPointF(Xi,Yi));
+                QRectF Rj(QPointF(xj,yj),QPointF(Xj,Yj));
+                EdgeNode E(Ri,Rj);
+                E.setIndices(i,j);
+                E.orientation = as & ACAHORIZ ? vpsc::HORIZONTAL : vpsc::VERTICAL;
+                E.constraintDimension = as & ACAHORIZ ? vpsc::VERTICAL : vpsc::HORIZONTAL;
+                ens.insertMulti(E.constraintDimension,E);
+            }
+        }
+    }
+    return ens;
 }
 
 void ACALayout::initialPositions(void) {
