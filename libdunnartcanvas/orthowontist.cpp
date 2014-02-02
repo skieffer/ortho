@@ -280,10 +280,11 @@ void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
     // And a shape for the stub node.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     ShapeObj *stubShape = factory->createShape("org.dunnart.shapes.rect");
+    stubShape->setFillColour(QColor(0,192,0));
     // Map the stub node to the shape.
     m_dunnartShapes.insert(stub,stubShape);
-    // Register as stub.
-    m_stubnodes.append(stub);
+    // Map stub to tree.
+    m_stubnodesToTrees.insert(stub,E);
     // Set size of node and shape
     m_ga->width(stub) = size.width();
     m_ga->height(stub) = size.height();
@@ -307,7 +308,6 @@ void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
 }
 
 void BiComp::layout(void) {
-    bool debug = true;
 
     // 1. Build and run ACA Layout.
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
@@ -315,19 +315,54 @@ void BiComp::layout(void) {
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
+    // 2. Lay out external trees.
+    //    Set stubnode sizes according to bounding boxes of laid out trees.
+    foreach (node stub, m_stubnodesToTrees.keys()) {
+        ExternalTree *E = m_stubnodesToTrees.value(stub);
+        ShapeObj *Eshape = E->rootShape();
+        node root = m_dunnartShapes.key(Eshape);
+        // Determine closest cardinal direction of line from tap to stub.
+        double rx=m_ga->x(root),ry=m_ga->y(root);
+        double sx=m_ga->x(stub),sy=m_ga->y(stub);
+        double vx=sx-rx, vy=sy-ry;
+        ogdf::Orientation orient = vx >= vy ?
+                    (vx >= -vy ? leftToRight : topToBottom) :
+                    (vx >= -vy ? bottomToTop : rightToLeft) ;
+        // Lay out tree.
+        E->orientation(orient);
+        E->treeLayout();
+        // Read size.
+        QSizeF size = E->rootlessBBox().size();
+        // Set in stub node and corresponding shape object.
+        m_ga->width(stub) = size.width();
+        m_ga->height(stub) = size.height();
+        ShapeObj *stubShape = m_dunnartShapes.value(stub);
+        stubShape->setSize(size);
+    }
 
+    // 3.
+    // ...
 
-    // 2. ...
 }
 
 void BiComp::updateShapePositions(void) {
     node n;
     forall_nodes(n, *m_graph) {
-        if (m_stubnodes.contains(n) && !m_stubNodeShapesHaveBeenAddedToCanvas) continue;
+        if (m_stubnodesToTrees.contains(n) && !m_stubNodeShapesHaveBeenAddedToCanvas) continue;
         ShapeObj *sh = m_dunnartShapes.value(n);
         double x = m_ga->x(n), y = m_ga->y(n);
         sh->setCentrePos(QPointF(x,y));
     }
+}
+
+void BiComp::addStubNodeShapesToCanvas(Canvas *canvas) {
+    canvas->stop_graph_layout();
+    foreach (node stub, m_stubnodesToTrees.keys()) {
+        ShapeObj *sh = m_dunnartShapes.value(stub);
+        canvas->addItem(sh);
+    }
+    canvas->restart_graph_layout();
+    m_stubNodeShapesHaveBeenAddedToCanvas = true;
 }
 
 // ------------------------------------------------------------------
@@ -743,7 +778,8 @@ double ACALayout::leafPenalty(int src, int tgt)
 
 ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                            shapemap nodeShapes, connmap edgeConns) :
-    m_rootInG(rootInG)
+    m_rootInG(rootInG),
+    m_orientation(ogdf::leftToRight)
 {
     assert(nodes.size() > 1);
     m_graph = new Graph();
@@ -795,6 +831,46 @@ ShapeObj *ExternalTree::rootShape(void) {
     return m_dunnartShapes.value(m_root);
 }
 
+void ExternalTree::treeLayout(void) {
+    TreeLayout tL;
+    tL.orientation(m_orientation);
+    tL.rootSelection(TreeLayout::rootIsSource);
+    tL.orthogonalLayout(true);
+    tL.call(*m_ga);
+}
+
+void ExternalTree::updateShapePositions(void) {
+    node n;
+    forall_nodes(n,*m_graph) {
+        ShapeObj *sh = m_dunnartShapes.value(n);
+        double x = m_ga->x(n), y = m_ga->y(n);
+        sh->setCentrePos(QPointF(x,y));
+    }
+}
+
+QRectF ExternalTree::rootlessBBox(void) {
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        // We leave the root node out of the bounding box.
+        if (n == m_root) continue;
+        //
+        double cx = m_ga->x(n);
+        double cy = m_ga->y(n);
+        double w = m_ga->width(n);
+        double h = m_ga->height(n);
+        double u = cx - w/2.0;
+        double v = cy - h/2.0;
+        double U = u + w;
+        double V = v + h;
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QRectF(QPointF(x,y),QPointF(X,Y));
+}
 
 // ------------------------------------------------------------------
 // Orthowontist -----------------------------------------------------
@@ -884,7 +960,14 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     }
 
     if (debug) {
+        foreach (BiComp *B, BB) {
+            B->addStubNodeShapesToCanvas(m_canvas);
+        }
+
         m_canvas->stop_graph_layout();
+        foreach (ExternalTree *E, EE) {
+            E->updateShapePositions();
+        }
         foreach (BiComp *B, BB) {
             B->updateShapePositions();
         }

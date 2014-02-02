@@ -106,6 +106,10 @@ public:
     QString listNodes(void);
     void colourShapes(void);
     ShapeObj *rootShape(void);
+    void orientation(ogdf::Orientation orient) { m_orientation = orient; }
+    void treeLayout(void);
+    void updateShapePositions(void);
+    QRectF rootlessBBox(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -113,6 +117,7 @@ private:
     node m_rootInG;
     shapemap m_dunnartShapes;
     connmap m_dunnartConns;
+    ogdf::Orientation m_orientation;
 };
 
 class BiComp {
@@ -130,13 +135,14 @@ public:
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
     void layout(void);
     void updateShapePositions(void);
+    void addStubNodeShapesToCanvas(Canvas *canvas);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
     QList<node> m_cutnodes;
     shapemap m_dunnartShapes;
     connmap m_dunnartConns;
-    QList<node> m_stubnodes;
+    QMap<node,ExternalTree*> m_stubnodesToTrees;
     QList<edge> m_stubedges;
     bool m_stubNodeShapesHaveBeenAddedToCanvas;
 };
