@@ -86,10 +86,14 @@ namespace ow {
 // ------------------------------------------------------------------
 // BiComp -----------------------------------------------------------
 
-BiComp::BiComp(void) {}
+BiComp::BiComp(void) :
+    m_stubNodeShapesHaveBeenAddedToCanvas(false)
+{}
 
 BiComp::BiComp(QList<node> nodes, QList<edge> edges, QList<node> cutnodes,
-               shapemap nodeShapes, connmap edgeConns) {
+               shapemap nodeShapes, connmap edgeConns) :
+    m_stubNodeShapesHaveBeenAddedToCanvas(false)
+{
     m_graph = new Graph();
     QMap<node,node> nodemap; // maps passed nodes to own nodes; for use in creating edges
     m_ga = new GraphAttributes(*m_graph);
@@ -263,20 +267,476 @@ BiComp *BiComp::fuse(BiComp *other)
 }
 
 void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
+    // Get the Dunnart shape that is the root of the tree.
     ShapeObj *Eshape = E->rootShape();
-    node ownNode = m_dunnartShapes.key(Eshape);
+    // Get own node representing that shape.
+    node ownRootNode = m_dunnartShapes.key(Eshape);
+    // Create a stub node to represent the tree.
     node stub = m_graph->newNode();
-    m_ga->width(stub) = size.width();
-    m_ga->height(stub) = size.height();
+    // Connect it to ownRootNode.
+    edge e = m_graph->newEdge(ownRootNode,stub);
+    // Register stub edge.
+    m_stubedges.append(e);
+    // And a shape for the stub node.
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     ShapeObj *stubShape = factory->createShape("org.dunnart.shapes.rect");
-    double d = (size.width()+size.height())/2;
+    // Map the stub node to the shape.
+    m_dunnartShapes.insert(stub,stubShape);
+    // Register as stub.
+    m_stubnodes.append(stub);
+    // Set size of node and shape
+    m_ga->width(stub) = size.width();
+    m_ga->height(stub) = size.height();
     stubShape->setSize(size);
-    // Set size and position. For pos, use random vector from Eshape.
-    // ...
-    // Create a ShapeObj for the stub node now, and insert pair into
-    // m_dunnartShapes. Do not add to canvas until later though.
+    // Set position to be at a displacement from root of length
+    // equal to the avg dimension of the passed 'size', and
+    // random angle.
+    //
+    // TODO (maybe):
+    // Later we might choose a good face for the tree, instead of
+    // using a random angle.
+    double d = (size.width()+size.height())/2;
+    double t = (double)(qrand());
+    double s = sin(t), c = cos(t);
+    double dx = d*c, dy = d*s;
+    double x0 = m_ga->x(ownRootNode), y0 = m_ga->y(ownRootNode);
+    double x1 = x0 + dx, y1 = y0 + dy;
+    m_ga->x(stub) = x1;
+    m_ga->y(stub) = y1;
+    stubShape->setCentrePos(QPointF(x1,y1));
 }
+
+void BiComp::layout(void) {
+    bool debug = true;
+
+    // 1. Build and run ACA Layout.
+    ACALayout *aca = new ACALayout(*m_graph, *m_ga);
+    aca->debugName("BC");
+    aca->run();
+    aca->readPositions(*m_graph, *m_ga);
+
+
+
+    // 2. ...
+}
+
+void BiComp::updateShapePositions(void) {
+    node n;
+    forall_nodes(n, *m_graph) {
+        if (m_stubnodes.contains(n) && !m_stubNodeShapesHaveBeenAddedToCanvas) continue;
+        ShapeObj *sh = m_dunnartShapes.value(n);
+        double x = m_ga->x(n), y = m_ga->y(n);
+        sh->setCentrePos(QPointF(x,y));
+    }
+}
+
+// ------------------------------------------------------------------
+// ACALayout --------------------------------------------------------
+
+/** Build an ACA layout object for the passed OGDF graph.
+  */
+ACALayout::ACALayout(Graph &G, GraphAttributes &GA) :
+    m_idealLength(100),
+    m_preventOverlaps(false),
+    m_addBendPointPenalty(true),
+    m_postponeLeaves(true),
+    m_useNonLeafDegree(true),
+    m_allAtOnce(false),
+    m_debugName("")
+{
+    QMap<int,int> deg; // multimap from rect indices to indices of neighbours
+    node n = NULL;
+    int i = 0;
+    forall_nodes(n,G) {
+        double w = GA.width(n), h = GA.height(n);
+        double x = GA.x(n) - w/2, y = GA.y(n) - h/2;
+        double X = x + w, Y = y + h;
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        m_nodeIndices.insert(n,i);
+        i++;
+    }
+    edge e = NULL;
+    forall_edges(e,G) {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = m_nodeIndices.value(src);
+        int tgtIndex = m_nodeIndices.value(tgt);
+        es.push_back( cola::Edge(srcIndex, tgtIndex) );
+        deg.insertMulti(srcIndex,tgtIndex);
+        deg.insertMulti(tgtIndex,srcIndex);
+    }
+    // Note leaves.
+    foreach (int i, deg.uniqueKeys()) {
+        QList<int> J = deg.values(i);
+        if (J.size()==1) {
+            leaves.append(i);
+        }
+    }
+    if (m_useNonLeafDegree) {
+        // Use non-leaf degree.
+        QMap<int,int> nld;
+        foreach (int i, deg.uniqueKeys()) {
+            QList<int> J = deg.values(i);
+            foreach (int j, J) {
+                if (!leaves.contains(j)) {
+                    nld.insertMulti(i,j);
+                }
+            }
+        }
+        deg = nld;
+    }
+    // Build deg2Nodes structure.
+    foreach (int i, deg.uniqueKeys()) {
+        QList<int> J = deg.values(i);
+        qDebug() << QString("Node %1 degree %2").arg(i).arg(J.size());
+        if (J.size()==2) {
+            deg2Nodes.insertMulti(i,J.at(0));
+            deg2Nodes.insertMulti(i,J.at(1));
+        }
+    }
+}
+
+/** Run the layout algorithm.
+  */
+void ACALayout::run(void)
+{
+    initialLayout();
+    if (m_allAtOnce) {
+        acaLoopAllAtOnce();
+    } else {
+        acaLoopOneByOne();
+    }
+}
+
+void ACALayout::readPositions(Graph &G, GraphAttributes &GA)
+{
+    node n = NULL;
+    forall_nodes(n,G) {
+        vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
+        GA.x(n) = r->getCentreX();
+        GA.y(n) = r->getCentreY();
+    }
+}
+
+void ACALayout::initialPositions(void) {
+    // TODO: In the future we might choose a good outer face, and positions
+    // for all other nodes inside this.
+    //
+    // For now we just make sure no two nodes are coincident.
+    moveCoincidentNodes();
+}
+
+void ACALayout::moveCoincidentNodes(void) {
+    // TODO
+
+    // Plan:
+    // 1. Sort by x-coord.
+    // 2. If any nodes share an x-coord, make sure their y-coords differ.
+    //      A. Sort by y-coord.
+    //      B. If yn < yn+1 = yn+2 = ... = yn+k < yn+k+1,
+    //         then let dy = (yn+k+1 - yn)/(k+1),
+    //         and for i = 1, 2, ..., k set yn+i = yn + i*dy.
+}
+
+void ACALayout::initialLayout(void) {
+    // Do an initial unconstrained FD layout
+    // with no overlap prevention, and long ideal edge length.
+    bool preventOverlaps = false;
+    double iL = 300;
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    ConvTest1 *test = new ConvTest1(1e-3,100);
+    test->minIterations = 50;
+    test->setLayout(fdlayout);
+    test->name = m_debugName+QString("-S1-noOP");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+    delete fdlayout;
+
+    bool justFirst = true;
+    if (justFirst) return;
+
+    // Do another FD layout this time with
+    // overlap prevention, and shorter ideal edge length.
+    preventOverlaps = true;
+    iL = 100;
+    // FIXME Deleting 'test' is causing a segfault.
+    // Why? Accept memory leak for now.
+    // delete test;
+    fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    test = new ConvTest1(1e-4,200);
+    test->minIterations = 100;
+    test->setLayout(fdlayout);
+    test->name = m_debugName+QString("-S2-yesOP");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+    delete fdlayout;
+}
+
+void ACALayout::acaLoopOneByOne(void) {
+    //double iL = idealLength;
+    double iL = 300;
+    // Prepare the alignment state matrix.
+    initAlignmentState();
+    // Start main loop.
+    cola::CompoundConstraints ccs;
+    ACASeparatedAlignment *sa = chooseSA();
+    bool preventOverlaps = true;
+    int N = 0;
+    cola::ConstrainedFDLayout *fdlayout = NULL;
+    while (sa) {
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Redo the layout, with the new constraints.
+        if (fdlayout!=NULL) delete fdlayout;
+        fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+        ConvTest1 *test = new ConvTest1(1e-3,3);
+        test->setLayout(fdlayout);
+        test->name = m_debugName+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
+        fdlayout->setConvergenceTest(test);
+        fdlayout->setConstraints(ccs);
+        fdlayout->run(true,true);
+        // Update state.
+        updateAlignmentState(sa);
+        // Store SA and choose next one.
+        sepAligns.append(sa);
+        sa = chooseSA();
+    }
+    if (fdlayout!=NULL) delete fdlayout;
+    // Save the compound constraints.
+    m_ccs = ccs;
+}
+
+void ACALayout::acaLoopAllAtOnce(void) {
+    double iL = 300;
+    // Prepare the alignment state matrix.
+    initAlignmentState();
+    // Start main loop.
+    cola::CompoundConstraints ccs;
+    ACASeparatedAlignment *sa = chooseSA();
+    bool preventOverlaps = true;
+    int N = 0;
+    while (sa) {
+        // Add the new separated alignment constraints.
+        ccs.push_back(sa->separation);
+        ccs.push_back(sa->alignment);
+        // Update state.
+        updateAlignmentState(sa);
+        // Store SA and choose next one.
+        sepAligns.append(sa);
+        sa = chooseSA();
+    }
+    // Do the layout with the new constraints.
+    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    ConvTest1 *test = new ConvTest1(1e-3,3);
+    test->setLayout(fdlayout);
+    test->name = m_debugName+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
+    fdlayout->setConvergenceTest(test);
+    fdlayout->setConstraints(ccs);
+    fdlayout->run(true,true);
+    delete fdlayout;
+    // FIXME: can we delete 'test' without segfault?
+    // Save the compound constraints.
+    m_ccs = ccs;
+}
+
+void ACALayout::initAlignmentState(void)
+{
+    int N = rs.size();
+    alignmentState = Matrix2d<int>(N,N);
+    // Initialize with zeros.
+    for (uint i = 0; i < N; i++) {
+        for (uint j = 0; j < N; j++) {
+            alignmentState(i,j) = 0;
+        }
+    }
+    // Note connections.
+    foreach (cola::Edge e, es) {
+        int src = e.first, tgt = e.second;
+        alignmentState(src,tgt) = ACACONN;
+        alignmentState(tgt,src) = ACACONN;
+    }
+}
+
+void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
+{
+    // Which dimension?
+    ACAFlags af = sa->af;
+    // Get the indices of the two rectangles r1 and r2.
+    int i1 = sa->rect1, i2 = sa->rect2;
+    // Get the sets of indices of nodes already aligned with r1 and r2.
+    QList<int> A1, A2;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i1,j) & af) A1.append(j);
+        if (alignmentState(i2,j) & af) A2.append(j);
+    }
+    // r1 and r2 are aligned deliberately.
+    alignmentState(i1,i2) |= af | ACADELIB;
+    alignmentState(i2,i1) |= af | ACADELIB;
+    // r1 is now aligned with each element of A2, and vice versa.
+    foreach (int k, A2) {
+        alignmentState(i1,k) |= af;
+        alignmentState(k,i1) |= af;
+    }
+    foreach (int k, A1) {
+        alignmentState(i2,k) |= af;
+        alignmentState(k,i2) |= af;
+    }
+}
+
+ACASeparatedAlignment *ACALayout::chooseSA(void)
+{
+    ACASeparatedAlignment *sa = NULL;
+    double minDeflection = 10.0;
+    // Consider each edge for potential alignment.
+    foreach (cola::Edge e, es) {
+        int src = e.first, tgt = e.second;
+        // If already aligned, skip this edge.
+        int astate = alignmentState(src,tgt);
+        if (astate & (ACAHORIZ|ACAVERT)) {
+            //qDebug() << "    already aligned -- skip";
+            continue;
+        }
+        // Consider horizontal alignment.
+        if (!createsCoincidence(src,tgt,ACAHORIZ)) {
+            double dH = deflection(src,tgt,ACAHORIZ);
+            if (m_addBendPointPenalty) dH += bendPointPenalty(src,tgt,ACAHORIZ);
+            if (m_postponeLeaves) dH += leafPenalty(src,tgt);
+            //qDebug() << QString("    deflection: %1").arg(dH);
+            if (dH < minDeflection) {
+                minDeflection = dH;
+                if (!sa) sa = new ACASeparatedAlignment;
+                sa->af = ACAHORIZ;
+                sa->rect1 = src;
+                sa->rect2 = tgt;
+            }
+        }
+        // Consider vertical alignment.
+        if (!createsCoincidence(src,tgt,ACAVERT)) {
+            double dV = deflection(src,tgt,ACAVERT);
+            if (m_addBendPointPenalty) dV += bendPointPenalty(src,tgt,ACAVERT);
+            if (m_postponeLeaves) dV += leafPenalty(src,tgt);
+            //qDebug() << QString("    deflection: %1").arg(dV);
+            if (dV < minDeflection) {
+                minDeflection = dV;
+                if (!sa) sa = new ACASeparatedAlignment;
+                sa->af = ACAVERT;
+                sa->rect1 = src;
+                sa->rect2 = tgt;
+            }
+        }
+    }
+    // Did we find an alignment?
+    if (sa) {
+        // If so, then complete the ACASeparatedAlignment object.
+        int src = sa->rect1;
+        int tgt = sa->rect2;
+        //qDebug() << QString("Nodes %1,%2 had state %3.").arg(src).arg(tgt).arg(alignmentState(src,tgt));
+        vpsc::Rectangle *rsrc = rs.at(src);
+        vpsc::Rectangle *rtgt = rs.at(tgt);
+        // Separation Constraint
+        vpsc::Dim sepDim = sa->af == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+        double sep = sa->af == ACAHORIZ ?
+                    (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        int l = sa->af == Canvas::Horizontal ?
+                    (rsrc->getCentreX() < rtgt->getCentreX() ? src : tgt) :
+                    (rsrc->getCentreY() < rtgt->getCentreY() ? src : tgt);
+        int r = l == src ? tgt : src;
+        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
+        // Alignment Constraint
+        sa->alignment = new cola::AlignmentConstraint(algnDim);
+        sa->alignment->addShape(l,0);
+        sa->alignment->addShape(r,0);
+    }
+    return sa;
+}
+
+/* Say whether the proposed alignment would create an edge coincidence.
+ */
+bool ACALayout::createsCoincidence(int src, int tgt, ACAFlags af)
+{
+    vpsc::Rectangle *r1 = rs.at(src), *r2 = rs.at(tgt);
+    double z1 = af == ACAHORIZ ? r1->getCentreX() : r1->getCentreY();
+    double z2 = af == ACAHORIZ ? r2->getCentreX() : r2->getCentreY();
+    double lowCoord = z1<z2 ? z1 : z2;
+    double highCoord = z1<z2 ? z2 : z1;
+    int lowIndex = z1<z2 ? src : tgt;
+    int highIndex = z1<z2 ? tgt : src;
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict coincidence.
+    bool coincidence = false;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (j==lowIndex || j==highIndex) continue;
+        vpsc::Rectangle *r = rs.at(j);
+        int lj = alignmentState(lowIndex, j);
+        int hj = alignmentState(highIndex, j);
+        if (lj&af || hj&af) {
+            double z = af==ACAHORIZ ? r->getCentreX() : r->getCentreY();
+            // low shape
+            if ( lj&ACACONN && lowCoord < z ) {
+                coincidence = true; break;
+            }
+            // high shape
+            if ( hj&ACACONN && z < highCoord ) {
+                coincidence = true; break;
+            }
+        }
+    }
+    return coincidence;
+}
+
+/* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
+ * deflected from horizontal or vertical, depending on the passed alignment flag.
+ * The "edge" E is the straight line from the centre of the src rectangle to that
+ * of the tgt rectangle, as given by the src and tgt indices, and the vector of
+ * Rectangles.
+ *
+ * If t is the angle that E makes with the positive x-axis, then the score we return
+ * is sin^2(t) if af == Horizontal, and cos^2(t) if af == Vertical.
+ *
+ * So smaller deflection scores mean edges that are closer to axis-aligned.
+ */
+double ACALayout::deflection(int src, int tgt, ACAFlags af)
+{
+    vpsc::Rectangle *s = rs.at(src), *t = rs.at(tgt);
+    double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
+    double dx = tx-sx, dy = ty-sy;
+    double dx2 = dx*dx, dy2 = dy*dy;
+    double l = dx2 + dy2;
+    double dfl = af==ACAHORIZ ? dy2/l : dx2/l;
+    return dfl;
+}
+
+double ACALayout::bendPointPenalty(int src, int tgt, ACAFlags af)
+{
+    double penalty = 2;
+    ACAFlags op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
+    if (deg2Nodes.contains(src)) {
+        QList<int> J = deg2Nodes.values(src);
+        int j = J.at(0) == tgt ? J.at(1) : J.at(0);
+        int as = alignmentState(src,j);
+        if (as & op) return penalty;
+    }
+    if (deg2Nodes.contains(tgt)) {
+        QList<int> J = deg2Nodes.values(tgt);
+        int j = J.at(0) == src ? J.at(1) : J.at(0);
+        int as = alignmentState(tgt,j);
+        if (as & op) return penalty;
+    }
+    return 0;
+}
+
+double ACALayout::leafPenalty(int src, int tgt)
+{
+    double penalty = 3;
+    return leaves.contains(src) || leaves.contains(tgt) ? penalty : 0;
+}
+
 
 // ------------------------------------------------------------------
 // ExternalTree -----------------------------------------------------
@@ -398,9 +858,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         }
     }
 
-    // 3. Compute internal trees...
-
-    // Make a map to say to which BC each BC shape belongs.
+    // 3. Make a map to say to which BC each BC shape belongs.
     QMap<ShapeObj*,BiComp*> shapesToBCs;
     foreach (BiComp *B, BB) {
         QList<ShapeObj*> shapes = B->allShapes();
@@ -409,9 +867,9 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         }
     }
 
-    // ...
+    // 4. TODO: compute the internal trees.
 
-    // Tack onto each B a "stub node" representing each of
+    // 5. Tack onto each B a "stub node" representing each of
     // the external trees that are attached to it.
     QSizeF stubsize = QSizeF(avgDim,avgDim);
     foreach (ExternalTree *E, EE) {
@@ -419,6 +877,21 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         BiComp *B = shapesToBCs.value(sh);
         B->addStubNodeForTree(E,stubsize);
     }
+
+    // 6. Lay out each B in BB.
+    foreach (BiComp *B, BB) {
+        B->layout();
+    }
+
+    if (debug) {
+        m_canvas->stop_graph_layout();
+        foreach (BiComp *B, BB) {
+            B->updateShapePositions();
+        }
+        m_canvas->restart_graph_layout();
+    }
+
+    // ...
 
 }
 

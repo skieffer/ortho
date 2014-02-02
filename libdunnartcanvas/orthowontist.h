@@ -60,6 +60,7 @@ typedef QMap<edge, Connector *> connmap;
 class BiComp;
 typedef QList<BiComp*> bclist;
 
+// TODO: Cleanup. Is this struct used anywhere?
 struct SeparatedAlignment {
     cola::SeparationConstraint* separation;
     cola::AlignmentConstraint* alignment;
@@ -79,6 +80,23 @@ struct DunnartConstraint {
     Canvas::Dimension dim;
     QList<CanvasItem*> items;
     double minSep;
+};
+
+enum ACAFlags {
+    ACAHORIZ = 1,
+    ACAVERT = 2,
+    ACADELIB = 4,
+    ACACONN = 8
+};
+
+struct ACASeparatedAlignment {
+    cola::SeparationConstraint* separation;
+    cola::AlignmentConstraint* alignment;
+    int rect1;
+    int rect2;
+    ACAFlags af;
+    ShapeObj *shape1;
+    ShapeObj *shape2;
 };
 
 class ExternalTree {
@@ -110,12 +128,96 @@ public:
     void dfs(QMap<ShapeObj *, BiComp *> endpts, QList<BiComp *> &elements);
     BiComp *fuse(BiComp *other);
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
+    void layout(void);
+    void updateShapePositions(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
     QList<node> m_cutnodes;
     shapemap m_dunnartShapes;
     connmap m_dunnartConns;
+    QList<node> m_stubnodes;
+    QList<edge> m_stubedges;
+    bool m_stubNodeShapesHaveBeenAddedToCanvas;
+};
+
+struct ConvTest1 : public cola::TestConvergence
+{
+    ConvTest1(const double d,const unsigned i)
+        : TestConvergence(d,i),
+          m_layout(NULL),
+          m_count(1),
+          name(""),
+          minIterations(0)
+    {}
+
+    void setLayout(cola::ConstrainedFDLayout *layout) { m_layout = layout; }
+
+    bool test1(const double new_stress, std::valarray<double> & X,
+               std::valarray<double> & Y)
+    {
+        if (m_count < minIterations) {
+            return false;
+        } else {
+            return cola::TestConvergence::operator()(new_stress, X, Y);
+        }
+    }
+
+    bool operator()(const double new_stress, std::valarray<double> & X,
+            std::valarray<double> & Y)
+    {
+        QString outFName = "Debug-"+name;
+        bool converged = test1(new_stress, X, Y);
+        cout << "stress="<<new_stress<<" iteration="<<m_count<<endl;
+        std::stringstream ss;
+        QString f = outFName+QString("-%1").arg(m_count++,4,10,QLatin1Char('0'));
+        m_layout->outputInstanceToSVG(f.toStdString());
+        return converged;
+    }
+
+    cola::ConstrainedFDLayout *m_layout;
+    int m_count;
+    QString name;
+    int minIterations;
+};
+
+class ACALayout {
+public:
+    ACALayout(Graph &G, GraphAttributes &GA);
+    QMap<node,int> nodeIndices(void) { return m_nodeIndices; }
+    void idealLength(double L) { m_idealLength = L; }
+    void preventOverlaps(bool b) { m_preventOverlaps = b; }
+    void debugName(QString s) { m_debugName = s; }
+    void run(void);
+    void readPositions(Graph &G, GraphAttributes &GA);
+private:
+    void initialPositions(void);
+    void moveCoincidentNodes(void);
+    void initialLayout(void);
+    void acaLoopOneByOne(void);
+    void acaLoopAllAtOnce(void);
+    void initAlignmentState(void);
+    void updateAlignmentState(ACASeparatedAlignment *sa);
+    ACASeparatedAlignment *chooseSA(void);
+    bool createsCoincidence(int src, int tgt, ACAFlags af);
+    double deflection(int src, int tgt, ACAFlags af);
+    double bendPointPenalty(int src, int tgt, ACAFlags af);
+    double leafPenalty(int src, int tgt);
+    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
+    double m_idealLength;
+    bool m_preventOverlaps;
+    bool m_addBendPointPenalty;
+    bool m_postponeLeaves;
+    bool m_useNonLeafDegree;
+    bool m_allAtOnce;
+    QString m_debugName;
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+    cola::CompoundConstraints m_ccs;
+    Matrix2d<int> alignmentState;
+    QList<ACASeparatedAlignment*> sepAligns;
+    QMap<int,int> deg2Nodes; // maps indices of degree-2 nodes to indices of their nbrs
+    QList<int> leaves; // indices of rectangles that are leaves
 };
 
 class Orthowontist {

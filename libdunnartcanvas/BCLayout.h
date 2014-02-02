@@ -413,8 +413,8 @@ class ACALayout
 {
 public:
     ACALayout(Canvas *canvas, bool selection = false);
-    ACALayout(Graph &G, GraphAttributes &GA);
     ACALayout(QList<ShapeObj*> shapes, QList<Connector*> connectors);
+    ACALayout(Graph &G, GraphAttributes &GA);
     void setIdealLength(double il);
     void setPreventOverlaps(bool b);
     void run(QString name);
@@ -445,8 +445,8 @@ private:
 
     QString m_name; // for debug output
 
-    bool m_preventOverlaps;
     double idealLength;
+    bool m_preventOverlaps;
     bool m_addBendPointPenalty;
     bool m_postponeLeaves;
     bool m_useNonLeafDegree;

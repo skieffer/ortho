@@ -1707,29 +1707,6 @@ ACALayout *BiComp::acaLayout(void)
         m_graphAttributes->x(n) = 10*k*(k%4<2?1:-1);
         m_graphAttributes->y(n) = 10*k*(k%2==0?1:-1);
         k++;
-
-        //DEBUG:
-        /*
-        int w = round(size.width());
-        int x = 0, y = 0;
-        switch(w) {
-        case 10:
-            x=-100; y=-100; break;
-        case 20:
-            x=-100; y=100; break;
-        case 35:
-            x=0; y=100; break;
-        case 40:
-            x=100; y=100; break;
-        case 50:
-            x=100; y=-100; break;
-        }
-        m_graphAttributes->x(n) = x;
-        m_graphAttributes->y(n) = y;
-        */
-        //-----
-
-
     }
     ACALayout *aca = new ACALayout(*m_graph, *m_graphAttributes);
     aca->run("BC");
