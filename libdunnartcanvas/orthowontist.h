@@ -163,6 +163,7 @@ public:
     cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim,
         QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
     void translateTrees(void);
+    void idealLength(double L) { m_idealLength = L; }
 private:
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
@@ -174,6 +175,7 @@ private:
     QMap<node,ExternalTree*> m_stubnodesToTrees;
     QList<edge> m_stubedges;
     bool m_stubNodeShapesHaveBeenAddedToCanvas;
+    double m_idealLength;
 };
 
 struct ConvTest1 : public cola::TestConvergence

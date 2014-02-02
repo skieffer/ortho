@@ -87,12 +87,14 @@ namespace ow {
 // BiComp -----------------------------------------------------------
 
 BiComp::BiComp(void) :
-    m_stubNodeShapesHaveBeenAddedToCanvas(false)
+    m_stubNodeShapesHaveBeenAddedToCanvas(false),
+    m_idealLength(100)
 {}
 
 BiComp::BiComp(QList<node> nodes, QList<edge> edges, QList<node> cutnodes,
                shapemap nodeShapes, connmap edgeConns) :
-    m_stubNodeShapesHaveBeenAddedToCanvas(false)
+    m_stubNodeShapesHaveBeenAddedToCanvas(false),
+    m_idealLength(100)
 {
     m_graph = new Graph();
     QMap<node,node> nodemap; // maps passed nodes to own nodes; for use in creating edges
@@ -314,6 +316,7 @@ void BiComp::layout(void) {
     // 1. Build and run ACA Layout.
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
     aca->debugName("BC");
+    aca->idealLength(m_idealLength);
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
@@ -345,7 +348,7 @@ void BiComp::layout(void) {
     // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
     QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
     QMap<node,int> nodeIndices = aca->nodeIndices();
-    double padding = 100;
+    double padding = m_idealLength;
     cola::CompoundConstraints hSepcos =
             generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
                                    nodeIndices, padding);
@@ -377,9 +380,11 @@ void BiComp::layout(void) {
     }
 
     // 4. Run FD layout again.
-    bool preventOverlaps = false;
-    double idealLength = 300;
-    postACACola(preventOverlaps, idealLength, nodeIndices, sepcos);
+    bool preventOverlaps = true;
+    //double idealLength = 300;
+    // Keep the ACA sep-cos.
+    foreach (cola::CompoundConstraint *cc, aca->ccs()) sepcos.push_back(cc);
+    postACACola(preventOverlaps, m_idealLength, nodeIndices, sepcos);
 
     // 5. Translate trees.
     translateTrees();
@@ -451,12 +456,15 @@ cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
     // Convert into cola constraints.
     foreach (vpsc::Constraint *c, cs) {
         int l = c->left->id, r = c->right->id;
+
         // Reject constraints that hold between two edgenodes or two stubnodes.
         if ( (l < Ne && r < Ne) || (l >= Ne && r >= Ne) ) continue;
+
         // Convert IDs to indices assigned by original ACA layout.
         l = l < Ne ? ens.at(l).srcIndex : nodeIndices.value(sns.at(l-Ne));
         r = r < Ne ? ens.at(r).srcIndex : nodeIndices.value(sns.at(r-Ne));
-        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,gap);
+
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,c->gap);
         ccs.push_back(s);
     }
     // Clean up
@@ -490,7 +498,7 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
 
-    // Build nodes and edges.
+    // Build rectangles and edges.
     int N = nodeIndices.values().size();
     for (int i = 0; i < N; i++) {
         node n = nodeIndices.key(i);
@@ -501,7 +509,7 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
     }
 
     edge e = NULL;
-    forall_edges(e,G) {
+    forall_edges(e,*m_graph) {
         node src = e->source();
         node tgt = e->target();
         int srcIndex = nodeIndices.value(src);
@@ -509,7 +517,25 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
         es.push_back(cola::Edge(srcIndex, tgtIndex) );
     }
 
-    //...
+    // Do layout.
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,idealLength,preventOverlaps);
+    fdlayout->setConstraints(sepcos);
+
+    ConvTest1 *test = new ConvTest1(1e-3,100);
+    test->setLayout(fdlayout);
+    test->name = QString("BC-S4-postACA");
+    test->minIterations = 50;
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+
+    // Read positions.
+    node n;
+    forall_nodes(n,*m_graph) {
+        vpsc::Rectangle *r = rs.at(nodeIndices.value(n));
+        m_ga->x(n) = r->getCentreX();
+        m_ga->y(n) = r->getCentreY();
+    }
 }
 
 // ------------------------------------------------------------------
@@ -652,7 +678,7 @@ void ACALayout::initialLayout(void) {
     // Do an initial unconstrained FD layout
     // with no overlap prevention, and long ideal edge length.
     bool preventOverlaps = false;
-    double iL = 300;
+    double iL = m_idealLength;
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ConvTest1 *test = new ConvTest1(1e-3,100);
@@ -667,9 +693,8 @@ void ACALayout::initialLayout(void) {
     if (justFirst) return;
 
     // Do another FD layout this time with
-    // overlap prevention, and shorter ideal edge length.
+    // overlap prevention.
     preventOverlaps = true;
-    iL = 100;
     // FIXME Deleting 'test' is causing a segfault.
     // Why? Accept memory leak for now.
     // delete test;
@@ -684,8 +709,8 @@ void ACALayout::initialLayout(void) {
 }
 
 void ACALayout::acaLoopOneByOne(void) {
-    //double iL = idealLength;
-    double iL = 300;
+    double iL = m_idealLength;
+    //double iL = 300;
     // Prepare the alignment state matrix.
     initAlignmentState();
     // Start main loop.
@@ -719,7 +744,7 @@ void ACALayout::acaLoopOneByOne(void) {
 }
 
 void ACALayout::acaLoopAllAtOnce(void) {
-    double iL = 300;
+    double iL = m_idealLength;
     // Prepare the alignment state matrix.
     initAlignmentState();
     // Start main loop.
@@ -1091,6 +1116,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     avgWidth /= N;
     avgHeight /= N;
     avgDim = (avgWidth+avgHeight)/2;
+    double idealLength = 2*avgDim;
 
     // 1. Remove external trees from OGDF graph G.
     QList<ExternalTree*> EE;
@@ -1144,12 +1170,13 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
     // 6. Lay out each B in BB.
     foreach (BiComp *B, BB) {
+        B->idealLength(idealLength);
         B->layout();
     }
 
     if (debug) {
         foreach (BiComp *B, BB) {
-            B->addStubNodeShapesToCanvas(m_canvas);
+            //B->addStubNodeShapesToCanvas(m_canvas);
         }
 
         m_canvas->stop_graph_layout();
