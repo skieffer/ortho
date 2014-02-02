@@ -131,6 +131,7 @@ public:
     void orientation(ogdf::Orientation orient) { m_orientation = orient; }
     void treeLayout(void);
     void updateShapePositions(void);
+    void orthogonalRouting(bool b);
     QRectF rootlessBBox(void);
     void translate(QPointF p);
     void placeRootAt(QPointF p);
@@ -164,6 +165,7 @@ public:
         QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
     void translateTrees(void);
     void idealLength(double L) { m_idealLength = L; }
+    void nodePadding(double P) { m_nodePadding = P; }
 private:
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
@@ -176,6 +178,7 @@ private:
     QList<edge> m_stubedges;
     bool m_stubNodeShapesHaveBeenAddedToCanvas;
     double m_idealLength;
+    double m_nodePadding;
 };
 
 struct ConvTest1 : public cola::TestConvergence
@@ -221,6 +224,7 @@ struct ConvTest1 : public cola::TestConvergence
 class ACALayout {
 public:
     ACALayout(Graph &G, GraphAttributes &GA);
+    void nodePadding(double P);
     QMap<node,int> nodeIndices(void) { return m_nodeIndices; }
     void idealLength(double L) { m_idealLength = L; }
     void preventOverlaps(bool b) { m_preventOverlaps = b; }
@@ -244,6 +248,7 @@ private:
     double leafPenalty(int src, int tgt);
     QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     double m_idealLength;
+    double m_nodePadding;
     bool m_preventOverlaps;
     bool m_addBendPointPenalty;
     bool m_postponeLeaves;

@@ -88,13 +88,15 @@ namespace ow {
 
 BiComp::BiComp(void) :
     m_stubNodeShapesHaveBeenAddedToCanvas(false),
-    m_idealLength(100)
+    m_idealLength(100),
+    m_nodePadding(50)
 {}
 
 BiComp::BiComp(QList<node> nodes, QList<edge> edges, QList<node> cutnodes,
                shapemap nodeShapes, connmap edgeConns) :
     m_stubNodeShapesHaveBeenAddedToCanvas(false),
-    m_idealLength(100)
+    m_idealLength(100),
+    m_nodePadding(50)
 {
     m_graph = new Graph();
     QMap<node,node> nodemap; // maps passed nodes to own nodes; for use in creating edges
@@ -317,6 +319,7 @@ void BiComp::layout(void) {
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
     aca->debugName("BC");
     aca->idealLength(m_idealLength);
+    aca->nodePadding(m_nodePadding);
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
@@ -348,7 +351,7 @@ void BiComp::layout(void) {
     // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
     QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
     QMap<node,int> nodeIndices = aca->nodeIndices();
-    double padding = m_idealLength;
+    double padding = m_nodePadding;
     cola::CompoundConstraints hSepcos =
             generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
                                    nodeIndices, padding);
@@ -381,7 +384,6 @@ void BiComp::layout(void) {
 
     // 4. Run FD layout again.
     bool preventOverlaps = true;
-    //double idealLength = 300;
     // Keep the ACA sep-cos.
     foreach (cola::CompoundConstraint *cc, aca->ccs()) sepcos.push_back(cc);
     postACACola(preventOverlaps, m_idealLength, nodeIndices, sepcos);
@@ -503,6 +505,8 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
     for (int i = 0; i < N; i++) {
         node n = nodeIndices.key(i);
         double w = m_ga->width(n), h = m_ga->height(n);
+        w += m_nodePadding;
+        h += m_nodePadding;
         double x = m_ga->x(n) - w/2, y = m_ga->y(n) - h/2;
         double X = x + w, Y = y + h;
         rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
@@ -525,7 +529,7 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
     ConvTest1 *test = new ConvTest1(1e-3,100);
     test->setLayout(fdlayout);
     test->name = QString("BC-S4-postACA");
-    test->minIterations = 50;
+    //test->minIterations = 50;
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
 
@@ -545,6 +549,7 @@ void BiComp::postACACola(bool preventOverlaps, double idealLength,
   */
 ACALayout::ACALayout(Graph &G, GraphAttributes &GA) :
     m_idealLength(100),
+    m_nodePadding(50),
     m_preventOverlaps(false),
     m_addBendPointPenalty(true),
     m_postponeLeaves(true),
@@ -601,6 +606,20 @@ ACALayout::ACALayout(Graph &G, GraphAttributes &GA) :
             deg2Nodes.insertMulti(i,J.at(0));
             deg2Nodes.insertMulti(i,J.at(1));
         }
+    }
+}
+
+void ACALayout::nodePadding(double P) {
+    m_nodePadding = P;
+    double h = P/2;
+    foreach (vpsc::Rectangle *r, rs) {
+        double x = r->getMinX(), X = r->getMaxX();
+        double y = r->getMinY(), Y = r->getMaxY();
+        x -= h; X += h; y -= h; Y += h;
+        r->setMinD(0,x);
+        r->setMaxD(0,X);
+        r->setMinD(1,y);
+        r->setMaxD(1,Y);
     }
 }
 
@@ -682,7 +701,7 @@ void ACALayout::initialLayout(void) {
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    test->minIterations = 50;
+    //test->minIterations = 50;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
@@ -700,7 +719,7 @@ void ACALayout::initialLayout(void) {
     // delete test;
     fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     test = new ConvTest1(1e-4,200);
-    test->minIterations = 100;
+    //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S2-yesOP");
     fdlayout->setConvergenceTest(test);
@@ -1048,6 +1067,14 @@ void ExternalTree::updateShapePositions(void) {
     }
 }
 
+void ExternalTree::orthogonalRouting(bool b) {
+    dunnart::Connector::RoutingType t = b ? Connector::orthogonal : Connector::polyline;
+    foreach (Connector *conn, m_dunnartConns.values()) {
+        if (conn==NULL) continue;
+        conn->setRoutingType(t);
+    }
+}
+
 QRectF ExternalTree::rootlessBBox(void) {
     double x = DBL_MAX, X = DBL_MIN;
     double y = DBL_MAX, Y = DBL_MIN;
@@ -1116,7 +1143,10 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     avgWidth /= N;
     avgHeight /= N;
     avgDim = (avgWidth+avgHeight)/2;
+
+    // Ideal length and node padding
     double idealLength = 2*avgDim;
+    double nodePadding = avgDim;
 
     // 1. Remove external trees from OGDF graph G.
     QList<ExternalTree*> EE;
@@ -1182,6 +1212,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         m_canvas->stop_graph_layout();
         foreach (ExternalTree *E, EE) {
             E->updateShapePositions();
+            E->orthogonalRouting(true);
         }
         foreach (BiComp *B, BB) {
             B->updateShapePositions();
