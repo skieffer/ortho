@@ -361,29 +361,11 @@ void BiComp::layout(void) {
             cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
             QList<QString> names;
             int l = sc->left(), r = sc->right();
-
-            //names.append(QString("%1").arg(l));
-            //names.append(QString("%1").arg(r));
-
             node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
             ShapeObj *shl = m_dunnartShapes.value(nl);
             ShapeObj *shr = m_dunnartShapes.value(nr);
             names.append((QString("%1").arg(shl->internalId())));
             names.append((QString("%1").arg(shr->internalId())));
-
-           /*
-            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
-            QList<node> nodes;
-            nodes.push_back(nl); nodes.push_back(nr);
-            foreach (node n, nodes) {
-                if (m_stubNodeMap.contains(n)) {
-                    names.append(QString("stub"));
-                } else {
-                    ShapeObj *sh = nodeShapes.value(n);
-                    names.append((QString("%1").arg(sh->internalId())));
-                }
-            }
-            */
 
             QString rel = sc->dimension() == vpsc::HORIZONTAL ? "left of" : "above";
             qDebug() << QString("sepco %1 %2 %3 by %4")
@@ -394,7 +376,16 @@ void BiComp::layout(void) {
         }
     }
 
-    //...
+    // 4. Run FD layout again.
+    bool preventOverlaps = false;
+    double idealLength = 300;
+    postACACola(preventOverlaps, idealLength, nodeIndices, sepcos);
+
+    // 5. Translate trees.
+    translateTrees();
+
+    // ...
+
 
 }
 
@@ -472,6 +463,53 @@ cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
     // FIXME: why does this cause segfaults?
     //foreach (vpsc::Variable *v, vs) delete v;
     return ccs;
+}
+
+void BiComp::translateTrees(void) {
+    foreach (node stub, m_stubnodesToTrees.keys()) {
+        // Translate all but root node of tree into stubnode.
+        ExternalTree *E = m_stubnodesToTrees.value(stub);
+        double cx=m_ga->x(stub), cy=m_ga->y(stub);
+        double w=m_ga->width(stub), h=m_ga->height(stub);
+        double x = cx-w/2, y = cy-h/2;
+        QPointF p = E->rootlessBBox().topLeft();
+        double dx=x-p.x(), dy=y-p.y();
+        E->translate(QPointF(dx,dy));
+        // Place root node of tree over own copy of root.
+        ShapeObj *sh = E->rootShape();
+        node root = m_dunnartShapes.key(sh);
+        cx = m_ga->x(root);
+        cy = m_ga->y(root);
+        E->placeRootAt(QPointF(cx,cy));
+    }
+}
+
+void BiComp::postACACola(bool preventOverlaps, double idealLength,
+                         QMap<node, int> nodeIndices, cola::CompoundConstraints sepcos) {
+
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+
+    // Build nodes and edges.
+    int N = nodeIndices.values().size();
+    for (int i = 0; i < N; i++) {
+        node n = nodeIndices.key(i);
+        double w = m_ga->width(n), h = m_ga->height(n);
+        double x = m_ga->x(n) - w/2, y = m_ga->y(n) - h/2;
+        double X = x + w, Y = y + h;
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+    }
+
+    edge e = NULL;
+    forall_edges(e,G) {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = nodeIndices.value(src);
+        int tgtIndex = nodeIndices.value(tgt);
+        es.push_back(cola::Edge(srcIndex, tgtIndex) );
+    }
+
+    //...
 }
 
 // ------------------------------------------------------------------
@@ -1007,6 +1045,19 @@ QRectF ExternalTree::rootlessBBox(void) {
         if (V>Y) Y = V;
     }
     return QRectF(QPointF(x,y),QPointF(X,Y));
+}
+
+void ExternalTree::translate(QPointF p) {
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        m_ga->x(n) += p.x();
+        m_ga->y(n) += p.y();
+    }
+}
+
+void ExternalTree::placeRootAt(QPointF p) {
+    m_ga->x(m_root) = p.x();
+    m_ga->y(m_root) = p.y();
 }
 
 // ------------------------------------------------------------------

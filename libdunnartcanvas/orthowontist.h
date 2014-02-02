@@ -132,6 +132,8 @@ public:
     void treeLayout(void);
     void updateShapePositions(void);
     QRectF rootlessBBox(void);
+    void translate(QPointF p);
+    void placeRootAt(QPointF p);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -160,7 +162,10 @@ public:
     void addStubNodeShapesToCanvas(Canvas *canvas);
     cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim,
         QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
+    void translateTrees(void);
 private:
+    void postACACola(bool preventOverlaps, double idealLength,
+                     QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
     Graph *m_graph;
     GraphAttributes *m_ga;
     QList<node> m_cutnodes;
@@ -218,6 +223,7 @@ public:
     void idealLength(double L) { m_idealLength = L; }
     void preventOverlaps(bool b) { m_preventOverlaps = b; }
     void debugName(QString s) { m_debugName = s; }
+    cola::CompoundConstraints ccs(void) { return m_ccs; }
     void run(void);
     void readPositions(Graph &G, GraphAttributes &GA);
     QMap<vpsc::Dim,EdgeNode> generateEdgeNodes(void);
