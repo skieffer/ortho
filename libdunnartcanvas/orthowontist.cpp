@@ -708,7 +708,7 @@ void ACALayout::initialLayout(void) {
     fdlayout->run(true,true);
     delete fdlayout;
 
-    bool justFirst = true;
+    bool justFirst = false;
     if (justFirst) return;
 
     // Do another FD layout this time with
@@ -1201,6 +1201,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     // 6. Lay out each B in BB.
     foreach (BiComp *B, BB) {
         B->idealLength(idealLength);
+        B->nodePadding(nodePadding);
         B->layout();
     }
 
