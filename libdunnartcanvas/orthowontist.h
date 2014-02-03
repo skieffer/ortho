@@ -127,6 +127,7 @@ public:
                  shapemap nodeShapes, connmap edgeConns);
     QString listNodes(void);
     void colourShapes(void);
+    void numberShapes(void);
     ShapeObj *rootShape(void);
     void orientation(ogdf::Orientation orient) { m_orientation = orient; }
     void treeLayout(void);
@@ -153,6 +154,7 @@ public:
     QList<node> cutnodes(void);
     QString listNodes(void);
     void colourShapes(void);
+    void numberShapes(void);
     ShapeObj *getShape(node m);
     QList<ShapeObj*> allShapes(void);
     void dfs(QMap<ShapeObj *, BiComp *> endpts, QList<BiComp *> &elements);

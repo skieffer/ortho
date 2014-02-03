@@ -145,6 +145,13 @@ void BiComp::colourShapes(void) {
     }
 }
 
+void BiComp::numberShapes(void) {
+    foreach (node m, m_dunnartShapes.keys()) {
+        ShapeObj *sh = m_dunnartShapes.value(m);
+        sh->setLabel(QString::number(sh->internalId()));
+    }
+}
+
 ShapeObj *BiComp::getShape(node m) {
     return m_dunnartShapes.value(m);
 }
@@ -285,7 +292,7 @@ void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     ShapeObj *stubShape = factory->createShape("org.dunnart.shapes.rect");
     stubShape->setFillColour(QColor(0,192,0));
-    stubShape->setLabel(QString::number(stubShape->internalId()));
+    //stubShape->setLabel(QString::number(stubShape->internalId()));
     // Map the stub node to the shape.
     m_dunnartShapes.insert(stub,stubShape);
     // Map stub to tree.
@@ -701,7 +708,7 @@ void ACALayout::initialLayout(void) {
     cola::ConstrainedFDLayout *fdlayout =
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    //test->minIterations = 50;
+    test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
@@ -1046,6 +1053,13 @@ void ExternalTree::colourShapes(void) {
     }
 }
 
+void ExternalTree::numberShapes(void) {
+    foreach (node m, m_dunnartShapes.keys()) {
+        ShapeObj *sh = m_dunnartShapes.value(m);
+        sh->setLabel(QString::number(sh->internalId()));
+    }
+}
+
 ShapeObj *ExternalTree::rootShape(void) {
     return m_dunnartShapes.value(m_root);
 }
@@ -1121,6 +1135,8 @@ Orthowontist::Orthowontist(Canvas *canvas) :
 
 void Orthowontist::run1(QList<CanvasItem*> items) {
     bool debug = true;
+    bool useColours = false;
+    bool showNumbers = false;
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;
@@ -1171,10 +1187,10 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         qDebug() << "\nCompound nontrivial biconnected components:";
         foreach (BiComp *B, BB) {
             qDebug() << B->listNodes();
-            B->colourShapes();
+            if (useColours) B->colourShapes();
         }
         foreach (ExternalTree *E, EE) {
-            E->colourShapes();
+            if (useColours) E->colourShapes();
         }
     }
 
@@ -1196,6 +1212,15 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         ShapeObj *sh = E->rootShape();
         BiComp *B = shapesToBCs.value(sh);
         B->addStubNodeForTree(E,stubsize);
+    }
+
+    if (showNumbers) {
+        foreach (BiComp *B, BB) {
+            B->numberShapes();
+        }
+        foreach (ExternalTree *E, EE) {
+            E->numberShapes();
+        }
     }
 
     // 6. Lay out each B in BB.
@@ -1236,12 +1261,14 @@ void Orthowontist::buildOGDFGraph(CanvasItemsList items,
             GA.width(n) = size.width();
             GA.height(n) = size.height();
             nodeShapes.insert(n,shape);
+            /*
             // Show IDs?
             bool showIDs = true;
             if (showIDs) {
                 QString label = QString("%1").arg(shape->internalId());
                 shape->setLabel(label);
             }
+            */
         }
     }
     foreach (CanvasItem *item, m_canvas->items())
