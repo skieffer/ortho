@@ -1137,20 +1137,24 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     bool debug = true;
     bool useColours = false;
     bool showNumbers = false;
+    bool drawStubnodes = false;
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;
     GraphAttributes GA(G);
     buildOGDFGraph(items,G,GA,nodeShapes,edgeConns);
 
-    // 0. Compute average dimensions.
+    // 0. Compute average and min dimensions.
     double avgHeight=0, avgWidth=0, avgDim=0;
+    double minHeight=DBL_MAX, minWidth=DBL_MAX, minDim=DBL_MAX;
     node n;
     int N = 0;
     forall_nodes(n,G) {
         double w = GA.width(n), h = GA.height(n);
         avgWidth += w;
         avgHeight += h;
+        minHeight = h < minHeight ? h : minHeight;
+        minWidth = w < minWidth ? w : minWidth;
         N++;
         if (debug) {
             qDebug() << QString("node size: %1 x %2").arg(GA.width(n)).arg(GA.height(n));
@@ -1159,6 +1163,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     avgWidth /= N;
     avgHeight /= N;
     avgDim = (avgWidth+avgHeight)/2;
+    minDim = minHeight < minWidth ? minHeight : minWidth;
 
     // Ideal length and node padding
     double idealLength = 2*avgDim;
@@ -1207,7 +1212,12 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
     // 5. Tack onto each B a "stub node" representing each of
     // the external trees that are attached to it.
-    QSizeF stubsize = QSizeF(avgDim,avgDim);
+
+    // Set stub size to be either half the minimum dimension in the graph,
+    // or else the average dimension in the graph.
+    bool useTinyStubs = true;
+    QSizeF stubsize = useTinyStubs ? QSizeF(minDim/2,minDim/2) : QSizeF(avgDim,avgDim);
+
     foreach (ExternalTree *E, EE) {
         ShapeObj *sh = E->rootShape();
         BiComp *B = shapesToBCs.value(sh);
@@ -1231,8 +1241,11 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     }
 
     if (debug) {
-        foreach (BiComp *B, BB) {
-            //B->addStubNodeShapesToCanvas(m_canvas);
+
+        if (drawStubnodes) {
+            foreach (BiComp *B, BB) {
+                B->addStubNodeShapesToCanvas(m_canvas);
+            }
         }
 
         m_canvas->stop_graph_layout();
@@ -1244,6 +1257,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
             B->updateShapePositions();
         }
         m_canvas->restart_graph_layout();
+
     }
 
     // ...
