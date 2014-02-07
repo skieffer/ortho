@@ -144,8 +144,8 @@ class BuiltinTGFFileIOPlugin : public QObject, public FileIOPluginInterface
                     if (p.at(0)==QString("#").at(0)) continue;
                     ShapeObj *s = shapeFactory->createShape("org.dunnart.shapes.rect");
                     shapesByNum.insert(p,s);
-                    double x = n%4<2 ? n : -n;
-                    double y = n%2<1 ? n : -n;
+                    double x = 100*( (n+1) % 4 < 2 ? n : -n );
+                    double y = 100*(    n  % 4 < 2 ? n : -n );
                     s->setPosAndSize(QPointF(x,y),QSizeF(50,50));
                     canvas->addItem(s);
                     n++;
