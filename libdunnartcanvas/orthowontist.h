@@ -136,6 +136,8 @@ public:
     QRectF rootlessBBox(void);
     void translate(QPointF p);
     void placeRootAt(QPointF p);
+    bool needsAlignmentOffset(void);
+    double alignmentOffset(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -240,6 +242,9 @@ public:
     void run(void);
     void readPositions(Graph &G, GraphAttributes &GA);
     QMap<vpsc::Dim,EdgeNode> generateEdgeNodes(void);
+    QList<int> delibAlignedWith(int i);
+    bool delibAligned(int i, int j) { return alignmentState(i,j) & ACADELIB; }
+    bool offsetAlignment(int l, int r, double offset);
 private:
     void initialPositions(void);
     void moveCoincidentNodes(void);

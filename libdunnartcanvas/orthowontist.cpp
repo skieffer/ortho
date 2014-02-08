@@ -358,7 +358,13 @@ void BiComp::layout(void) {
         E->treeLayout();
         // Read size.
         QSizeF size = E->rootlessBBox().size();
-        // Set in stub node and corresponding shape object.
+        // If stub edge was aligned by ACA, offset that alignment if necessary.
+        int si = nodeIndices.value(stub), ri = nodeIndices.value(root);
+        if (aca->delibAligned(si,ri) && E->needsAlignmentOffset()) {
+            double offset = E->alignmentOffset();
+            assert(aca->offsetAlignment(ri,si,offset));
+        }
+        // Set size in stub node and corresponding shape object.
         m_ga->width(stub) = size.width();
         m_ga->height(stub) = size.height();
         ShapeObj *stubShape = m_dunnartShapes.value(stub);
@@ -739,6 +745,40 @@ QMap<vpsc::Dim,EdgeNode> ACALayout::generateEdgeNodes(void) {
         }
     }
     return ens;
+}
+
+/** Return list of all indices j such that rectangle i was deliberately
+  * aligned with rectangle j in the ACA process.
+  */
+QList<int> ACALayout::delibAlignedWith(int i) {
+    QList<int> J;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i,j) & ACADELIB) J.append(j);
+    }
+    return J;
+}
+
+/** Search for an alignment between rectangles of indices l and r.
+  * If find such an alignment, add the passed offset to r and return true.
+  * The change persists in the stored sepAligns.
+  * Else return false.
+  */
+bool ACALayout::offsetAlignment(int l, int r, double offset) {
+    bool found = false;
+    cola::CompoundConstraints ccs;
+    foreach (ACASeparatedAlignment *sa, sepAligns) {
+        if ( (sa->rect1==l && sa->rect2==r) || (sa->rect1==r && sa->rect2==l) ) {
+            vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+            sa->alignment = new cola::AlignmentConstraint(algnDim);
+            sa->alignment->addShape(l,0);
+            sa->alignment->addShape(r,offset);
+            found = true;
+        }
+        ccs.push_back(sa->alignment);
+        ccs.push_back(sa->separation);
+    }
+    m_ccs = ccs;
+    return found;
 }
 
 void ACALayout::initialPositions(void) {
@@ -1251,6 +1291,36 @@ void ExternalTree::translate(QPointF p) {
 void ExternalTree::placeRootAt(QPointF p) {
     m_ga->x(m_root) = p.x();
     m_ga->y(m_root) = p.y();
+}
+
+/** A tree might need an alignment offset only if its
+  * root is of degree 1.
+  */
+bool ExternalTree::needsAlignmentOffset(void) {
+    return m_root->degree() == 1;
+}
+
+/** Returns an offset (which may be negative) such that
+  * the constraint root_z + offset = stub_z will align
+  * the tree and the root properly, where z is x if the
+  * stub edge is aligned vertically, y if horizontally.
+  */
+double ExternalTree::alignmentOffset(void) {
+    double offset = 0;
+    if (needsAlignmentOffset()) {
+        // In this case the root has just one child. Get it.
+        node c; edge e;
+        forall_adj_edges(e,m_root) { // should be only one
+            c = m_root == e->source() ? e->target() : e->source();
+        }
+        QRectF bbox = rootlessBBox();
+        if (m_orientation==leftToRight || m_orientation==rightToLeft) {
+            offset = bbox.center().y() - m_ga->y(c);
+        } else {
+            offset = bbox.center().x() - m_ga->x(c);
+        }
+    }
+    return offset;
 }
 
 // ------------------------------------------------------------------
