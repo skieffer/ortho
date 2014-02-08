@@ -89,7 +89,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const bool snapTo, const double snapDistance,
         const double* eLengths,
         TestConvergence *doneTest, PreIteration* preIteration) 
-    : n(rs.size()),
+    : skip_attractive_forces(true),
+      n(rs.size()),
       X(valarray<double>(n)),
       Y(valarray<double>(n)),
       done(doneTest),
@@ -1244,7 +1245,7 @@ void ConstrainedFDLayout::computeForces(
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            if(l>d && p>1) continue; // attractive forces not required
+            if(l>d && p>1 && skip_attractive_forces) continue; // attractive forces not required
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
@@ -1726,7 +1727,7 @@ double ConstrainedFDLayout::computeStress() const {
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            if(l>d && p>1) continue; // no attractive forces required
+            if(l>d && p>1 && skip_attractive_forces) continue; // no attractive forces required
             // We add stress for node pair (u,v) if l <= d, i.e.
             // if u and v are "too close", so that such nodes repel;
             // if the nodes are "too distant" then we add stress only

@@ -168,6 +168,8 @@ public:
     void translateTrees(void);
     void idealLength(double L) { m_idealLength = L; }
     void nodePadding(double P) { m_nodePadding = P; }
+    double *edgeLengths(QMap<node,int> nodeIndices, std::vector<cola::Edge> colaEdges);
+    QList<double> nodePadding(QMap<node,int> nodeIndices);
 private:
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
@@ -227,10 +229,13 @@ class ACALayout {
 public:
     ACALayout(Graph &G, GraphAttributes &GA);
     void nodePadding(double P);
+    void nodePadding(QList<double> P);
+    void edgeLengths(double *eL) { m_edgeLengths = eL; }
     QMap<node,int> nodeIndices(void) { return m_nodeIndices; }
     void idealLength(double L) { m_idealLength = L; }
     void preventOverlaps(bool b) { m_preventOverlaps = b; }
     void debugName(QString s) { m_debugName = s; }
+    std::vector<cola::Edge> colaEdges(void) { return es; }
     cola::CompoundConstraints ccs(void) { return m_ccs; }
     void run(void);
     void readPositions(Graph &G, GraphAttributes &GA);
@@ -241,6 +246,7 @@ private:
     void initialLayout(void);
     void acaLoopOneByOne(void);
     void acaLoopAllAtOnce(void);
+    void finalLayout(void);
     void initAlignmentState(void);
     void updateAlignmentState(ACASeparatedAlignment *sa);
     ACASeparatedAlignment *chooseSA(void);
@@ -259,6 +265,7 @@ private:
     QString m_debugName;
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
+    double *m_edgeLengths;
     cola::CompoundConstraints m_ccs;
     Matrix2d<int> alignmentState;
     QList<ACASeparatedAlignment*> sepAligns;

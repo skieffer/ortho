@@ -756,6 +756,7 @@ public:
     double getFinalStress(void) { return m_final_stress; }
     void addEdgeNodeRepulsion(bool b) { m_addEdgeNodeRepulsion = b; }
     double most_recent_pure_stress;
+    bool skip_attractive_forces;
 
 private:
     unsigned n; // number of nodes
