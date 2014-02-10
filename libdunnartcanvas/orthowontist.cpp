@@ -324,9 +324,19 @@ void BiComp::layout(void) {
 
     // 1. Build and run ACA Layout.
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
+
+    QMap<node,int> nodeIndices = aca->nodeIndices();
+    std::vector<cola::Edge> colaEdges = aca->colaEdges();
+
     aca->debugName("BC");
-    aca->idealLength(m_idealLength);
-    aca->nodePadding(m_nodePadding);
+
+    //aca->idealLength(m_idealLength);
+    //aca->nodePadding(m_nodePadding);
+
+    aca->idealLength(1);
+    aca->edgeLengths(edgeLengths(nodeIndices,colaEdges));
+    aca->nodePadding(nodePadding(nodeIndices));
+
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
@@ -348,7 +358,13 @@ void BiComp::layout(void) {
         E->treeLayout();
         // Read size.
         QSizeF size = E->rootlessBBox().size();
-        // Set in stub node and corresponding shape object.
+        // If stub edge was aligned by ACA, offset that alignment if necessary.
+        int si = nodeIndices.value(stub), ri = nodeIndices.value(root);
+        if (aca->delibAligned(si,ri) && E->needsAlignmentOffset()) {
+            double offset = E->alignmentOffset();
+            assert(aca->offsetAlignment(ri,si,offset));
+        }
+        // Set size in stub node and corresponding shape object.
         m_ga->width(stub) = size.width();
         m_ga->height(stub) = size.height();
         ShapeObj *stubShape = m_dunnartShapes.value(stub);
@@ -357,7 +373,6 @@ void BiComp::layout(void) {
 
     // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
     QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
-    QMap<node,int> nodeIndices = aca->nodeIndices();
     double padding = m_nodePadding;
     cola::CompoundConstraints hSepcos =
             generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
@@ -509,6 +524,42 @@ void BiComp::translateTrees(void) {
     }
 }
 
+double *BiComp::edgeLengths(QMap<node, int> nodeIndices, std::vector<cola::Edge> colaEdges) {
+    int m = colaEdges.size();
+    double *eL = new double[m];
+    int i = 0;
+    foreach (cola::Edge e, colaEdges) {
+        int srcIdx = e.first, tgtIdx = e.second;
+        node src = nodeIndices.key(srcIdx), tgt = nodeIndices.key(tgtIdx);
+        // If neither node is a stubnode, then use own ideal length as length.
+        if (!m_stubnodesToTrees.contains(src) && !m_stubnodesToTrees.contains(tgt)) {
+            eL[i++] = m_idealLength;
+        } else {
+            // Otherwise at least one is a stubnode.
+            // Should be exactly one, except in a degenerate case for which,
+            // for now, we throw an error.
+            assert(!m_stubnodesToTrees.contains(src) || !m_stubnodesToTrees.contains(tgt));
+            // Use their average dimension.
+            double ws=m_ga->width(src), hs=m_ga->height(src);
+            double wt=m_ga->width(tgt), ht=m_ga->height(tgt);
+            eL[i++] = (ws+hs+wt+ht)/4;
+        }
+    }
+    return eL;
+}
+
+QList<double> BiComp::nodePadding(QMap<node, int> nodeIndices) {
+    QList<double> P;
+    QList<node> nodes = nodeIndices.keys();
+    int N = nodes.size();
+    for (int i = 0; i < N; i++) {
+        node n = nodeIndices.key(i);
+        double p = m_stubnodesToTrees.contains(n) ? 0 : m_nodePadding;
+        P.append(p);
+    }
+    return P;
+}
+
 void BiComp::postACACola(bool preventOverlaps, double idealLength,
                          QMap<node, int> nodeIndices, cola::CompoundConstraints sepcos) {
 
@@ -570,7 +621,8 @@ ACALayout::ACALayout(Graph &G, GraphAttributes &GA) :
     m_postponeLeaves(true),
     m_useNonLeafDegree(true),
     m_allAtOnce(false),
-    m_debugName("")
+    m_debugName(""),
+    m_edgeLengths(NULL)
 {
     QMap<int,int> deg; // multimap from rect indices to indices of neighbours
     node n = NULL;
@@ -638,6 +690,20 @@ void ACALayout::nodePadding(double P) {
     }
 }
 
+void ACALayout::nodePadding(QList<double> P) {
+    int i = 0;
+    foreach (vpsc::Rectangle *r, rs) {
+        double h = P.at(i++)/2;
+        double x = r->getMinX(), X = r->getMaxX();
+        double y = r->getMinY(), Y = r->getMaxY();
+        x -= h; X += h; y -= h; Y += h;
+        r->setMinD(0,x);
+        r->setMaxD(0,X);
+        r->setMinD(1,y);
+        r->setMaxD(1,Y);
+    }
+}
+
 /** Run the layout algorithm.
   */
 void ACALayout::run(void)
@@ -648,6 +714,7 @@ void ACALayout::run(void)
     } else {
         acaLoopOneByOne();
     }
+    finalLayout();
 }
 
 void ACALayout::readPositions(Graph &G, GraphAttributes &GA)
@@ -688,6 +755,40 @@ QMap<vpsc::Dim,EdgeNode> ACALayout::generateEdgeNodes(void) {
     return ens;
 }
 
+/** Return list of all indices j such that rectangle i was deliberately
+  * aligned with rectangle j in the ACA process.
+  */
+QList<int> ACALayout::delibAlignedWith(int i) {
+    QList<int> J;
+    for (int j = 0; j < alignmentState.cols; j++) {
+        if (alignmentState(i,j) & ACADELIB) J.append(j);
+    }
+    return J;
+}
+
+/** Search for an alignment between rectangles of indices l and r.
+  * If find such an alignment, add the passed offset to r and return true.
+  * The change persists in the stored sepAligns.
+  * Else return false.
+  */
+bool ACALayout::offsetAlignment(int l, int r, double offset) {
+    bool found = false;
+    cola::CompoundConstraints ccs;
+    foreach (ACASeparatedAlignment *sa, sepAligns) {
+        if ( (sa->rect1==l && sa->rect2==r) || (sa->rect1==r && sa->rect2==l) ) {
+            vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+            sa->alignment = new cola::AlignmentConstraint(algnDim);
+            sa->alignment->addShape(l,0);
+            sa->alignment->addShape(r,offset);
+            found = true;
+        }
+        ccs.push_back(sa->alignment);
+        ccs.push_back(sa->separation);
+    }
+    m_ccs = ccs;
+    return found;
+}
+
 void ACALayout::initialPositions(void) {
     // TODO: In the future we might choose a good outer face, and positions
     // for all other nodes inside this.
@@ -713,8 +814,10 @@ void ACALayout::initialLayout(void) {
     // with no overlap prevention, and long ideal edge length.
     bool preventOverlaps = false;
     double iL = m_idealLength;
-    cola::ConstrainedFDLayout *fdlayout =
-            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    cola::ConstrainedFDLayout *fdlayout = m_edgeLengths == NULL ?
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,m_edgeLengths);
     ConvTest1 *test = new ConvTest1(1e-3,100);
     test->minIterations = 100;
     test->setLayout(fdlayout);
@@ -732,11 +835,63 @@ void ACALayout::initialLayout(void) {
     // FIXME Deleting 'test' is causing a segfault.
     // Why? Accept memory leak for now.
     // delete test;
-    fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+
+    //fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    fdlayout = m_edgeLengths == NULL ?
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,m_edgeLengths);
+
     test = new ConvTest1(1e-4,200);
     //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S2-yesOP");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+    delete fdlayout;
+}
+
+void ACALayout::finalLayout(void) {
+    // Keep the ACA constraints, but turn off OP.
+    // (This allows stub nodes to retract toward their owners if they
+    //  got separated. So this is specific to the NoNo layout, and should
+    //  eventually be refactored out of the ACALayout object.) (FIXME)
+    bool preventOverlaps = false;
+    double iL = m_idealLength;
+    cola::ConstrainedFDLayout *fdlayout = m_edgeLengths == NULL ?
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,m_edgeLengths);
+    fdlayout->setConstraints(m_ccs);
+    ConvTest1 *test = new ConvTest1(1e-3,100);
+    test->minIterations = 100;
+    test->setLayout(fdlayout);
+    test->name = m_debugName+QString("-S3-noOP-again");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->skip_attractive_forces = false;
+    fdlayout->run(true,true);
+    delete fdlayout;
+
+    bool justFirst = false;
+    if (justFirst) return;
+
+    // Do another FD layout this time with
+    // overlap prevention.
+    preventOverlaps = true;
+    // FIXME Deleting 'test' is causing a segfault.
+    // Why? Accept memory leak for now.
+    // delete test;
+
+    //fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    fdlayout = m_edgeLengths == NULL ?
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,m_edgeLengths);
+    fdlayout->setConstraints(m_ccs);
+    test = new ConvTest1(1e-4,200);
+    //test->minIterations = 100;
+    test->setLayout(fdlayout);
+    test->name = m_debugName+QString("-S3-yesOP-again");
     fdlayout->setConvergenceTest(test);
     fdlayout->run(true,true);
     delete fdlayout;
@@ -759,7 +914,13 @@ void ACALayout::acaLoopOneByOne(void) {
         ccs.push_back(sa->alignment);
         // Redo the layout, with the new constraints.
         if (fdlayout!=NULL) delete fdlayout;
-        fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+
+        //fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+        fdlayout = m_edgeLengths == NULL ?
+                new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+                new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                              false,10.0,m_edgeLengths);
+
         ConvTest1 *test = new ConvTest1(1e-3,3);
         test->setLayout(fdlayout);
         test->name = m_debugName+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
@@ -797,7 +958,13 @@ void ACALayout::acaLoopAllAtOnce(void) {
         sa = chooseSA();
     }
     // Do the layout with the new constraints.
-    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+
+    //cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps);
+    cola::ConstrainedFDLayout *fdlayout = m_edgeLengths == NULL ?
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps) :
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,m_edgeLengths);
+
     ConvTest1 *test = new ConvTest1(1e-3,3);
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S3-ACA-%1").arg(++N,4,10,QLatin1Char('0'));
@@ -1132,6 +1299,36 @@ void ExternalTree::translate(QPointF p) {
 void ExternalTree::placeRootAt(QPointF p) {
     m_ga->x(m_root) = p.x();
     m_ga->y(m_root) = p.y();
+}
+
+/** A tree might need an alignment offset only if its
+  * root is of degree 1.
+  */
+bool ExternalTree::needsAlignmentOffset(void) {
+    return m_root->degree() == 1;
+}
+
+/** Returns an offset (which may be negative) such that
+  * the constraint root_z + offset = stub_z will align
+  * the tree and the root properly, where z is x if the
+  * stub edge is aligned vertically, y if horizontally.
+  */
+double ExternalTree::alignmentOffset(void) {
+    double offset = 0;
+    if (needsAlignmentOffset()) {
+        // In this case the root has just one child. Get it.
+        node c; edge e;
+        forall_adj_edges(e,m_root) { // should be only one
+            c = m_root == e->source() ? e->target() : e->source();
+        }
+        QRectF bbox = rootlessBBox();
+        if (m_orientation==leftToRight || m_orientation==rightToLeft) {
+            offset = bbox.center().y() - m_ga->y(c);
+        } else {
+            offset = bbox.center().x() - m_ga->x(c);
+        }
+    }
+    return offset;
 }
 
 // ------------------------------------------------------------------
