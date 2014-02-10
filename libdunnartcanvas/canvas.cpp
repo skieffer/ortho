@@ -5718,6 +5718,8 @@ void Canvas::orthowontist(void)
     ow::Orthowontist ow(this);
     CanvasItemsList L = items();
     ow.run1(L);
+    router()->processActions();
+    //router()->rerouteAndCallbackConnectors();
 }
 
 }

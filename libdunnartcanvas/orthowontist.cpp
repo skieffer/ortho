@@ -413,6 +413,14 @@ void BiComp::updateShapePositions(void) {
     }
 }
 
+void BiComp::orthogonalRouting(bool b) {
+    dunnart::Connector::RoutingType t = b ? Connector::orthogonal : Connector::polyline;
+    foreach (Connector *conn, m_dunnartConns.values()) {
+        if (conn==NULL) continue;
+        conn->setRoutingType(t);
+    }
+}
+
 void BiComp::addStubNodeShapesToCanvas(Canvas *canvas) {
     canvas->stop_graph_layout();
     foreach (node stub, m_stubnodesToTrees.keys()) {
@@ -1255,6 +1263,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         }
         foreach (BiComp *B, BB) {
             B->updateShapePositions();
+            B->orthogonalRouting(true);
         }
         m_canvas->restart_graph_layout();
 

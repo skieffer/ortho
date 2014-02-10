@@ -162,6 +162,7 @@ public:
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
     void layout(void);
     void updateShapePositions(void);
+    void orthogonalRouting(bool b);
     void addStubNodeShapesToCanvas(Canvas *canvas);
     cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim,
         QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
