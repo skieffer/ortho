@@ -1460,7 +1460,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         }
         foreach (BiComp *B, BB) {
             B->updateShapePositions();
-            B->orthogonalRouting(true);
+            //B->orthogonalRouting(true);
         }
         m_canvas->restart_graph_layout();
 
