@@ -155,7 +155,97 @@ void Planarization::planarizeHDCrossings(void) {
     // Sort them.
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
     // Scan once through the sorted list, catching intersections.
-    // TODO...
+    QList<Edge*> openEdges;
+    for (int i = 0; i < nE; i++) {
+        EdgeEvent event = events[i];
+        switch (event.m_eetype) {
+        case DOPENY:
+            Edge *e = event.m_edge;
+            e->m_openEdgeIndex = openEdges.size();
+            openEdges.append(event.m_edge);
+            break;
+        case DCLOSEY:
+            int j = event.m_edge->m_openEdgeIndex;
+            openEdges.removeAt(j);
+            break;
+        case HEDGE:
+            Edge *h = event.m_edge;
+            // Check whether h crosses any of the currently open diagonal edges.
+            foreach (Edge *d, openEdges) {
+                if (h->sharesAnEndptWith(*d)) continue; // If they share an endpoint, then they do not cross.
+                double y0 = h->constCoord();
+                if (!d->coversY(y0)) continue;
+                double x0 = d->x(y0);
+                if (!h->coversX(x0)) continue;
+                // If we reach this point, then h and d cross.
+                // Their intersection point is (x0,y0).
+                //
+                // TODO: Add the dummy node and edges.
+            }
+        }
+    }
+}
+
+void Planarization::planarizeVDCrossings(void) {
+    // Create edge event objects.
+    int nV = mV.size(), nD = mD.size();
+    int nE = nV + 2*nD;
+    EdgeEvent *events = new EdgeEvent[nE];
+    for (int i = 0; i < nV; i++) {
+        events[i] = EdgeEvent(VEDGE,mV.at(i));
+    }
+    for (int i = 0; i < nD; i++) {
+        Edge *d = mD.at(i);
+        events[nV+2*i] = EdgeEvent(DOPENY,d);
+        events[nV+2*i+1] = EdgeEvent(DCLOSEY,d);
+    }
+    // Sort them.
+    qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
+    // Scan once through the sorted list, catching intersections.
+    QList<Edge*> openEdges;
+    for (int i = 0; i < nE; i++) {
+        EdgeEvent event = events[i];
+        switch (event.m_eetype) {
+        case DOPENY:
+            Edge *e = event.m_edge;
+            e->m_openEdgeIndex = openEdges.size();
+            openEdges.append(event.m_edge);
+            break;
+        case DCLOSEY:
+            int j = event.m_edge->m_openEdgeIndex;
+            openEdges.removeAt(j);
+            break;
+        case VEDGE:
+            Edge *v = event.m_edge;
+            // Check whether v crosses any of the currently open diagonal edges.
+            foreach (Edge *d, openEdges) {
+                if (v->sharesAnEndptWith(*d)) continue; // If they share an endpoint, then they do not cross.
+                double x0 = v->constCoord();
+                if (!d->coversX(x0)) continue;
+                double y0 = d->y(x0);
+                if (!h->coversY(y0)) continue;
+                // If we reach this point, then v and d cross.
+                // Their intersection point is (x0,y0).
+                //
+                // TODO: Add the dummy node and edges.
+            }
+        }
+    }
+}
+
+void Planarization::planarizeDDCrossings(void) {
+    int nD = mD.size();
+    for (int i = 0; i < nD; i++) {
+        Edge *di = mD.at(i);
+        for (int j = i+1; j < nD; j++) {
+            Edge *dj = mD.at(j);
+            QPair<bool,QPointF> X = di->intersectDiagonals(dj);
+            if (X.first) {
+                QPointF p = X.second;
+                // TODO: Add the dummy node and edges.
+            }
+        }
+    }
 }
 
 static int cmpEdgeEvent(const void *p1, const void *p2) {

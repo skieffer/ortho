@@ -166,10 +166,29 @@ public:
             y0 = min(ys,yt);
             y1 = max(ys,yt);
         }
+        bool sharesAnEndptWith(Edge o) {
+            node src = m_ogdfEdge->source();
+            node tgt = m_ogdfEdge->target();
+            node os = o.m_ogdfEdge->source();
+            node ot = o.m_ogdfEdge->target();
+            return src==os||src==ot||tgt==os||tgt==ot;
+        }
+        QPair<bool,QPointF> intersectDiagonals(Edge *d) {
+            assert(m_etype==DTYPE && d->m_etype==DTYPE);
+            //...
+        }
+        double constCoord(void) {return m_etype==HTYPE ? y0 : x0;}
+        double lowerBd(void) {return m_etype==HTYPE ? x0 : y0;}
+        double upperBd(void) {return m_etype==HTYPE ? x1 : y1;}
+        bool coversY(double y) {return y0 <= y && y <= y1;}
+        bool coversX(double x) {return x0 <= x && x <= x1;}
+        double x(double y) { return y1 == y0 ? 0 : x0+(x1-x0)*(y-y0)/(y1-y0); }
+        double y(double x) { return x1 == x0 ? 0 : y0+(y1-y0)*(x-x0)/(x1-x0); }
         GraphAttributes *m_ga;
         EdgeType m_etype;
         ogdf::edge m_ogdfEdge;
         double x0, x1, y0, y1;
+        int m_openEdgeIndex;
     };
 
     enum EdgeEventType { HEDGE, VEDGE, DOPENX, DOPENY, DCLOSEX, DCLOSEY };
@@ -184,6 +203,8 @@ public:
 private:
     QPair<bool,QPointF> intersection(edge e, edge f, GraphAttributes &GA);
     void planarizeHDCrossings(void);
+    void planarizeVDCrossings(void);
+    void planarizeDDCrossings(void);
     Graph *m_graph;
     GraphAttributes *m_ga;
     QMap<node,node> m_origNodes;
