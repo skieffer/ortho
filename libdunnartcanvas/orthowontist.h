@@ -148,6 +148,54 @@ private:
     ogdf::Orientation m_orientation;
 };
 
+static int cmpEdgeEvent(const void *p1, const void *p2);
+
+class Planarization {
+public:
+    Planarization(Graph &G, GraphAttributes &GA, QMap<edge,int> alignments);
+
+    enum EdgeType { HTYPE, VTYPE, DTYPE };
+
+    struct Edge {
+        Edge(EdgeType t, ogdf::edge e, GraphAttributes *ga) :
+            m_etype(t), m_ogdfEdge(e), m_ga(ga) {
+            double xs=m_ga->x(e->source()), ys=m_ga->y(e->source());
+            double xt=m_ga->x(e->target()), yt=m_ga->y(e->target());
+            x0 = min(xs,xt);
+            x1 = max(xs,xt);
+            y0 = min(ys,yt);
+            y1 = max(ys,yt);
+        }
+        GraphAttributes *m_ga;
+        EdgeType m_etype;
+        ogdf::edge m_ogdfEdge;
+        double x0, x1, y0, y1;
+    };
+
+    enum EdgeEventType { HEDGE, VEDGE, DOPENX, DOPENY, DCLOSEX, DCLOSEY };
+
+    struct EdgeEvent {
+        EdgeEvent() {}
+        EdgeEvent(EdgeEventType t, Edge *e) : m_eetype(t), m_edge(e) {}
+        EdgeEventType m_eetype;
+        Edge *m_edge;
+    };
+
+private:
+    QPair<bool,QPointF> intersection(edge e, edge f, GraphAttributes &GA);
+    void planarizeHDCrossings(void);
+    Graph *m_graph;
+    GraphAttributes *m_ga;
+    QMap<node,node> m_origNodes;
+    QMap<edge,edge> m_origEdges;
+    QMap<edge,int> m_alignments;
+    QList<Edge*> mH;
+    QList<Edge*> mV;
+    QList<Edge*> mD;
+    QList<node> m_dummyNodes;
+    QList<edge> m_dummyEdges;
+};
+
 class BiComp {
 public:
     BiComp(void);
@@ -245,6 +293,8 @@ public:
     QList<int> delibAlignedWith(int i);
     bool delibAligned(int i, int j) { return alignmentState(i,j) & ACADELIB; }
     bool offsetAlignment(int l, int r, double offset);
+    int alignment(edge e);
+    QMap<edge,int> alignments(Graph &G);
 private:
     void initialPositions(void);
     void moveCoincidentNodes(void);

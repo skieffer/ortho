@@ -84,6 +84,122 @@ using namespace ogdf;
 namespace ow {
 
 // ------------------------------------------------------------------
+// Planarization ----------------------------------------------------
+
+Planarization::Planarization(Graph &G, GraphAttributes &GA, QMap<edge,int> alignments) {
+    // Build local copy of original graph.
+    m_graph = new Graph();
+    m_ga = new GraphAttributes(*m_graph);
+    node n;
+    forall_nodes(n, G) {
+        node m = m_graph->newNode();
+        m_origNodes.insert(m,n);
+        m_ga->x(m) = GA.x(n);
+        m_ga->y(m) = GA.y(n);
+        m_ga->width(m) = GA.width(m);
+        m_ga->height(m) = GA.height(m);
+    }
+    edge e;
+    forall_edges(e, G) {
+        node m1 = m_origNodes.key(e->source());
+        node m2 = m_origNodes.key(e->target());
+        edge f = m_graph->newEdge(m1,m2);
+        m_origEdges.insert(f,e);
+        // Check alignment
+        int af = alignments.value(e);
+        m_alignments.insert(f,af);
+        if (af & ACAHORIZ) {
+            mH.append(new Edge(HTYPE,f,m_ga));
+        } else if (af & ACAVERT) {
+            mV.append(new Edge(VTYPE,f,m_ga));
+        } else {
+            mD.append(new Edge(DTYPE,f,m_ga));
+        }
+    }
+
+    // Planarize by replacing each crossing with a dummy node.
+    // FIXME: For now we do this by the dumb quadratic comparison of all pairs of edges. Do better!
+    QList<edge> edges;
+    edge f;
+    forall_edges(f, *m_graph) {
+        edges.append(f);
+    }
+    int M = edges.size();
+    for (int i = 0; i < M; i++) {
+        edge e = edges.at(i);
+        for (int j = i+1; j < M; j++) {
+            edge f = edges.at(j);
+            QPair<bool,QPointF> X = intersection(e,f,*m_ga);
+            if (X.first) {
+                QPointF p = X.second;
+                // TODO: Add a dummy node at point p.
+                // Align the dummy edges according to the alignments of their parent edges.
+            }
+        }
+    }
+}
+
+void Planarization::planarizeHDCrossings(void) {
+    // Create edge event objects.
+    int nH = mH.size(), nD = mD.size();
+    int nE = nH + 2*nD;
+    EdgeEvent *events = new EdgeEvent[nE];
+    for (int i = 0; i < nH; i++) {
+        events[i] = EdgeEvent(HEDGE,mH.at(i));
+    }
+    for (int i = 0; i < nD; i++) {
+        Edge *d = mD.at(i);
+        events[nH+2*i] = EdgeEvent(DOPENY,d);
+        events[nH+2*i+1] = EdgeEvent(DCLOSEY,d);
+    }
+    // Sort them.
+    qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
+    // Scan once through the sorted list, catching intersections.
+    // TODO...
+}
+
+static int cmpEdgeEvent(const void *p1, const void *p2) {
+    QList<ow::Planarization::EdgeEvent> events;
+    ow::Planarization::EdgeEvent e1 = * (ow::Planarization::EdgeEvent *)(p1);
+    ow::Planarization::EdgeEvent e2 = * (ow::Planarization::EdgeEvent *)(p2);
+    events.append(e1);
+    events.append(e2);
+    QList<double> coords;
+    foreach (ow::Planarization::EdgeEvent event, events) {
+        double z = 0;
+        switch (event.m_eetype) {
+        case ow::Planarization::HEDGE:
+            z = event.m_edge->y0; break;
+        case ow::Planarization::VEDGE:
+            z = event.m_edge->x0; break;
+        case ow::Planarization::DOPENX:
+            z = event.m_edge->x0; break;
+        case ow::Planarization::DOPENY:
+            z = event.m_edge->y0; break;
+        case ow::Planarization::DCLOSEX:
+            z = event.m_edge->x1; break;
+        case ow::Planarization::DCLOSEY:
+            z = event.m_edge->y1; break;
+        }
+        coords.append(z);
+    }
+    double z1 = coords.at(0), z2 = coords.at(1);
+    int c = z1 < z2 ? -1 : z1 > z2 ? 1 : 0;
+    return c;
+}
+
+QPair<bool,QPointF> Planarization::intersection(edge e, edge f, GraphAttributes &GA) {
+    node eS = e->source(), eT = e->target();
+    node fS = f->source(), fT = f->target();
+    // If edges share an endpoint, then they do not intersect.
+    if (eS==fS||eS==fT||eT==fS||eT==fT) return QPair<bool,QPointF>(false,QPointF(0,0));
+    //
+    double ex1=GA.x(eS), ey1=GA.y(eS), ex2=GA.x(eT), ey2=GA.y(eT);
+    double fx1=GA.x(fS), fy1=GA.y(fS), fx2=GA.x(fT), fy2=GA.y(fT);
+    //...
+}
+
+// ------------------------------------------------------------------
 // BiComp -----------------------------------------------------------
 
 BiComp::BiComp(void) :
@@ -339,6 +455,10 @@ void BiComp::layout(void) {
 
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
+
+    // 1.5. Build planarization.
+    Planarization *planar = new Planarization(*m_graph, *m_ga, aca->alignments(*m_graph));
+    // ... TODO
 
     // 2. Lay out external trees.
     //    Set stubnode sizes according to bounding boxes of laid out trees.
@@ -779,6 +899,22 @@ bool ACALayout::offsetAlignment(int l, int r, double offset) {
     }
     m_ccs = ccs;
     return found;
+}
+
+int ACALayout::alignment(edge e) {
+    node src = e->source(), tgt = e->target();
+    int srcIndex = m_nodeIndices.value(src);
+    int tgtIndex = m_nodeIndices.value(tgt);
+    return alignmentState(srcIndex,tgtIndex);
+}
+
+QMap<edge,int> ACALayout::alignments(Graph &G) {
+    QMap<edge,int> A;
+    edge e;
+    forall_edges(e,G) {
+        A.insert( e, alignment(e) );
+    }
+    return A;
 }
 
 void ACALayout::initialPositions(void) {
