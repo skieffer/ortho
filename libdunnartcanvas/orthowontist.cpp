@@ -138,28 +138,27 @@ void Planarization::planarizeHDCrossings(void) {
     // Create edge event objects.
     int nH = mH.size(), nD = mD.size();
     int nE = nH + 2*nD;
-    EdgeEvent *events = new EdgeEvent[nE];
+    EdgeEvent **events = new EdgeEvent*[nE];
     for (int i = 0; i < nH; i++) {
-        events[i] = EdgeEvent(HEDGE,mH.at(i));
+        events[i] = new EdgeEvent(HEDGE,mH.at(i));
     }
     for (int i = 0; i < nD; i++) {
         Edge *d = mD.at(i);
-        events[nH+2*i] = EdgeEvent(DOPENY,d);
-        events[nH+2*i+1] = EdgeEvent(DCLOSEY,d);
+        events[nH+2*i] = new EdgeEvent(DOPENY,d);
+        events[nH+2*i+1] = new EdgeEvent(DCLOSEY,d);
     }
     // Sort them.
-    size_t s = sizeof(EdgeEvent*);
     //DEBUG
     for (int i = 0; i < nE; i++) {
-        EdgeEvent event = events[i];
+        EdgeEvent *event = events[i];
         qDebug() << ".";
     }
     //ENDDEBUG
-    qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
+    qsort(events,nE,sizeof(EdgeEvent**),cmpEdgeEvent);
     // Scan once through the sorted list, catching intersections.
     QList<Edge*> openEdges;
     for (int i = 0; i < nE; i++) {
-        EdgeEvent event = events[i];
+        EdgeEvent event = *events[i];
         switch (event.m_eetype) {
         case DOPENY: {
             Edge *e = event.m_edge;
@@ -313,8 +312,8 @@ QPair<bool,QPointF> Planarization::Edge::intersectDiagonals(Edge *d) {
 
 static int cmpEdgeEvent(const void *p1, const void *p2) {
     QList<ow::Planarization::EdgeEvent> events;
-    ow::Planarization::EdgeEvent e1 = * (ow::Planarization::EdgeEvent *)(p1);
-    ow::Planarization::EdgeEvent e2 = * (ow::Planarization::EdgeEvent *)(p2);
+    ow::Planarization::EdgeEvent e1 = ** (ow::Planarization::EdgeEvent **)(p1);
+    ow::Planarization::EdgeEvent e2 = ** (ow::Planarization::EdgeEvent **)(p2);
     events.append(e1);
     events.append(e2);
     QList<double> coords;
