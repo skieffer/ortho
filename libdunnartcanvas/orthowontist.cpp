@@ -86,7 +86,10 @@ namespace ow {
 // ------------------------------------------------------------------
 // Planarization ----------------------------------------------------
 
-Planarization::Planarization(Graph &G, GraphAttributes &GA, QMap<edge,int> alignments) {
+Planarization::Planarization(Graph &G, GraphAttributes &GA,
+                             QMap<edge,int> alignments, QSizeF dummyNodeSize) :
+    m_dummyNodeSize(dummyNodeSize)
+{
     // Build local copy of original graph.
     m_graph = new Graph();
     m_ga = new GraphAttributes(*m_graph);
@@ -118,25 +121,17 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA, QMap<edge,int> align
     }
 
     // Planarize by replacing each crossing with a dummy node.
-    // FIXME: For now we do this by the dumb quadratic comparison of all pairs of edges. Do better!
-    QList<edge> edges;
-    edge f;
-    forall_edges(f, *m_graph) {
-        edges.append(f);
+    planarizeHDCrossings();
+    planarizeVDCrossings();
+    planarizeDDCrossings();
+}
+
+void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
+    canvas->stop_graph_layout();
+    foreach (ShapeObj *sh, m_dunnartShapes.values()) {
+        canvas->addItem(sh);
     }
-    int M = edges.size();
-    for (int i = 0; i < M; i++) {
-        edge e = edges.at(i);
-        for (int j = i+1; j < M; j++) {
-            edge f = edges.at(j);
-            QPair<bool,QPointF> X = intersection(e,f,*m_ga);
-            if (X.first) {
-                QPointF p = X.second;
-                // TODO: Add a dummy node at point p.
-                // Align the dummy edges according to the alignments of their parent edges.
-            }
-        }
-    }
+    canvas->restart_graph_layout();
 }
 
 void Planarization::planarizeHDCrossings(void) {
@@ -153,22 +148,31 @@ void Planarization::planarizeHDCrossings(void) {
         events[nH+2*i+1] = EdgeEvent(DCLOSEY,d);
     }
     // Sort them.
+    size_t s = sizeof(EdgeEvent*);
+    //DEBUG
+    for (int i = 0; i < nE; i++) {
+        EdgeEvent event = events[i];
+        qDebug() << ".";
+    }
+    //ENDDEBUG
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
     // Scan once through the sorted list, catching intersections.
     QList<Edge*> openEdges;
     for (int i = 0; i < nE; i++) {
         EdgeEvent event = events[i];
         switch (event.m_eetype) {
-        case DOPENY:
+        case DOPENY: {
             Edge *e = event.m_edge;
             e->m_openEdgeIndex = openEdges.size();
             openEdges.append(event.m_edge);
             break;
-        case DCLOSEY:
+        }
+        case DCLOSEY: {
             int j = event.m_edge->m_openEdgeIndex;
             openEdges.removeAt(j);
             break;
-        case HEDGE:
+        }
+        case HEDGE: {
             Edge *h = event.m_edge;
             // Check whether h crosses any of the currently open diagonal edges.
             foreach (Edge *d, openEdges) {
@@ -179,9 +183,9 @@ void Planarization::planarizeHDCrossings(void) {
                 if (!h->coversX(x0)) continue;
                 // If we reach this point, then h and d cross.
                 // Their intersection point is (x0,y0).
-                //
-                // TODO: Add the dummy node and edges.
+                addDummyCross(h,d,QPointF(x0,y0));
             }
+        }
         }
     }
 }
@@ -206,16 +210,18 @@ void Planarization::planarizeVDCrossings(void) {
     for (int i = 0; i < nE; i++) {
         EdgeEvent event = events[i];
         switch (event.m_eetype) {
-        case DOPENY:
+        case DOPENY: {
             Edge *e = event.m_edge;
             e->m_openEdgeIndex = openEdges.size();
             openEdges.append(event.m_edge);
             break;
-        case DCLOSEY:
+        }
+        case DCLOSEY: {
             int j = event.m_edge->m_openEdgeIndex;
             openEdges.removeAt(j);
             break;
-        case VEDGE:
+        }
+        case VEDGE: {
             Edge *v = event.m_edge;
             // Check whether v crosses any of the currently open diagonal edges.
             foreach (Edge *d, openEdges) {
@@ -223,12 +229,12 @@ void Planarization::planarizeVDCrossings(void) {
                 double x0 = v->constCoord();
                 if (!d->coversX(x0)) continue;
                 double y0 = d->y(x0);
-                if (!h->coversY(y0)) continue;
+                if (!v->coversY(y0)) continue;
                 // If we reach this point, then v and d cross.
                 // Their intersection point is (x0,y0).
-                //
-                // TODO: Add the dummy node and edges.
+                addDummyCross(v,d,QPointF(x0,y0));
             }
+        }
         }
     }
 }
@@ -242,10 +248,67 @@ void Planarization::planarizeDDCrossings(void) {
             QPair<bool,QPointF> X = di->intersectDiagonals(dj);
             if (X.first) {
                 QPointF p = X.second;
-                // TODO: Add the dummy node and edges.
+                addDummyCross(di,dj,p);
             }
         }
     }
+}
+
+void Planarization::addDummyCross(Edge *e1, Edge *e2, QPointF p) {
+    edge oe1 = e1->m_ogdfEdge, oe2 = e2->m_ogdfEdge;
+    node src1 = oe1->source(), tgt1 = oe1->target(), src2 = oe2->source(), tgt2 = oe2->target();
+    // Remove the edges.
+    m_graph->delEdge(oe1);
+    m_graph->delEdge(oe2);
+    // Add dummy node.
+    node dn = m_graph->newNode();
+    m_ga->x(dn) = p.x();
+    m_ga->y(dn) = p.y();
+    m_ga->width(dn) = m_dummyNodeSize.width();
+    m_ga->height(dn) = m_dummyNodeSize.height();
+    // Add dummy edges.
+    edge de1s = m_graph->newEdge(src1,dn);
+    edge de1t = m_graph->newEdge(tgt1,dn);
+    edge de2s = m_graph->newEdge(src2,dn);
+    edge de2t = m_graph->newEdge(tgt2,dn);
+    // Make records.
+    DummyCross *dc = new DummyCross(dn,de1s,de1t,de2s,de2t);
+    m_dummyCrosses.append(dc);
+    m_dummyNodes.append(dn);
+    m_dummyEdges.append(de1s);
+    m_dummyEdges.append(de1t);
+    m_dummyEdges.append(de2s);
+    m_dummyEdges.append(de2t);
+    // Make shape (but do not yet add to canvas).
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    ShapeObj *dummyShape = factory->createShape("org.dunnart.shapes.rect");
+    dummyShape->setFillColour(QColor(224,0,0));
+    dummyShape->setSize(m_dummyNodeSize);
+    dummyShape->setCentrePos(p);
+    m_dunnartShapes.insert(dn,dummyShape);
+}
+
+/***
+  * Return the point of intersection of this edge with another, provided
+  * both are diagonal edges.
+  */
+QPair<bool,QPointF> Planarization::Edge::intersectDiagonals(Edge *d) {
+    assert(m_etype==DTYPE && d->m_etype==DTYPE);
+    QPair<bool,QPointF> noIntersect;
+    noIntersect.first = false;
+    noIntersect.second = QPointF(0,0);
+    if (sharesAnEndptWith(*d)) return noIntersect; //No intersection if share endpt.
+    if (slope()==d->slope()) return noIntersect; //No intersection if parallel.
+    // Else compute point of intersection of lines.
+    double m1 = slope(), m2 = d->slope(), b1 = yInt(), b2 = d->yInt();
+    double x = (b2-b1)/(m1-m2);
+    double y = m1*x+b1;
+    // Does the point lie on both line /segments/?
+    if (x<x0 || x>x1 || x<d->x0 || x>d->x1) return noIntersect;
+    QPair<bool,QPointF> intersection;
+    intersection.first = true;
+    intersection.second = QPointF(x,y);
+    return intersection;
 }
 
 static int cmpEdgeEvent(const void *p1, const void *p2) {
@@ -278,22 +341,12 @@ static int cmpEdgeEvent(const void *p1, const void *p2) {
     return c;
 }
 
-QPair<bool,QPointF> Planarization::intersection(edge e, edge f, GraphAttributes &GA) {
-    node eS = e->source(), eT = e->target();
-    node fS = f->source(), fT = f->target();
-    // If edges share an endpoint, then they do not intersect.
-    if (eS==fS||eS==fT||eT==fS||eT==fT) return QPair<bool,QPointF>(false,QPointF(0,0));
-    //
-    double ex1=GA.x(eS), ey1=GA.y(eS), ex2=GA.x(eT), ey2=GA.y(eT);
-    double fx1=GA.x(fS), fy1=GA.y(fS), fx2=GA.x(fT), fy2=GA.y(fT);
-    //...
-}
-
 // ------------------------------------------------------------------
 // BiComp -----------------------------------------------------------
 
 BiComp::BiComp(void) :
     m_stubNodeShapesHaveBeenAddedToCanvas(false),
+    m_dummyNodeShapesHaveBeenAddedToCanvas(false),
     m_idealLength(100),
     m_nodePadding(50)
 {}
@@ -301,6 +354,7 @@ BiComp::BiComp(void) :
 BiComp::BiComp(QList<node> nodes, QList<edge> edges, QList<node> cutnodes,
                shapemap nodeShapes, connmap edgeConns) :
     m_stubNodeShapesHaveBeenAddedToCanvas(false),
+    m_dummyNodeShapesHaveBeenAddedToCanvas(false),
     m_idealLength(100),
     m_nodePadding(50)
 {
@@ -547,8 +601,9 @@ void BiComp::layout(void) {
     aca->readPositions(*m_graph, *m_ga);
 
     // 1.5. Build planarization.
-    Planarization *planar = new Planarization(*m_graph, *m_ga, aca->alignments(*m_graph));
-    // ... TODO
+    m_planarization = new Planarization(*m_graph, *m_ga,
+                                              aca->alignments(*m_graph), m_dummyNodeSize);
+    // ... TODO ...
 
     // 2. Lay out external trees.
     //    Set stubnode sizes according to bounding boxes of laid out trees.
@@ -654,6 +709,11 @@ void BiComp::addStubNodeShapesToCanvas(Canvas *canvas) {
     }
     canvas->restart_graph_layout();
     m_stubNodeShapesHaveBeenAddedToCanvas = true;
+}
+
+void BiComp::addDummyNodeShapesToCanvas(Canvas *canvas) {
+    m_planarization->addDummyNodeShapesToCanvas(canvas);
+    m_dummyNodeShapesHaveBeenAddedToCanvas = true;
 }
 
 cola::CompoundConstraints BiComp::generateStubEdgeSepCos(
@@ -1569,6 +1629,7 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     bool useColours = false;
     bool showNumbers = false;
     bool drawStubnodes = false;
+    bool drawDummynodes = true;
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;
@@ -1668,12 +1729,19 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
     foreach (BiComp *B, BB) {
         B->idealLength(idealLength);
         B->nodePadding(nodePadding);
+        B->dummyNodeSize(QSizeF(avgDim,avgDim));
         B->layout();
     }
 
     if (debug) {
 
         if (drawStubnodes) {
+            foreach (BiComp *B, BB) {
+                B->addStubNodeShapesToCanvas(m_canvas);
+            }
+        }
+
+        if (drawDummynodes) {
             foreach (BiComp *B, BB) {
                 B->addStubNodeShapesToCanvas(m_canvas);
             }

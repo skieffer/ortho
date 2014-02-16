@@ -758,6 +758,8 @@ public:
     double most_recent_pure_stress;
     bool skip_attractive_forces;
 
+    std::vector<double> negStressGradForNodeOnceRemoved(unsigned u);
+
 private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;

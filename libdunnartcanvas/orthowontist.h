@@ -152,7 +152,9 @@ static int cmpEdgeEvent(const void *p1, const void *p2);
 
 class Planarization {
 public:
-    Planarization(Graph &G, GraphAttributes &GA, QMap<edge,int> alignments);
+    Planarization(Graph &G, GraphAttributes &GA,
+                  QMap<edge,int> alignments, QSizeF dummyNodeSize);
+    void addDummyNodeShapesToCanvas(Canvas *canvas);
 
     enum EdgeType { HTYPE, VTYPE, DTYPE };
 
@@ -173,10 +175,7 @@ public:
             node ot = o.m_ogdfEdge->target();
             return src==os||src==ot||tgt==os||tgt==ot;
         }
-        QPair<bool,QPointF> intersectDiagonals(Edge *d) {
-            assert(m_etype==DTYPE && d->m_etype==DTYPE);
-            //...
-        }
+        QPair<bool,QPointF> intersectDiagonals(Edge *d);
         double constCoord(void) {return m_etype==HTYPE ? y0 : x0;}
         double lowerBd(void) {return m_etype==HTYPE ? x0 : y0;}
         double upperBd(void) {return m_etype==HTYPE ? x1 : y1;}
@@ -184,6 +183,8 @@ public:
         bool coversX(double x) {return x0 <= x && x <= x1;}
         double x(double y) { return y1 == y0 ? 0 : x0+(x1-x0)*(y-y0)/(y1-y0); }
         double y(double x) { return x1 == x0 ? 0 : y0+(y1-y0)*(x-x0)/(x1-x0); }
+        double slope(void) { return (x1-x0)/(y1-y0); }
+        double yInt(void) { return y0 - slope()*x0; }
         GraphAttributes *m_ga;
         EdgeType m_etype;
         ogdf::edge m_ogdfEdge;
@@ -200,11 +201,22 @@ public:
         Edge *m_edge;
     };
 
+    struct DummyCross {
+        DummyCross(node dn, edge de1s, edge de1t, edge de2s, edge de2t) :
+            dNode(dn), dEdge1Src(de1s), dEdge1Tgt(de1t), dEdge2Src(de2s), dEdge2Tgt(de2t) {}
+        node dNode;
+        edge dEdge1Src;
+        edge dEdge1Tgt;
+        edge dEdge2Src;
+        edge dEdge2Tgt;
+    };
+
 private:
-    QPair<bool,QPointF> intersection(edge e, edge f, GraphAttributes &GA);
     void planarizeHDCrossings(void);
     void planarizeVDCrossings(void);
     void planarizeDDCrossings(void);
+    void addDummyCross(Edge *e1, Edge *e2, QPointF p);
+    QSizeF m_dummyNodeSize;
     Graph *m_graph;
     GraphAttributes *m_ga;
     QMap<node,node> m_origNodes;
@@ -215,6 +227,8 @@ private:
     QList<Edge*> mD;
     QList<node> m_dummyNodes;
     QList<edge> m_dummyEdges;
+    QList<DummyCross*> m_dummyCrosses;
+    shapemap m_dunnartShapes;
 };
 
 class BiComp {
@@ -235,11 +249,13 @@ public:
     void updateShapePositions(void);
     void orthogonalRouting(bool b);
     void addStubNodeShapesToCanvas(Canvas *canvas);
+    void addDummyNodeShapesToCanvas(Canvas *canvas);
     cola::CompoundConstraints generateStubEdgeSepCos(vpsc::Dim dim,
         QList<EdgeNode> ens, QMap<node, int> nodeIndices, double gap);
     void translateTrees(void);
     void idealLength(double L) { m_idealLength = L; }
     void nodePadding(double P) { m_nodePadding = P; }
+    void dummyNodeSize(QSizeF s) { m_dummyNodeSize = s; }
     double *edgeLengths(QMap<node,int> nodeIndices, std::vector<cola::Edge> colaEdges);
     QList<double> nodePadding(QMap<node,int> nodeIndices);
 private:
@@ -253,8 +269,11 @@ private:
     QMap<node,ExternalTree*> m_stubnodesToTrees;
     QList<edge> m_stubedges;
     bool m_stubNodeShapesHaveBeenAddedToCanvas;
+    bool m_dummyNodeShapesHaveBeenAddedToCanvas;
     double m_idealLength;
     double m_nodePadding;
+    QSizeF m_dummyNodeSize;
+    Planarization *m_planarization;
 };
 
 struct ConvTest1 : public cola::TestConvergence

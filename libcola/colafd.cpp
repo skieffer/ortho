@@ -1218,7 +1218,41 @@ double ConstrainedFDLayout::applyDescentVector(
     }
     return computeStress();
 }
-        
+
+/***
+  * Compute the negative gradient of stress as a function of node u alone, under the
+  * condition that the path length from u to each other node were incremented
+  * (hence "once removed").
+  * This is useful for NONO Layout when u is a root node for an external tree, since
+  * then the gradient tells us the force on the corresponding stub node, if it were
+  * initially placed right on top of u. This can help in choosing the face in which
+  * the external tree should be placed.
+  */
+std::vector<double> ConstrainedFDLayout::negStressGradForNodeOnceRemoved(unsigned u) {
+    std::vector<double> ng;
+    ng.push_back(0);
+    ng.push_back(0);
+    for(unsigned v=0;v<n;v++) {
+        if(u==v) continue;
+        unsigned short p = G[u][v];
+        // no forces between disconnected parts of the graph
+        if(p==0) continue;
+        double rx=X[u]-X[v], ry=Y[u]-Y[v];
+        double l=sqrt(rx*rx+ry*ry);
+        double d=D[u][v];
+        d += m_idealEdgeLength; // increment ideal distance
+        if(l>d && p>1 && skip_attractive_forces) continue; // attractive forces not required
+        double d2=d*d;
+        /* force apart zero distances */
+        if (l < 1e-30) {
+            l=0.1;
+        }
+        ng.at(0) = ng.at(0) + rx*(l-d)/(d2*l);
+        ng.at(1) = ng.at(1) + ry*(l-d)/(d2*l);
+    }
+    return ng;
+}
+
 /*
  * Computes:
  *  - the matrix of second derivatives (the Hessian) H, used in 
