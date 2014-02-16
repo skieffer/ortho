@@ -127,11 +127,11 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
 }
 
 void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
-    canvas->stop_graph_layout();
+    //canvas->stop_graph_layout();
     foreach (ShapeObj *sh, m_dunnartShapes.values()) {
         canvas->addItem(sh);
     }
-    canvas->restart_graph_layout();
+    //canvas->restart_graph_layout();
 }
 
 void Planarization::planarizeHDCrossings(void) {
@@ -148,13 +148,7 @@ void Planarization::planarizeHDCrossings(void) {
         events[nH+2*i+1] = new EdgeEvent(DCLOSEY,d);
     }
     // Sort them.
-    //DEBUG
-    for (int i = 0; i < nE; i++) {
-        EdgeEvent *event = events[i];
-        qDebug() << ".";
-    }
-    //ENDDEBUG
-    qsort(events,nE,sizeof(EdgeEvent**),cmpEdgeEvent);
+    qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
     // Scan once through the sorted list, catching intersections.
     QList<Edge*> openEdges;
     for (int i = 0; i < nE; i++) {
@@ -193,21 +187,21 @@ void Planarization::planarizeVDCrossings(void) {
     // Create edge event objects.
     int nV = mV.size(), nD = mD.size();
     int nE = nV + 2*nD;
-    EdgeEvent *events = new EdgeEvent[nE];
+    EdgeEvent **events = new EdgeEvent*[nE];
     for (int i = 0; i < nV; i++) {
-        events[i] = EdgeEvent(VEDGE,mV.at(i));
+        events[i] = new EdgeEvent(VEDGE,mV.at(i));
     }
     for (int i = 0; i < nD; i++) {
         Edge *d = mD.at(i);
-        events[nV+2*i] = EdgeEvent(DOPENY,d);
-        events[nV+2*i+1] = EdgeEvent(DCLOSEY,d);
+        events[nV+2*i] = new EdgeEvent(DOPENY,d);
+        events[nV+2*i+1] = new EdgeEvent(DCLOSEY,d);
     }
     // Sort them.
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
     // Scan once through the sorted list, catching intersections.
     QList<Edge*> openEdges;
     for (int i = 0; i < nE; i++) {
-        EdgeEvent event = events[i];
+        EdgeEvent event = *events[i];
         switch (event.m_eetype) {
         case DOPENY: {
             Edge *e = event.m_edge;
@@ -701,12 +695,12 @@ void BiComp::orthogonalRouting(bool b) {
 }
 
 void BiComp::addStubNodeShapesToCanvas(Canvas *canvas) {
-    canvas->stop_graph_layout();
+    //canvas->stop_graph_layout();
     foreach (node stub, m_stubnodesToTrees.keys()) {
         ShapeObj *sh = m_dunnartShapes.value(stub);
         canvas->addItem(sh);
     }
-    canvas->restart_graph_layout();
+    //canvas->restart_graph_layout();
     m_stubNodeShapesHaveBeenAddedToCanvas = true;
 }
 
@@ -1734,6 +1728,8 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
     if (debug) {
 
+        m_canvas->stop_graph_layout();
+
         if (drawStubnodes) {
             foreach (BiComp *B, BB) {
                 B->addStubNodeShapesToCanvas(m_canvas);
@@ -1742,11 +1738,10 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
         if (drawDummynodes) {
             foreach (BiComp *B, BB) {
-                B->addStubNodeShapesToCanvas(m_canvas);
+                B->addDummyNodeShapesToCanvas(m_canvas);
             }
         }
 
-        m_canvas->stop_graph_layout();
         foreach (ExternalTree *E, EE) {
             E->updateShapePositions();
             E->orthogonalRouting(true);
