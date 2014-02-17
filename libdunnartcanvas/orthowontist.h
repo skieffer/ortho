@@ -169,12 +169,12 @@ public:
     struct Edge {
         Edge(EdgeType t, ogdf::edge e, GraphAttributes *ga) :
             m_etype(t), m_ogdfEdge(e), m_ga(ga) {
-            double xs=m_ga->x(e->source()), ys=m_ga->y(e->source());
-            double xt=m_ga->x(e->target()), yt=m_ga->y(e->target());
-            x0 = min(xs,xt);
-            x1 = max(xs,xt);
-            y0 = min(ys,yt);
-            y1 = max(ys,yt);
+            x0=m_ga->x(e->source()), y0=m_ga->y(e->source());
+            x1=m_ga->x(e->target()), y1=m_ga->y(e->target());
+            xmin = min(x0,x1);
+            xmax = max(x0,x1);
+            ymin = min(y0,y1);
+            ymax = max(y0,y1);
         }
         bool sharesAnEndptWith(Edge o) {
             node src = m_ogdfEdge->source();
@@ -190,10 +190,10 @@ public:
         void addCrossing(Edge *o, QPointF p) { m_crossings.insert(o,p); }
         void processCrossing(Edge *e);
         double constCoord(void) {return m_etype==HTYPE ? y0 : x0;}
-        double lowerBd(void) {return m_etype==HTYPE ? x0 : y0;}
-        double upperBd(void) {return m_etype==HTYPE ? x1 : y1;}
-        bool coversY(double y) {return y0 <= y && y <= y1;}
-        bool coversX(double x) {return x0 <= x && x <= x1;}
+        double lowerBd(void) {return m_etype==HTYPE ? xmin : ymin;}
+        double upperBd(void) {return m_etype==HTYPE ? xmax : ymax;}
+        bool coversY(double y) {return ymin <= y && y <= ymax;}
+        bool coversX(double x) {return xmin <= x && x <= xmax;}
         double x(double y) { return y1 == y0 ? 0 : x0+(x1-x0)*(y-y0)/(y1-y0); }
         double y(double x) { return x1 == x0 ? 0 : y0+(y1-y0)*(x-x0)/(x1-x0); }
         double slope(void) { return (x1-x0)/(y1-y0); }
@@ -201,7 +201,8 @@ public:
         GraphAttributes *m_ga;
         EdgeType m_etype;
         ogdf::edge m_ogdfEdge;
-        double x0, x1, y0, y1;
+        double x0, y0, x1, y1; // coords of endpts
+        double xmin, xmax, ymin, ymax; // intervals covered
         int m_openEdgeIndex;
         QList<Intersection*> m_intersections;
         QMap<Edge*,QPointF> m_crossings;

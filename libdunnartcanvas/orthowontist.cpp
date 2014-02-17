@@ -153,6 +153,12 @@ void Planarization::simplePlanarize(void) {
         QList<Edge*> theRest(allEdges);
         foreach (Edge *f, theRest) {
             QPair<bool,QPointF> X = e->intersect(f);
+
+            //debug
+            int n = allEdges.size();
+            int m = theRest.size();
+            //
+
             if (X.first) {
                 QPointF p = X.second;
                 QList<Edge*> newEdges = addDummyCross(e,f,p);
@@ -172,12 +178,12 @@ void Planarization::simplePlanarize(void) {
   */
 Planarization::Edge* Planarization::Edge::rejectHalf(edge e1, edge e2) {
     m_ogdfEdge = e1;
-    double xs=m_ga->x(e1->source()), ys=m_ga->y(e1->source());
-    double xt=m_ga->x(e1->target()), yt=m_ga->y(e1->target());
-    x0 = min(xs,xt);
-    x1 = max(xs,xt);
-    y0 = min(ys,yt);
-    y1 = max(ys,yt);
+    x0=m_ga->x(e1->source()), y0=m_ga->y(e1->source());
+    x1=m_ga->x(e1->target()), y1=m_ga->y(e1->target());
+    xmin = min(x0,x1);
+    xmax = max(x0,x1);
+    ymin = min(y0,y1);
+    ymax = max(y0,y1);
     return new Edge(m_etype,e2,m_ga);
 }
 
@@ -754,8 +760,8 @@ void BiComp::layout(void) {
     aca->readPositions(*m_graph, *m_ga);
 
     // 1.5. Build planarization.
-    m_planarization = new Planarization(*m_graph, *m_ga,
-                                              aca->alignments(*m_graph), m_dummyNodeSize);
+    //m_planarization = new Planarization(*m_graph, *m_ga,
+    //                                          aca->alignments(*m_graph), m_dummyNodeSize);
     // ... TODO ...
 
     // 2. Lay out external trees.
@@ -830,6 +836,9 @@ void BiComp::layout(void) {
 
     // 5. Translate trees.
     translateTrees();
+
+    m_planarization = new Planarization(*m_graph, *m_ga,
+                                              aca->alignments(*m_graph), m_dummyNodeSize);
 
     // ...
 
