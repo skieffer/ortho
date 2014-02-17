@@ -167,8 +167,8 @@ public:
     enum EdgeType { HTYPE, VTYPE, DTYPE };
 
     struct Edge {
-        Edge(EdgeType t, ogdf::edge e, GraphAttributes *ga) :
-            m_etype(t), m_ogdfEdge(e), m_ga(ga) {
+        Edge(EdgeType t, ogdf::edge e, GraphAttributes *ga, Planarization *p) :
+            m_etype(t), m_ogdfEdge(e), m_ga(ga), m_plan(p) {
             x0=m_ga->x(e->source()), y0=m_ga->y(e->source());
             x1=m_ga->x(e->target()), y1=m_ga->y(e->target());
             xmin = min(x0,x1);
@@ -183,11 +183,12 @@ public:
             node ot = o.m_ogdfEdge->target();
             return src==os||src==ot||tgt==os||tgt==ot;
         }
+        void connectCrossings(void);
         Edge *rejectHalf(ogdf::edge e1, ogdf::edge e2);
         QPair<bool,QPointF> intersect(Edge *f);
         QPair<bool,QPointF> intersectDiagonals(Edge *d);
         void addIntersection(Edge *o, QPointF p) { m_intersections.append(new Intersection(o,p)); }
-        void addCrossing(Edge *o, QPointF p) { m_crossings.insert(o,p); }
+        void addCrossing(node n);
         void processCrossing(Edge *e);
         double constCoord(void) {return m_etype==HTYPE ? y0 : x0;}
         double lowerBd(void) {return m_etype==HTYPE ? xmin : ymin;}
@@ -198,6 +199,7 @@ public:
         double y(double x) { return x1 == x0 ? 0 : y0+(y1-y0)*(x-x0)/(x1-x0); }
         double slope(void) { return (x1-x0)/(y1-y0); }
         double yInt(void) { return y0 - slope()*x0; }
+        Planarization *m_plan;
         GraphAttributes *m_ga;
         EdgeType m_etype;
         ogdf::edge m_ogdfEdge;
@@ -205,7 +207,7 @@ public:
         double xmin, xmax, ymin, ymax; // intervals covered
         int m_openEdgeIndex;
         QList<Intersection*> m_intersections;
-        QMap<Edge*,QPointF> m_crossings;
+        QList<node> m_crossings;
     };
 
     enum EdgeEventType { HEDGE, VEDGE, DOPENX, DOPENY, DCLOSEX, DCLOSEY };
@@ -230,13 +232,15 @@ public:
         edge dEdge2Tgt;
     };
 
-private:
+//private:
     void findHDHVCrossings(void);
     void findVDCrossings(void);
     void findDDCrossings(void);
     void processCrossings(void);
     void simplePlanarize(void);
+    void simplerPlanarize(void);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
+    void addCrossing(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
     Graph *m_graph;
     GraphAttributes *m_ga;

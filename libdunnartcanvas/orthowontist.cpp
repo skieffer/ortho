@@ -112,11 +112,11 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         int af = alignments.value(e);
         m_alignments.insert(f,af);
         if (af & ACAHORIZ) {
-            mH.append(new Edge(HTYPE,f,m_ga));
+            mH.append(new Edge(HTYPE,f,m_ga,this));
         } else if (af & ACAVERT) {
-            mV.append(new Edge(VTYPE,f,m_ga));
+            mV.append(new Edge(VTYPE,f,m_ga,this));
         } else {
-            mD.append(new Edge(DTYPE,f,m_ga));
+            mD.append(new Edge(DTYPE,f,m_ga,this));
         }
     }
 
@@ -127,7 +127,7 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     // at any given point. (For now we just hope that this is rare!)
     //
 
-    simplePlanarize();
+    simplerPlanarize();
 
     /*
     findHDHVCrossings();
@@ -137,6 +137,26 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     findDDCrossings();
     processCrossings();
     */
+}
+
+void Planarization::simplerPlanarize(void) {
+    QList<Edge*> allEdges;
+    allEdges.append(mH);
+    allEdges.append(mV);
+    allEdges.append(mD);
+    int N = allEdges.size();
+    for (int i = 0; i < N; i++) {
+        Edge *e = allEdges.at(i);
+        for (int j = i+1; j < N; j++) {
+            Edge *f = allEdges.at(j);
+            QPair<bool,QPointF> X = e->intersect(f);
+            if (X.first) {
+                QPointF p = X.second;
+                addCrossing(e,f,p);
+            }
+        }
+        e->connectCrossings();
+    }
 }
 
 /***
@@ -157,6 +177,7 @@ void Planarization::simplePlanarize(void) {
             //debug
             int n = allEdges.size();
             int m = theRest.size();
+            qDebug() << QString::number(n);
             //
 
             if (X.first) {
@@ -184,7 +205,7 @@ Planarization::Edge* Planarization::Edge::rejectHalf(edge e1, edge e2) {
     xmax = max(x0,x1);
     ymin = min(y0,y1);
     ymax = max(y0,y1);
-    return new Edge(m_etype,e2,m_ga);
+    return new Edge(m_etype,e2,m_ga,m_plan);
 }
 
 void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
@@ -248,9 +269,6 @@ void Planarization::findHDHVCrossings(void) {
                 QPointF p(x0,y0);
                 h->addIntersection(e,p);
                 e->addIntersection(h,p);
-                // FIXME: above is now redundant.
-                h->addCrossing(e,p);
-                e->addCrossing(h,p);
             }
         } // end case
         } // end switch
@@ -342,6 +360,64 @@ void Planarization::findDDCrossings(void) {
                 // TODO: add new edges to queues.
             }
         }
+    }
+}
+
+void Planarization::addCrossing(Edge *e1, Edge *e2, QPointF p) {
+    // Add dummy node.
+    node dn = m_graph->newNode();
+    m_ga->x(dn) = p.x();
+    m_ga->y(dn) = p.y();
+    m_ga->width(dn) = m_dummyNodeSize.width();
+    m_ga->height(dn) = m_dummyNodeSize.height();
+    m_dummyNodes.append(dn);
+    // Make shape (but do not yet add to canvas).
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    ShapeObj *dummyShape = factory->createShape("org.dunnart.shapes.rect");
+    dummyShape->setFillColour(QColor(224,0,0));
+    dummyShape->setSize(m_dummyNodeSize);
+    dummyShape->setCentrePos(p);
+    m_dunnartShapes.insert(dn,dummyShape);
+    // Tell edges about the crossing.
+    e1->addCrossing(dn);
+    e2->addCrossing(dn);
+}
+
+void Planarization::Edge::addCrossing(node n) {
+    int i = 0;
+    int N = m_crossings.size();
+    double z0 = m_etype==VTYPE ? m_ga->y(n) : m_ga->x(n);
+    while (i<N) {
+        node m = m_crossings.at(i);
+        double z = m_etype==VTYPE ? m_ga->y(m) : m_ga->x(m);
+        if (z>z0) break;
+        i++;
+    }
+    if (i<N) {
+        m_crossings.insert(i,n);
+    } else {
+        m_crossings.append(n);
+    }
+}
+
+void Planarization::Edge::connectCrossings(void) {
+    // Add src and tgt of original edge to list of crossing nodes.
+    QList<node> nodes(m_crossings);
+    double z0 = m_etype==VTYPE ? y0 : x0;
+    double z1 = m_etype==VTYPE ? y1 : x1;
+    node src = m_ogdfEdge->source(), tgt = m_ogdfEdge->target();
+    node first = z0<z1 ? src : tgt;
+    node last  = z0<z1 ? tgt : src;
+    nodes.prepend(first);
+    nodes.append(last);
+    // Delete original edge.
+    m_plan->m_graph->delEdge(m_ogdfEdge);
+    // Add an edge between each pair of nodes.
+    int N = nodes.size();
+    for (int i = 0; i + 1 < N; i++) {
+        node a = nodes.at(i), b = nodes.at(i+1);
+        edge e = m_plan->m_graph->newEdge(a,b);
+        m_plan->m_dummyEdges.append(e);
     }
 }
 
