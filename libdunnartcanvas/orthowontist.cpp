@@ -150,7 +150,7 @@ void Planarization::simplePlanarize(void) {
     allEdges.append(mD);
     while (!allEdges.empty()) {
         Edge *e = allEdges.takeFirst();
-        QList<Edge*> theRest = QList(allEdges);
+        QList<Edge*> theRest(allEdges);
         foreach (Edge *f, theRest) {
             QPair<bool,QPointF> X = e->intersect(f);
             if (X.first) {
@@ -211,7 +211,7 @@ void Planarization::findHDHVCrossings(void) {
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
     // Find intersections.
     QList<Edge*> openEdges;
-    while (!eventQueue.empty()) {
+    for (int i = 0; i < nE; i++) {
         EdgeEvent *event = events[i];
         switch (event->m_eetype) {
         case DOPENY: {
