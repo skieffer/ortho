@@ -99,8 +99,8 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         m_origNodes.insert(m,n);
         m_ga->x(m) = GA.x(n);
         m_ga->y(m) = GA.y(n);
-        m_ga->width(m) = GA.width(m);
-        m_ga->height(m) = GA.height(m);
+        m_ga->width(m) = GA.width(n);
+        m_ga->height(m) = GA.height(n);
     }
     edge e;
     forall_edges(e, G) {
@@ -121,7 +121,7 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     }
 
     // Planarize by replacing each crossing with a dummy node.
-    planarizeHDCrossings();
+    planarizeHDHVCrossings();
     planarizeVDCrossings();
     planarizeDDCrossings();
 }
@@ -134,10 +134,10 @@ void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
     //canvas->restart_graph_layout();
 }
 
-void Planarization::planarizeHDCrossings(void) {
+void Planarization::planarizeHDHVCrossings(void) {
     // Create edge event objects.
-    int nH = mH.size(), nD = mD.size();
-    int nE = nH + 2*nD;
+    int nH = mH.size(), nD = mD.size(), nV = mV.size();
+    int nE = nH + 2*nD + 2*nV;
     EdgeEvent **events = new EdgeEvent*[nE];
     for (int i = 0; i < nH; i++) {
         events[i] = new EdgeEvent(HEDGE,mH.at(i));
@@ -147,37 +147,74 @@ void Planarization::planarizeHDCrossings(void) {
         events[nH+2*i] = new EdgeEvent(DOPENY,d);
         events[nH+2*i+1] = new EdgeEvent(DCLOSEY,d);
     }
+    for (int i = 0; i < nV; i++) {
+        Edge *v = mV.at(i);
+        events[nH+2*nD+2*i] = new EdgeEvent(DOPENY,v);
+        events[nH+2*nD+2*i+1] = new EdgeEvent(DCLOSEY,v);
+    }
     // Sort them.
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
-    // Scan once through the sorted list, catching intersections.
+    // Make into a queue.
+    QList<EdgeEvent*> eventQueue;
+    for (int i = 0; i < nE; i++) eventQueue.push_back(events[i]);
+    // Work through the queue, catching intersections.
+    // Keep track of final edges.
+    QList<Edge*> finalH;
+    QList<Edge*> finalV;
+    QList<Edge*> finalD;
     QList<Edge*> openEdges;
-    for (int i = 0; i < nE; i++) {
-        EdgeEvent event = *events[i];
-        switch (event.m_eetype) {
+    while (!eventQueue.empty()) {
+        EdgeEvent *event = eventQueue.takeFirst();
+        switch (event->m_eetype) {
         case DOPENY: {
-            Edge *e = event.m_edge;
+            Edge *e = event->m_edge;
             e->m_openEdgeIndex = openEdges.size();
-            openEdges.append(event.m_edge);
+            openEdges.append(event->m_edge);
             break;
         }
         case DCLOSEY: {
-            int j = event.m_edge->m_openEdgeIndex;
+            Edge *e = event->m_edge;
+            int j = e->m_openEdgeIndex;
             openEdges.removeAt(j);
+            if (e->m_etype==VTYPE) {
+                finalV.append(e);
+            } else if (e->m_etype==DTYPE) {
+                finalD.append(e);
+            }
             break;
         }
         case HEDGE: {
-            Edge *h = event.m_edge;
+            Edge *h = event->m_edge;
             // Check whether h crosses any of the currently open diagonal edges.
-            foreach (Edge *d, openEdges) {
-                if (h->sharesAnEndptWith(*d)) continue; // If they share an endpoint, then they do not cross.
+            bool hCrosses = false;
+            foreach (Edge *e, openEdges) {
+                if (h->sharesAnEndptWith(*e)) continue; // If they share an endpoint, then they do not cross.
                 double y0 = h->constCoord();
-                if (!d->coversY(y0)) continue;
-                double x0 = d->x(y0);
+                if (!e->coversY(y0)) continue;
+                double x0 = e->x(y0);
                 if (!h->coversX(x0)) continue;
-                // If we reach this point, then h and d cross.
+                // If we reach this point, then h and e cross.
                 // Their intersection point is (x0,y0).
-                addDummyCross(h,d,QPointF(x0,y0));
+                hCrosses = true;
+                QList<Edge*> newEdges = addDummyCross(h,e,QPointF(x0,y0));
+                // Push the two new H-edges onto the front of the event queue.
+                EdgeEvent *h0 = new EdgeEvent(HEDGE,newEdges.at(0));
+                EdgeEvent *h1 = new EdgeEvent(HEDGE,newEdges.at(1));
+                eventQueue.push_front(h0);
+                eventQueue.push_front(h1);
+                // Also the edge e has been split into an upper and a lower half.
+                // We want to replace e now by its own upper half, both on the
+                // openEdges list, and in the CLOSE event that's still to come.
+                // Maybe it's best to just /change/ e to now represent its upper
+                // half.
+
+                // add bottom half to "final" lists
+
+                // h no longer exists so we must break from the loop now.
+                break;
             }
+            // If h didn't cross any edge, then it is a final H-edge.
+            if (!hCrosses) finalH.append(h);
         }
         }
     }
@@ -226,6 +263,8 @@ void Planarization::planarizeVDCrossings(void) {
                 // If we reach this point, then v and d cross.
                 // Their intersection point is (x0,y0).
                 addDummyCross(v,d,QPointF(x0,y0));
+                // TODO: Now must push the two new V-edges created onto the
+                // front of the event queue.
             }
         }
         }
@@ -234,6 +273,7 @@ void Planarization::planarizeVDCrossings(void) {
 
 void Planarization::planarizeDDCrossings(void) {
     int nD = mD.size();
+    // FIXME: Have to do this with edge queues.
     for (int i = 0; i < nD; i++) {
         Edge *di = mD.at(i);
         for (int j = i+1; j < nD; j++) {
@@ -242,12 +282,13 @@ void Planarization::planarizeDDCrossings(void) {
             if (X.first) {
                 QPointF p = X.second;
                 addDummyCross(di,dj,p);
+                // TODO: add new edges to queues.
             }
         }
     }
 }
 
-void Planarization::addDummyCross(Edge *e1, Edge *e2, QPointF p) {
+QList<Planarization::Edge*> Planarization::addDummyCross(Edge *e1, Edge *e2, QPointF p) {
     edge oe1 = e1->m_ogdfEdge, oe2 = e2->m_ogdfEdge;
     node src1 = oe1->source(), tgt1 = oe1->target(), src2 = oe2->source(), tgt2 = oe2->target();
     // Remove the edges.
@@ -259,6 +300,13 @@ void Planarization::addDummyCross(Edge *e1, Edge *e2, QPointF p) {
     m_ga->y(dn) = p.y();
     m_ga->width(dn) = m_dummyNodeSize.width();
     m_ga->height(dn) = m_dummyNodeSize.height();
+    // Make shape (but do not yet add to canvas).
+    PluginShapeFactory *factory = sharedPluginShapeFactory();
+    ShapeObj *dummyShape = factory->createShape("org.dunnart.shapes.rect");
+    dummyShape->setFillColour(QColor(224,0,0));
+    dummyShape->setSize(m_dummyNodeSize);
+    dummyShape->setCentrePos(p);
+    m_dunnartShapes.insert(dn,dummyShape);
     // Add dummy edges.
     edge de1s = m_graph->newEdge(src1,dn);
     edge de1t = m_graph->newEdge(tgt1,dn);
@@ -272,13 +320,13 @@ void Planarization::addDummyCross(Edge *e1, Edge *e2, QPointF p) {
     m_dummyEdges.append(de1t);
     m_dummyEdges.append(de2s);
     m_dummyEdges.append(de2t);
-    // Make shape (but do not yet add to canvas).
-    PluginShapeFactory *factory = sharedPluginShapeFactory();
-    ShapeObj *dummyShape = factory->createShape("org.dunnart.shapes.rect");
-    dummyShape->setFillColour(QColor(224,0,0));
-    dummyShape->setSize(m_dummyNodeSize);
-    dummyShape->setCentrePos(p);
-    m_dunnartShapes.insert(dn,dummyShape);
+    // Split the two Edge structs, and return.
+    QList<Edge*> newEdges;
+    newEdges.append(new Edge(e1->m_etype,de1s,m_ga));
+    newEdges.append(new Edge(e1->m_etype,de1t,m_ga));
+    newEdges.append(new Edge(e2->m_etype,de2s,m_ga));
+    newEdges.append(new Edge(e2->m_etype,de2t,m_ga));
+    return newEdges;
 }
 
 /***

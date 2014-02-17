@@ -202,6 +202,9 @@ public:
     };
 
     struct DummyCross {
+        // For each dummy node added, this struct records how the
+        // four edges pair off, and thus how the neighbours of the
+        // dummy node were originally connected.
         DummyCross(node dn, edge de1s, edge de1t, edge de2s, edge de2t) :
             dNode(dn), dEdge1Src(de1s), dEdge1Tgt(de1t), dEdge2Src(de2s), dEdge2Tgt(de2t) {}
         node dNode;
@@ -212,10 +215,10 @@ public:
     };
 
 private:
-    void planarizeHDCrossings(void);
+    void planarizeHDHVCrossings(void);
     void planarizeVDCrossings(void);
     void planarizeDDCrossings(void);
-    void addDummyCross(Edge *e1, Edge *e2, QPointF p);
+    QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
     Graph *m_graph;
     GraphAttributes *m_ga;
