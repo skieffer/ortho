@@ -156,6 +156,14 @@ public:
                   QMap<edge,int> alignments, QSizeF dummyNodeSize);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
 
+    struct Edge;
+
+    struct Intersection {
+        Intersection(Edge *o, QPointF p) : otherEdge(o), point(p) {}
+        Edge *otherEdge;
+        QPointF point;
+    };
+
     enum EdgeType { HTYPE, VTYPE, DTYPE };
 
     struct Edge {
@@ -175,7 +183,12 @@ public:
             node ot = o.m_ogdfEdge->target();
             return src==os||src==ot||tgt==os||tgt==ot;
         }
+        Edge *rejectHalf(ogdf::edge e1, ogdf::edge e2);
+        QPair<bool,QPointF> intersect(Edge *f);
         QPair<bool,QPointF> intersectDiagonals(Edge *d);
+        void addIntersection(Edge *o, QPointF p) { m_intersections.append(new Intersection(o,p)); }
+        void addCrossing(Edge *o, QPointF p) { m_crossings.insert(o,p); }
+        void processCrossing(Edge *e);
         double constCoord(void) {return m_etype==HTYPE ? y0 : x0;}
         double lowerBd(void) {return m_etype==HTYPE ? x0 : y0;}
         double upperBd(void) {return m_etype==HTYPE ? x1 : y1;}
@@ -190,6 +203,8 @@ public:
         ogdf::edge m_ogdfEdge;
         double x0, x1, y0, y1;
         int m_openEdgeIndex;
+        QList<Intersection*> m_intersections;
+        QMap<Edge*,QPointF> m_crossings;
     };
 
     enum EdgeEventType { HEDGE, VEDGE, DOPENX, DOPENY, DCLOSEX, DCLOSEY };
@@ -215,9 +230,11 @@ public:
     };
 
 private:
-    void planarizeHDHVCrossings(void);
-    void planarizeVDCrossings(void);
-    void planarizeDDCrossings(void);
+    void findHDHVCrossings(void);
+    void findVDCrossings(void);
+    void findDDCrossings(void);
+    void processCrossings(void);
+    void simplePlanarize(void);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
     Graph *m_graph;

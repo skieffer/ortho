@@ -121,9 +121,64 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     }
 
     // Planarize by replacing each crossing with a dummy node.
-    planarizeHDHVCrossings();
-    planarizeVDCrossings();
-    planarizeDDCrossings();
+    //
+    // TODO: Should perturb graph if necessary so that no edge crosses over
+    // the centre of any node, and so that never more than 2 edges intersect
+    // at any given point. (For now we just hope that this is rare!)
+    //
+
+    simplePlanarize();
+
+    /*
+    findHDHVCrossings();
+    processCrossings();
+    findVDCrossings();
+    processCrossings();
+    findDDCrossings();
+    processCrossings();
+    */
+}
+
+/***
+  * This has a stupid O(m^2) runtime, but the faster approaches
+  * seem to be vastly more complex. ... FIXME
+  */
+void Planarization::simplePlanarize(void) {
+    QList<Edge*> allEdges;
+    allEdges.append(mH);
+    allEdges.append(mV);
+    allEdges.append(mD);
+    while (!allEdges.empty()) {
+        Edge *e = allEdges.takeFirst();
+        QList<Edge*> theRest = QList(allEdges);
+        foreach (Edge *f, theRest) {
+            QPair<bool,QPointF> X = e->intersect(f);
+            if (X.first) {
+                QPointF p = X.second;
+                QList<Edge*> newEdges = addDummyCross(e,f,p);
+                allEdges.prepend(newEdges.at(1));
+                allEdges.prepend(newEdges.at(0));
+            }
+        }
+    }
+}
+
+/***
+  * The edge makes itself now a representative of edge e1, and returns
+  * a new edge representing e2.
+  * This is meant to be used when the edge has been split into e1 and e2,
+  * so it is as though the edge shortens to e1 and "rejects" the other half
+  * of itself as a new edge, e2.
+  */
+Planarization::Edge* Planarization::Edge::rejectHalf(edge e1, edge e2) {
+    m_ogdfEdge = e1;
+    double xs=m_ga->x(e1->source()), ys=m_ga->y(e1->source());
+    double xt=m_ga->x(e1->target()), yt=m_ga->y(e1->target());
+    x0 = min(xs,xt);
+    x1 = max(xs,xt);
+    y0 = min(ys,yt);
+    y1 = max(ys,yt);
+    return new Edge(m_etype,e2,m_ga);
 }
 
 void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
@@ -134,7 +189,7 @@ void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
     //canvas->restart_graph_layout();
 }
 
-void Planarization::planarizeHDHVCrossings(void) {
+void Planarization::findHDHVCrossings(void) {
     // Create edge event objects.
     int nH = mH.size(), nD = mD.size(), nV = mV.size();
     int nE = nH + 2*nD + 2*nV;
@@ -154,17 +209,10 @@ void Planarization::planarizeHDHVCrossings(void) {
     }
     // Sort them.
     qsort(events,nE,sizeof(EdgeEvent*),cmpEdgeEvent);
-    // Make into a queue.
-    QList<EdgeEvent*> eventQueue;
-    for (int i = 0; i < nE; i++) eventQueue.push_back(events[i]);
-    // Work through the queue, catching intersections.
-    // Keep track of final edges.
-    QList<Edge*> finalH;
-    QList<Edge*> finalV;
-    QList<Edge*> finalD;
+    // Find intersections.
     QList<Edge*> openEdges;
     while (!eventQueue.empty()) {
-        EdgeEvent *event = eventQueue.takeFirst();
+        EdgeEvent *event = events[i];
         switch (event->m_eetype) {
         case DOPENY: {
             Edge *e = event->m_edge;
@@ -176,17 +224,11 @@ void Planarization::planarizeHDHVCrossings(void) {
             Edge *e = event->m_edge;
             int j = e->m_openEdgeIndex;
             openEdges.removeAt(j);
-            if (e->m_etype==VTYPE) {
-                finalV.append(e);
-            } else if (e->m_etype==DTYPE) {
-                finalD.append(e);
-            }
             break;
         }
         case HEDGE: {
             Edge *h = event->m_edge;
-            // Check whether h crosses any of the currently open diagonal edges.
-            bool hCrosses = false;
+            // Check whether h crosses any of the currently open edges.
             foreach (Edge *e, openEdges) {
                 if (h->sharesAnEndptWith(*e)) continue; // If they share an endpoint, then they do not cross.
                 double y0 = h->constCoord();
@@ -195,32 +237,41 @@ void Planarization::planarizeHDHVCrossings(void) {
                 if (!h->coversX(x0)) continue;
                 // If we reach this point, then h and e cross.
                 // Their intersection point is (x0,y0).
-                hCrosses = true;
-                QList<Edge*> newEdges = addDummyCross(h,e,QPointF(x0,y0));
-                // Push the two new H-edges onto the front of the event queue.
-                EdgeEvent *h0 = new EdgeEvent(HEDGE,newEdges.at(0));
-                EdgeEvent *h1 = new EdgeEvent(HEDGE,newEdges.at(1));
-                eventQueue.push_front(h0);
-                eventQueue.push_front(h1);
-                // Also the edge e has been split into an upper and a lower half.
-                // We want to replace e now by its own upper half, both on the
-                // openEdges list, and in the CLOSE event that's still to come.
-                // Maybe it's best to just /change/ e to now represent its upper
-                // half.
-
-                // add bottom half to "final" lists
-
-                // h no longer exists so we must break from the loop now.
-                break;
+                // For now we do not modify any of the existing edges; we merely
+                // note the intersection and move on.
+                QPointF p(x0,y0);
+                h->addIntersection(e,p);
+                e->addIntersection(h,p);
+                // FIXME: above is now redundant.
+                h->addCrossing(e,p);
+                e->addCrossing(h,p);
             }
-            // If h didn't cross any edge, then it is a final H-edge.
-            if (!hCrosses) finalH.append(h);
-        }
-        }
+        } // end case
+        } // end switch
     }
 }
 
-void Planarization::planarizeVDCrossings(void) {
+void Planarization::Edge::processCrossing(Edge *e) {
+    //
+}
+
+void Planarization::processCrossings(void) {
+    QList<Edge*> newH;
+    QList<Edge*> newV;
+    QList<Edge*> newD;
+    QList<Edge*> allEdges;
+    allEdges.append(mH);
+    allEdges.append(mV);
+    allEdges.append(mD);
+    foreach (Edge *e, allEdges) {
+        //...
+    }
+    mH = newH;
+    mV = newV;
+    mD = newD;
+}
+
+void Planarization::findVDCrossings(void) {
     // Create edge event objects.
     int nV = mV.size(), nD = mD.size();
     int nE = nV + 2*nD;
@@ -271,7 +322,7 @@ void Planarization::planarizeVDCrossings(void) {
     }
 }
 
-void Planarization::planarizeDDCrossings(void) {
+void Planarization::findDDCrossings(void) {
     int nD = mD.size();
     // FIXME: Have to do this with edge queues.
     for (int i = 0; i < nD; i++) {
@@ -320,13 +371,74 @@ QList<Planarization::Edge*> Planarization::addDummyCross(Edge *e1, Edge *e2, QPo
     m_dummyEdges.append(de1t);
     m_dummyEdges.append(de2s);
     m_dummyEdges.append(de2t);
-    // Split the two Edge structs, and return.
+    // Split the two Edge structs, and return the halves they reject.
     QList<Edge*> newEdges;
-    newEdges.append(new Edge(e1->m_etype,de1s,m_ga));
-    newEdges.append(new Edge(e1->m_etype,de1t,m_ga));
-    newEdges.append(new Edge(e2->m_etype,de2s,m_ga));
-    newEdges.append(new Edge(e2->m_etype,de2t,m_ga));
+    newEdges.append(e1->rejectHalf(de1s,de1t));
+    newEdges.append(e2->rejectHalf(de2s,de2t));
     return newEdges;
+}
+
+QPair<bool,QPointF> Planarization::Edge::intersect(Edge *f) {
+    // Prepare negative return value.
+    QPair<bool,QPointF> noIntersect;
+    noIntersect.first = false;
+    noIntersect.second = QPointF(0,0);
+    // If they share an endpoint, then they do not cross.
+    if (sharesAnEndptWith(*f)) return noIntersect;
+    // Otherwise they /may/ cross. Prepare positive return value.
+    QPair<bool,QPointF> isect;
+    isect.first = true;
+    // Cases:
+    if (m_etype==DTYPE || f->m_etype==DTYPE) {
+        // In this case at least one of the edges is a diagonal.
+        Edge *d = m_etype==DTYPE ? this : f; // d is DTYPE
+        Edge *e = m_etype==DTYPE ? f : this; // e could be any type
+        double x,y;
+        switch (e->m_etype) {
+        case HTYPE: {
+            // e is horizontal
+            y = e->constCoord();
+            if (!d->coversY(y)) return noIntersect;
+            x = d->x(y);
+            if (!e->coversX(x)) return noIntersect;
+            break;
+        } // end case
+        case VTYPE: {
+            // e is vertical
+            x = e->constCoord();
+            if (!d->coversX(x)) return noIntersect;
+            y = d->y(x);
+            if (!e->coversY(y)) return noIntersect;
+            break;
+        } // end case
+        case DTYPE: {
+            // e and d are both diagonal
+            if (e->slope()==d->slope()) return noIntersect; //No intersection if parallel.
+            // Else compute point of intersection of lines.
+            double m1 = e->slope(), m2 = d->slope(), b1 = e->yInt(), b2 = d->yInt();
+            x = (b2-b1)/(m1-m2);
+            y = m1*x+b1;
+            // Does the point lie on both line /segments/?
+            if (x<e->x0 || x>e->x1 || x<d->x0 || x>d->x1) return noIntersect;
+            break;
+        } // end case
+        } // end switch
+        isect.second = QPointF(x,y);
+        return isect;
+    } else {
+        // In this case neither edge is diagonal.
+        // So if their types are the same then it is HH or VV and they do not intersect.
+        if (m_etype==f->m_etype) return noIntersect;
+        // In this case they are H and V.
+        Edge *h = m_etype==HTYPE ? this : f;
+        Edge *v = m_etype==HTYPE ? f : this;
+        if (h->coversX(v->constCoord()) && v->coversY(h->constCoord())) {
+            isect.second = QPointF(v->constCoord(),h->constCoord());
+            return isect;
+        } else {
+            return noIntersect;
+        }
+    }
 }
 
 /***
