@@ -156,6 +156,8 @@ public:
     Planarization(Graph &G, GraphAttributes &GA,
                   QMap<edge,int> alignments, QSizeF dummyNodeSize);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
+    void defineRootNodes(QList<node> roots);
+    void chooseFDTreeFaces(void);
 
     struct Edge;
 
@@ -254,6 +256,7 @@ public:
     QList<node> m_dummyNodes;
     QList<edge> m_dummyEdges;
     QList<DummyCross*> m_dummyCrosses;
+    QList<node> m_rootNodes;
     shapemap m_dunnartShapes;
     CombinatorialEmbedding *m_comb;
 };
@@ -286,6 +289,9 @@ public:
     void dummyNodeSize(QSizeF s) { m_dummyNodeSize = s; }
     double *edgeLengths(QMap<node,int> nodeIndices, std::vector<cola::Edge> colaEdges);
     QList<double> nodePadding(QMap<node,int> nodeIndices);
+
+    // 2nd version
+    void noteRoot(ExternalTree *E);
 private:
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
@@ -302,6 +308,9 @@ private:
     double m_nodePadding;
     QSizeF m_dummyNodeSize;
     Planarization *m_planarization;
+
+    // 2nd version
+    QList<node> m2_rootNodes;
 };
 
 struct ConvTest1 : public cola::TestConvergence

@@ -138,6 +138,19 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     processCrossings();
     */
 
+    m_ga->writeGML("planarization.gml");
+
+    /*
+    forall_nodes(n,*m_graph) {
+        QList<adjEntry> ae;
+        adjEntry adj;
+        forall_adj(adj,n) {
+            ae.append(adj);
+        }
+        qDebug() << "adjEntry";
+    }
+    */
+
     m_comb = new CombinatorialEmbedding(*m_graph);
 
     //DEBUG:
@@ -225,6 +238,34 @@ void Planarization::addDummyNodeShapesToCanvas(Canvas *canvas) {
         canvas->addItem(sh);
     }
     //canvas->restart_graph_layout();
+}
+
+void Planarization::defineRootNodes(QList<node> roots) {
+    foreach (node n, roots) {
+        node m = m_origNodes.key(n);
+        m_rootNodes.append(m);
+    }
+}
+
+void Planarization::chooseFDTreeFaces(void) {
+    // Build ColaFD object.
+    // ...
+    // Will add stub nodes to a new graph.
+    Graph G(*m_graph);
+    GraphAttributes GA(G);
+    // Ask it for the force vectors.
+    foreach (node r, m_rootNodes) {
+        //...
+        node stub = G.newNode();
+        //...
+    }
+
+    // ...
+    bool writeout = true;
+    if (writeout) {
+        // Write out the results.
+        GA.writeGML("FD_face_choices.gml");
+    }
 }
 
 void Planarization::findHDHVCrossings(void) {
@@ -783,6 +824,15 @@ BiComp *BiComp::fuse(BiComp *other)
     return fusion;
 }
 
+void BiComp::noteRoot(ExternalTree *E) {
+    // Get the Dunnart shape that is the root of the tree.
+    ShapeObj *Eshape = E->rootShape();
+    // Get own node representing that shape.
+    node ownRootNode = m_dunnartShapes.key(Eshape);
+    // Note that this node is a root.
+    m2_rootNodes.append(ownRootNode);
+}
+
 void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
     // Get the Dunnart shape that is the root of the tree.
     ShapeObj *Eshape = E->rootShape();
@@ -926,7 +976,6 @@ void BiComp::layout(void) {
 
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize);
-
     // ...
 
 
@@ -956,7 +1005,8 @@ void BiComp::layout2(void) {
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize);
-    // ... TODO ...
+    m_planarization->defineRootNodes(m2_rootNodes);
+    m_planarization->chooseFDTreeFaces();
 
 
     // 2. Lay out external trees.
@@ -2202,6 +2252,13 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         foreach (BiComp *B, BB) {
             B->numberShapes();
         }
+    }
+
+    // Tell the BCs which are their root nodes.
+    foreach (ExternalTree *E, EE) {
+        ShapeObj *sh = E->rootShape();
+        BiComp *B = shapesToBCs.value(sh);
+        B->noteRoot(E);
     }
 
     // 6. Lay out each B in BB.
