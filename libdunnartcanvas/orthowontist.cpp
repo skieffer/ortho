@@ -137,8 +137,19 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     findDDCrossings();
     processCrossings();
     */
+
+    m_comb = new CombinatorialEmbedding(*m_graph);
+
+    //DEBUG:
+    qDebug() << QString("Number of faces: %1").arg(m_comb->numberOfFaces());
+
 }
 
+/***
+  * Actually this approach with 'addCrossing' and 'connectCrossings' would also
+  * work with the better approach which sorts the vert and horiz events.
+  * TODO: Implement this.
+  */
 void Planarization::simplerPlanarize(void) {
     QList<Edge*> allEdges;
     allEdges.append(mH);
@@ -918,6 +929,112 @@ void BiComp::layout(void) {
 
     // ...
 
+
+}
+
+void BiComp::layout2(void) {
+    bool debug = true;
+
+    // 1. Build and run ACA Layout.
+    ACALayout *aca = new ACALayout(*m_graph, *m_ga);
+
+    QMap<node,int> nodeIndices = aca->nodeIndices();
+    std::vector<cola::Edge> colaEdges = aca->colaEdges();
+
+    aca->debugName("BC");
+
+    //aca->idealLength(m_idealLength);
+    //aca->nodePadding(m_nodePadding);
+
+    aca->idealLength(1);
+    aca->edgeLengths(edgeLengths(nodeIndices,colaEdges));
+    aca->nodePadding(nodePadding(nodeIndices));
+
+    aca->run();
+    aca->readPositions(*m_graph, *m_ga);
+
+    // 1.5. Build planarization.
+    m_planarization = new Planarization(*m_graph, *m_ga,
+                                              aca->alignments(*m_graph), m_dummyNodeSize);
+    // ... TODO ...
+
+
+    // 2. Lay out external trees.
+    //    Set stubnode sizes according to bounding boxes of laid out trees.
+    foreach (node stub, m_stubnodesToTrees.keys()) {
+        ExternalTree *E = m_stubnodesToTrees.value(stub);
+        ShapeObj *Eshape = E->rootShape();
+        node root = m_dunnartShapes.key(Eshape);
+        // Determine closest cardinal direction of line from tap to stub.
+        double rx=m_ga->x(root),ry=m_ga->y(root);
+        double sx=m_ga->x(stub),sy=m_ga->y(stub);
+        double vx=sx-rx, vy=sy-ry;
+        ogdf::Orientation orient = vx >= vy ?
+                    (vx >= -vy ? leftToRight : topToBottom) :
+                    (vx >= -vy ? bottomToTop : rightToLeft) ;
+        // Lay out tree.
+        E->orientation(orient);
+        E->treeLayout();
+        // Read size.
+        QSizeF size = E->rootlessBBox().size();
+        // If stub edge was aligned by ACA, offset that alignment if necessary.
+        int si = nodeIndices.value(stub), ri = nodeIndices.value(root);
+        if (aca->delibAligned(si,ri) && E->needsAlignmentOffset()) {
+            double offset = E->alignmentOffset();
+            assert(aca->offsetAlignment(ri,si,offset));
+        }
+        // Set size in stub node and corresponding shape object.
+        m_ga->width(stub) = size.width();
+        m_ga->height(stub) = size.height();
+        ShapeObj *stubShape = m_dunnartShapes.value(stub);
+        stubShape->setSize(size);
+    }
+
+    // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
+    QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
+    double padding = m_nodePadding;
+    cola::CompoundConstraints hSepcos =
+            generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints vSepcos =
+            generateStubEdgeSepCos(vpsc::VERTICAL, ens.values(vpsc::VERTICAL),
+                                   nodeIndices, padding);
+    cola::CompoundConstraints sepcos;
+    foreach (cola::CompoundConstraint *cc, hSepcos) sepcos.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, vSepcos) sepcos.push_back(cc);
+
+    if (debug) {
+        foreach (cola::CompoundConstraint *cc, sepcos) {
+            cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
+            QList<QString> names;
+            int l = sc->left(), r = sc->right();
+            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
+            ShapeObj *shl = m_dunnartShapes.value(nl);
+            ShapeObj *shr = m_dunnartShapes.value(nr);
+            names.append((QString("%1").arg(shl->internalId())));
+            names.append((QString("%1").arg(shr->internalId())));
+
+            QString rel = sc->dimension() == vpsc::HORIZONTAL ? "left of" : "above";
+            qDebug() << QString("sepco %1 %2 %3 by %4")
+                        .arg(names.at(0))
+                        .arg(rel)
+                        .arg(names.at(1))
+                        .arg(sc->gap);
+        }
+    }
+
+    // 4. Run FD layout again.
+    bool preventOverlaps = true;
+    // Keep the ACA sep-cos.
+    foreach (cola::CompoundConstraint *cc, aca->ccs()) sepcos.push_back(cc);
+    postACACola(preventOverlaps, m_idealLength, nodeIndices, sepcos);
+
+    // 5. Translate trees.
+    translateTrees();
+
+
+
+    // ...
 
 }
 
@@ -1998,6 +2115,156 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
         m_canvas->restart_graph_layout();
 
     }
+
+    // ...
+
+}
+
+void Orthowontist::run2(QList<CanvasItem*> items) {
+    bool debug = true;
+    bool useColours = true;
+    bool showNumbers = true;
+    bool drawStubnodes = false;
+    bool drawDummynodes = true;
+    shapemap nodeShapes;
+    connmap edgeConns;
+    Graph G;
+    GraphAttributes GA(G);
+    buildOGDFGraph(items,G,GA,nodeShapes,edgeConns);
+
+    // 0. Compute average and min dimensions.
+    double avgHeight=0, avgWidth=0, avgDim=0;
+    double minHeight=DBL_MAX, minWidth=DBL_MAX, minDim=DBL_MAX;
+    node n;
+    int N = 0;
+    forall_nodes(n,G) {
+        double w = GA.width(n), h = GA.height(n);
+        avgWidth += w;
+        avgHeight += h;
+        minHeight = h < minHeight ? h : minHeight;
+        minWidth = w < minWidth ? w : minWidth;
+        N++;
+        if (debug) {
+            qDebug() << QString("node size: %1 x %2").arg(GA.width(n)).arg(GA.height(n));
+        }
+    }
+    avgWidth /= N;
+    avgHeight /= N;
+    avgDim = (avgWidth+avgHeight)/2;
+    minDim = minHeight < minWidth ? minHeight : minWidth;
+
+    // Ideal length and node padding
+    double idealLength = 2*avgDim;
+    double nodePadding = avgDim;
+
+    // 1. Remove external trees from OGDF graph G.
+    QList<ExternalTree*> EE;
+    removeExternalTrees(EE,G,nodeShapes,edgeConns);
+    // Debug:
+    if (debug) {
+        qDebug() << "External Trees:";
+        foreach (ExternalTree *E, EE) {
+            qDebug() << E->listNodes();
+        }
+    }
+
+    // 2. Get nontrivial biconnected components (size >= 3), and get the
+    // set of cutnodes in G.
+    QList<BiComp*> BB;
+    QSet<node> cutnodes;
+    buildNBCs(BB, cutnodes, G, nodeShapes, edgeConns);
+    // Fuse BCs that share cutnodes.
+    BB = fuseBCs(BB);
+    // Debug:
+    if (debug) {
+        qDebug() << "\nCompound nontrivial biconnected components:";
+        foreach (BiComp *B, BB) {
+            qDebug() << B->listNodes();
+            if (useColours) B->colourShapes();
+        }
+        foreach (ExternalTree *E, EE) {
+            if (useColours) E->colourShapes();
+        }
+    }
+
+    // 3. Make a map to say to which BC each BC shape belongs.
+    QMap<ShapeObj*,BiComp*> shapesToBCs;
+    foreach (BiComp *B, BB) {
+        QList<ShapeObj*> shapes = B->allShapes();
+        foreach (ShapeObj *sh, shapes) {
+            shapesToBCs.insert(sh,B);
+        }
+    }
+
+    // 4. TODO: compute the internal trees.
+
+    if (showNumbers) {
+        foreach (BiComp *B, BB) {
+            B->numberShapes();
+        }
+    }
+
+    // 6. Lay out each B in BB.
+    foreach (BiComp *B, BB) {
+        B->idealLength(idealLength);
+        B->nodePadding(nodePadding);
+        B->dummyNodeSize(QSizeF(avgDim,avgDim));
+        B->layout();
+    }
+
+    /*
+    // Tack onto each B a "stub node" representing each of
+    // the external trees that are attached to it.
+    // Set stub size to be either half the minimum dimension in the graph,
+    // or else the average dimension in the graph.
+    bool useTinyStubs = true;
+    QSizeF stubsize = useTinyStubs ? QSizeF(minDim/2,minDim/2) : QSizeF(avgDim,avgDim);
+    foreach (ExternalTree *E, EE) {
+        ShapeObj *sh = E->rootShape();
+        BiComp *B = shapesToBCs.value(sh);
+        B->addStubNodeForTree(E,stubsize);
+    }
+    if (showNumbers) {
+        foreach (BiComp *B, BB) {
+            B->numberShapes();
+        }
+        foreach (ExternalTree *E, EE) {
+            E->numberShapes();
+        }
+    }
+    */
+
+    if (debug) {
+
+        m_canvas->stop_graph_layout();
+
+        if (drawStubnodes) {
+            foreach (BiComp *B, BB) {
+                B->addStubNodeShapesToCanvas(m_canvas);
+            }
+        }
+
+        if (drawDummynodes) {
+            foreach (BiComp *B, BB) {
+                B->addDummyNodeShapesToCanvas(m_canvas);
+            }
+        }
+
+        /*
+        foreach (ExternalTree *E, EE) {
+            E->updateShapePositions();
+            E->orthogonalRouting(true);
+        }
+        */
+
+        foreach (BiComp *B, BB) {
+            B->updateShapePositions();
+            //B->orthogonalRouting(true);
+        }
+        m_canvas->restart_graph_layout();
+
+    }
+
 
     // ...
 

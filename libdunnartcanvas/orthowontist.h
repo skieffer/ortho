@@ -31,6 +31,7 @@
 #include <QRectF>
 
 #include "libogdf/ogdf/basic/Graph_d.h"
+#include "libogdf/ogdf/basic/CombinatorialEmbedding.h"
 #include "libogdf/ogdf/tree/TreeLayout.h"
 #include "libcola/compound_constraints.h"
 #include "libcola/cola.h"
@@ -254,6 +255,7 @@ public:
     QList<edge> m_dummyEdges;
     QList<DummyCross*> m_dummyCrosses;
     shapemap m_dunnartShapes;
+    CombinatorialEmbedding *m_comb;
 };
 
 class BiComp {
@@ -271,6 +273,7 @@ public:
     BiComp *fuse(BiComp *other);
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
     void layout(void);
+    void layout2(void);
     void updateShapePositions(void);
     void orthogonalRouting(bool b);
     void addStubNodeShapesToCanvas(Canvas *canvas);
@@ -398,6 +401,7 @@ class Orthowontist {
 public:
     Orthowontist(Canvas *canvas);
     void run1(QList<CanvasItem*> items);
+    void run2(QList<CanvasItem*> items);
 private:
     void buildOGDFGraph(CanvasItemsList items,
             Graph& G, GraphAttributes& GA, shapemap &nodeShapes, connmap &edgeConns);

@@ -5717,7 +5717,7 @@ void Canvas::orthowontist(void)
 {
     ow::Orthowontist ow(this);
     CanvasItemsList L = items();
-    ow.run1(L);
+    ow.run2(L);
     //router()->processActions();
     //router()->rerouteAndCallbackConnectors();
     //router()->processTransaction();
