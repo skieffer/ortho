@@ -51,6 +51,7 @@
 
 #include "libogdf/ogdf/basic/EdgeArray.h"
 #include "libogdf/ogdf/basic/NodeArray.h"
+#include "libogdf/ogdf/basic/EdgeComparer.h"
 #include "libogdf/ogdf/basic/geometry.h"
 #include "libogdf/ogdf/basic/Graph_d.h"
 #include "libogdf/ogdf/basic/GraphAttributes.h"
@@ -154,6 +155,28 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         qDebug() << "adjEntry";
     }
     */
+
+    //we order the edges around each node corresponding to
+    //the input embedding in the GraphAttributes layout
+    NodeArray<SListPure<adjEntry> > adjList(*m_graph);
+
+    EdgeComparer* ec = new EdgeComparer(*m_ga);
+
+    node v;
+    adjEntry ae;
+    forall_nodes(v, *m_graph)
+    {
+        forall_adj(ae, v)
+        {
+            adjList[v].pushBack(ae);
+        }//forall adjacency edges
+        //sort the entries
+        adjList[v].quicksort(*ec);
+        m_graph->sort(v, adjList[v]);
+
+    }//forall nodes
+
+    delete ec;
 
     m_comb = new CombinatorialEmbedding(*m_graph);
 

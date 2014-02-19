@@ -1183,8 +1183,8 @@ void TopologyModule::sortEdgesFromLayout(GraphAttributes& AG)
 	}//forall nodes
 
 	delete ec;
-}//sortedgesfromlayout
-*/
+//sortedgesfromlayout
+}*/
 
 //computes angle between vectors, used to compute external face
 double TopologyModule::angle(DPoint p, DPoint q, DPoint r) 
