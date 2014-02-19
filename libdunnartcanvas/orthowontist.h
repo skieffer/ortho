@@ -158,6 +158,7 @@ public:
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
+    void idealLength(double L) { m_idealLength = L; }
 
     struct Edge;
 
@@ -245,6 +246,7 @@ public:
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
+    double m_idealLength;
     Graph *m_graph;
     GraphAttributes *m_ga;
     QMap<node,node> m_origNodes;
@@ -259,6 +261,9 @@ public:
     QList<node> m_rootNodes;
     shapemap m_dunnartShapes;
     CombinatorialEmbedding *m_comb;
+    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
 };
 
 class BiComp {

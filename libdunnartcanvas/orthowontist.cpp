@@ -249,26 +249,59 @@ void Planarization::defineRootNodes(QList<node> roots) {
 
 void Planarization::chooseFDTreeFaces(void) {
     // Build ColaFD object.
-    // ...
-    // Will add stub nodes to a new graph.
-    Graph G(*m_graph);
-    GraphAttributes GA(G);
-    // Ask it for the force vectors.
+    node n = NULL;
+    int i = 0;
+    forall_nodes(n,*m_graph) {
+        double w = m_ga->width(n), h = m_ga->height(n);
+        double x = m_ga->x(n) - w/2, y = m_ga->y(n) - h/2;
+        double X = x + w, Y = y + h;
+        rs.push_back( new vpsc::Rectangle(x,X,y,Y) );
+        m_nodeIndices.insert(n,i);
+        i++;
+        //qDebug() << QString("node at: %1, %2").arg(m_ga->x(n)).arg(m_ga->y(n));
+    }
+    edge e = NULL;
+    forall_edges(e,*m_graph) {
+        node src = e->source();
+        node tgt = e->target();
+        int srcIndex = m_nodeIndices.value(src);
+        int tgtIndex = m_nodeIndices.value(tgt);
+        es.push_back( cola::Edge(srcIndex, tgtIndex) );
+    }
+    bool op = false;
+    double il = m_idealLength;
+    cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,il,op);
+
+    // Ask fdlayout for the force vectors.
     foreach (node r, m_rootNodes) {
-        //...
-        node stub = G.newNode();
+        int u = m_nodeIndices.value(r);
+        std::vector<double> ng = fdlayout->negStressGradForNodeOnceRemoved(u);
         // Normalize force vector, then set length equal to twice
         // the dummy node dimension.
-        // ...
-        double len = m_dummyNodeSize.width();
-        // ...
+        double dx = ng.at(0), dy = ng.at(1);
+        double l = sqrt(dx*dx + dy*dy);
+        double len = 2*m_dummyNodeSize.width();
+        dx = len*dx/l;
+        dy = len*dy/l;
+        // Add stub node.
+        node stub = m_graph->newNode();
+        double x0 = m_ga->x(r), y0 = m_ga->y(r);
+        double x1 = x0 + dx, y1 = y0 + dy;
+        m_ga->x(stub) = x1;
+        m_ga->y(stub) = y1;
+        m_ga->width(stub) = m_dummyNodeSize.width();
+        m_ga->height(stub) = m_dummyNodeSize.height();
+        //char col[7] = {'#', 'f', '0', 'c', '0', '0', '0'};
+        //QString("#f0c000").sprintf(col);
+        char *col = new char[7];
+        col[0] = '#'; col[1] = 'f'; col[2] = '0'; col[3] = 'c'; col[4] = '0'; col[5] = '0'; col[6] = '0';
+        m_ga->colorNode(stub) = ogdf::String(col);
     }
-
-    // ...
+    // Output
     bool writeout = true;
     if (writeout) {
         // Write out the results.
-        GA.writeGML("FD_face_choices.gml");
+        m_ga->writeGML("FD_face_choices.gml");
     }
 }
 
@@ -1010,6 +1043,7 @@ void BiComp::layout2(void) {
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize);
     m_planarization->defineRootNodes(m2_rootNodes);
+    m_planarization->idealLength(m_idealLength);
     m_planarization->chooseFDTreeFaces();
 
 
@@ -2270,7 +2304,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         B->idealLength(idealLength);
         B->nodePadding(nodePadding);
         B->dummyNodeSize(QSizeF(avgDim,avgDim));
-        B->layout();
+        B->layout2();
     }
 
     /*

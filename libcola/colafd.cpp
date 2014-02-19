@@ -1247,8 +1247,8 @@ std::vector<double> ConstrainedFDLayout::negStressGradForNodeOnceRemoved(unsigne
         if (l < 1e-30) {
             l=0.1;
         }
-        ng.at(0) = ng.at(0) + rx*(l-d)/(d2*l);
-        ng.at(1) = ng.at(1) + ry*(l-d)/(d2*l);
+        ng.at(0) = ng.at(0) - rx*(l-d)/(d2*l);
+        ng.at(1) = ng.at(1) - ry*(l-d)/(d2*l);
     }
     return ng;
 }
