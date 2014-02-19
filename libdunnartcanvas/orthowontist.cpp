@@ -92,7 +92,11 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
 {
     // Build local copy of original graph.
     m_graph = new Graph();
-    m_ga = new GraphAttributes(*m_graph);
+    m_ga = new GraphAttributes(*m_graph,
+                   GraphAttributes::nodeGraphics |
+                   GraphAttributes::nodeStyle |      // <-- Enables node stroke and filling
+                   GraphAttributes::edgeGraphics
+    );
     node n;
     forall_nodes(n, G) {
         node m = m_graph->newNode();
@@ -259,6 +263,8 @@ void Planarization::chooseFDTreeFaces(void) {
         m_nodeIndices.insert(n,i);
         i++;
         //qDebug() << QString("node at: %1, %2").arg(m_ga->x(n)).arg(m_ga->y(n));
+        //qDebug() << m_ga->colorNode(n).cstr();
+        qDebug() << QString("node shape: %1").arg(m_ga->shapeNode(n));
     }
     edge e = NULL;
     forall_edges(e,*m_graph) {
@@ -285,17 +291,14 @@ void Planarization::chooseFDTreeFaces(void) {
         dy = len*dy/l;
         // Add stub node.
         node stub = m_graph->newNode();
+        m_graph->newEdge(r,stub);
         double x0 = m_ga->x(r), y0 = m_ga->y(r);
         double x1 = x0 + dx, y1 = y0 + dy;
         m_ga->x(stub) = x1;
         m_ga->y(stub) = y1;
-        m_ga->width(stub) = m_dummyNodeSize.width();
-        m_ga->height(stub) = m_dummyNodeSize.height();
-        //char col[7] = {'#', 'f', '0', 'c', '0', '0', '0'};
-        //QString("#f0c000").sprintf(col);
-        char *col = new char[7];
-        col[0] = '#'; col[1] = 'f'; col[2] = '0'; col[3] = 'c'; col[4] = '0'; col[5] = '0'; col[6] = '0';
-        m_ga->colorNode(stub) = ogdf::String(col);
+        m_ga->width(stub) = m_dummyNodeSize.width()/5;
+        m_ga->height(stub) = m_dummyNodeSize.height()/5;
+        //m_ga->labelNode(stub) = ogdf::String('T');
     }
     // Output
     bool writeout = true;
