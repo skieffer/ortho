@@ -88,7 +88,8 @@ namespace ow {
 // Planarization ----------------------------------------------------
 
 Planarization::Planarization(Graph &G, GraphAttributes &GA,
-                             QMap<edge,int> alignments, QSizeF dummyNodeSize) :
+                             QMap<edge,int> alignments,
+                             QSizeF dummyNodeSize, shapemap nodeShapes) :
     m_dummyNodeSize(dummyNodeSize)
 {
     // Build local copy of original graph.
@@ -102,6 +103,8 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     forall_nodes(n, G) {
         node m = m_graph->newNode();
         m_origNodes.insert(m,n);
+        ShapeObj *sh = nodeShapes.value(n);
+        m_dunnartShapes.insert(m,sh);
         m_ga->x(m) = GA.x(n);
         m_ga->y(m) = GA.y(n);
         m_ga->width(m) = GA.width(n);
@@ -145,37 +148,19 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
 
     m_ga->writeGML("planarization.gml");
 
-    /*
-    forall_nodes(n,*m_graph) {
-        QList<adjEntry> ae;
-        adjEntry adj;
-        forall_adj(adj,n) {
-            ae.append(adj);
-        }
-        qDebug() << "adjEntry";
-    }
-    */
-
-    //we order the edges around each node corresponding to
-    //the input embedding in the GraphAttributes layout
+    // Order the edges around each node corresponding to
+    // the embedding given by the GraphAttributes object.
     NodeArray<SListPure<adjEntry> > adjList(*m_graph);
-
     EdgeComparer* ec = new EdgeComparer(*m_ga);
-
     node v;
     adjEntry ae;
-    forall_nodes(v, *m_graph)
-    {
-        forall_adj(ae, v)
-        {
+    forall_nodes(v, *m_graph) {
+        forall_adj(ae, v) {
             adjList[v].pushBack(ae);
-        }//forall adjacency edges
-        //sort the entries
+        }
         adjList[v].quicksort(*ec);
         m_graph->sort(v, adjList[v]);
-
-    }//forall nodes
-
+    }
     delete ec;
 
     m_comb = new CombinatorialEmbedding(*m_graph);
@@ -183,6 +168,34 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     //DEBUG:
     qDebug() << QString("Number of faces: %1").arg(m_comb->numberOfFaces());
 
+    face f = m_comb->firstFace();
+    int I = m_comb->maxFaceIndex();
+    // It does not detect the external face automatically?
+    // int exInd = m_comb->externalFace()->index();
+    for (int i = 0; i <= I; i++) {
+        QString announce = QString("Face %1:").arg(i);
+        // if (f->index()==exInd) announce += " (external face)";
+        qDebug() << announce;
+        adjEntry ae = f->firstAdj();
+        int J = f->size();
+        QString nodeList = "    ";
+        for (int j = 0; j < J; j++) {
+            node n = ae->theNode();
+            QString id = "";
+            if (m_dummyNodes.contains(n)) {
+                id = "d" + QString::number(m_dummyNodes.indexOf(n));
+            } else {
+                int i = m_dunnartShapes.value(n)->internalId();
+                id = QString::number(i);
+            }
+            nodeList += id + " " ;
+            // Next ae
+            ae = f->nextFaceEdge(ae);
+        }
+        qDebug() << nodeList;
+        // Next face.
+        f = f->succ();
+    }
 }
 
 /***
@@ -492,6 +505,7 @@ void Planarization::addCrossing(Edge *e1, Edge *e2, QPointF p) {
     dummyShape->setFillColour(QColor(224,0,0));
     dummyShape->setSize(m_dummyNodeSize);
     dummyShape->setCentrePos(p);
+    dummyShape->setLabel(QString::number(m_dummyNodes.size()-1));
     m_dunnartShapes.insert(dn,dummyShape);
     // Tell edges about the crossing.
     e1->addCrossing(dn);
@@ -1038,7 +1052,7 @@ void BiComp::layout(void) {
     translateTrees();
 
     m_planarization = new Planarization(*m_graph, *m_ga,
-                                              aca->alignments(*m_graph), m_dummyNodeSize);
+                                              aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     // ...
 
 
@@ -1067,7 +1081,7 @@ void BiComp::layout2(void) {
 
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
-                                              aca->alignments(*m_graph), m_dummyNodeSize);
+                                              aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->defineRootNodes(m2_rootNodes);
     m_planarization->idealLength(m_idealLength);
     m_planarization->chooseFDTreeFaces();

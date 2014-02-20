@@ -154,7 +154,8 @@ static int cmpEdgeEvent(const void *p1, const void *p2);
 class Planarization {
 public:
     Planarization(Graph &G, GraphAttributes &GA,
-                  QMap<edge,int> alignments, QSizeF dummyNodeSize);
+                  QMap<edge,int> alignments, QSizeF dummyNodeSize,
+                  shapemap nodeShapes);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
