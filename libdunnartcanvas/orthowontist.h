@@ -266,11 +266,11 @@ public:
             QPair<node,node> p;
             // first one
             node n = aes.at(0)->theNode();
-            node t = aes.at(0)->theTwin();
+            node t = aes.at(0)->twinNode();
             p.first = m_node == n ? t : n;
             // second one
             n = aes.at(1)->theNode();
-            t = aes.at(1)->theTwin();
+            t = aes.at(1)->twinNode();
             p.second = m_node == n ? t : n;
             return p;
         }

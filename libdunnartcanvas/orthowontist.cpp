@@ -496,7 +496,20 @@ void Planarization::chooseCombTreeFaces(void) {
         wx = d*wx/wl; wy = d*wy/wl;
         // Now w is the displacement vector for the stub node s from the root node r0.
         // That is, we define s by s - r0 = w.
-        // TODO...
+        node stub = m_graph->newNode();
+        m_graph->newEdge(r0,stub);
+        double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
+        double x1 = x0 + wx, y1 = y0 + wy;
+        m_ga->x(stub) = x1;
+        m_ga->y(stub) = y1;
+        m_ga->width(stub) = m_dummyNodeSize.width()/5;
+        m_ga->height(stub) = m_dummyNodeSize.height()/5;
+    }
+    // Output
+    bool writeout = true;
+    if (writeout) {
+        // Write out the results.
+        m_ga->writeGML("comb_face_choices.gml");
     }
 }
 
@@ -545,7 +558,7 @@ void Planarization::mapNodesToFaces(void) {
             node n = ae->theNode();
             NodeCombStruct *ncs = m_nodeComb.value(n);
             ncs->aesPerFace.insertMulti(f,ae);
-            node t = ae->theTwin();
+            node t = ae->twinNode();
             NodeCombStruct *tcs = m_nodeComb.value(t);
             tcs->aesPerFace.insertMulti(f,ae);
             nodeList += nodeIDString(n) + " ";
