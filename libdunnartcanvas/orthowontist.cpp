@@ -416,6 +416,7 @@ void Planarization::defineRootNodes(QList<node> roots) {
 }
 
 void Planarization::chooseCombTreeFaces(void) {
+    bool debug = true;
     // Assign weights to the faces.
     // Initialize to 0.
     QMap<face,double> weight;
@@ -432,19 +433,38 @@ void Planarization::chooseCombTreeFaces(void) {
         // Each face adjacent to r gets 1/n added to its total weight.
         foreach (face f, faces) {
             double u = weight.value(f);
-            weight.insert(f,u+1/n);
+            u += 1/(double)n;
+            weight.insert(f,u);
+        }
+    }
+    // debug
+    if (debug) {
+        qDebug() << "==============================================================";
+        qDebug() << "COMBINATORIAL TREE FACE ASSIGNMENT";
+        face f = m_comb->firstFace();
+        int I = m_comb->maxFaceIndex();
+        for (int i = 0; i <= I; i++) {
+            qDebug() << QString("Face %1 has weight %2.").arg(i).arg(weight.value(f));
+            f = f->succ();
         }
     }
     // Prepare list of trees to be placed.
     QList<node> trees = QList<node>(m_rootNodes);
     int numTrees = m_rootNodes.size();
     while (!trees.empty()) {
+        // debug
+        if (debug) {
+            qDebug() << "---------------------------------------------------------------";
+            QString s = "Trees remain at: ";
+            foreach (node t, trees) s += nodeIDString(t) + " ";
+            qDebug() << s;
+        }
         // Choose a tree having an adjacent face of least weight.
         double u0 = numTrees+1; // effectively +infty since no face has more weight than numTrees
         node r0 = NULL;
         face f0 = NULL;
         int i0 = 0;
-        int n0 = 1;
+        double n0 = 1;
         QList<face> F0;
         for (int i = 0; i < trees.size(); i++) {
             node r = trees.at(i);
@@ -457,6 +477,10 @@ void Planarization::chooseCombTreeFaces(void) {
                 }
             }
         }
+        // debug
+        if (debug) {
+            qDebug() << "Chose tree at " + nodeIDString(r0) + QString(" and face %1 with weight %2.").arg(f0->index()).arg(u0);
+        }
         // Remove r0 from list of trees to be placed.
         trees.removeAt(i0);
         // Move all weight for r0 into f0.
@@ -465,13 +489,23 @@ void Planarization::chooseCombTreeFaces(void) {
             u += f==f0 ? (n0-1)/n0 : -1/n0;
             weight.insert(f,u);
         }
+        // debug
+        if (debug) {
+            qDebug() << "New weights after assigning tree to face:";
+            face f = m_comb->firstFace();
+            int I = m_comb->maxFaceIndex();
+            for (int i = 0; i <= I; i++) {
+                qDebug() << QString("    Face %1 has weight %2.").arg(i).arg(weight.value(f));
+                f = f->succ();
+            }
+        }
         // Place the tree at r0 in face f0
         QPointF n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
         // For now just do a simple scaling.
         double rw = m_ga->width(r0), rh = m_ga->height(r0);
         double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;
         double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
-
+        // Create stub node and place it.
         node stub = m_graph->newNode();
         m_graph->newEdge(r0,stub);
         double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
@@ -480,50 +514,6 @@ void Planarization::chooseCombTreeFaces(void) {
         m_ga->y(stub) = y1;
         m_ga->width(stub) = sw;
         m_ga->height(stub) = sh;
-
-        /*
-        QPair<node,node> nbrs = m_nodeComb.value(r0)->nbrs(f0);
-        node a = nbrs.first, c = nbrs.second;
-        node b = r0;
-        double ax = m_ga->x(a), ay = m_ga->y(a);
-        double bx = m_ga->x(b), by = m_ga->y(b);
-        double cx = m_ga->x(c), cy = m_ga->y(c);
-        // Introduce vectors u = a - b and v = c - b.
-        double ux = ax-bx, uy = ay-by;
-        double vx = cx-bx, vy = cy-by;
-
-        // TODO: handle angles pi and greater!
-
-        // Compute their sum, and its length.
-        double px = ux + vx, py = uy + vy;
-        double pl = sqrt(px*px+py*py);
-        // Normalise u and v.
-        double ul = sqrt(ux*ux+uy*uy);
-        ux /= ul; uy /= ul;
-        double vl = sqrt(vx*vx+vy*vy);
-        vx /= vl; vy /= vl;
-        // Now their sum is a bisector of the angle abc.
-        double wx = ux + vx, wy = uy + vy;
-        // Finally we want to scale the bisector so that it definitely lies inside
-        // the face. There are two cases. Either there are no nodes inside the
-        // triangle abc or else there are. In the first case, pl/2 is the distance
-        // from b to the line through a and c, making pl/4 a safe length.
-        // In the other case, s/2 is a safe length if s is the minimum separation
-        // between any two nodes in the graph. So we take the minimum of these two.
-        double d = min(m_minNodeSep/2, pl/4);
-        double wl = sqrt(wx*wx+wy*wy);
-        wx = d*wx/wl; wy = d*wy/wl;
-        // Now w is the displacement vector for the stub node s from the root node r0.
-        // That is, we define s by s - r0 = w.
-        node stub = m_graph->newNode();
-        m_graph->newEdge(r0,stub);
-        double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
-        double x1 = x0 + wx, y1 = y0 + wy;
-        m_ga->x(stub) = x1;
-        m_ga->y(stub) = y1;
-        m_ga->width(stub) = m_dummyNodeSize.width()/5;
-        m_ga->height(stub) = m_dummyNodeSize.height()/5;
-        */
     }
     // Output
     bool writeout = true;

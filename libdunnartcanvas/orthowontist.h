@@ -295,10 +295,8 @@ public:
           * the face lies on the right.
           */
         QPointF normalIntoFace(adjEntry ae, GraphAttributes &GA) {
-            //node src = ae->theNode();
-            //node tgt = ae->twinNode();
-            node src = ae->twinNode();
-            node tgt = ae->theNode();
+            node src = ae->theNode();
+            node tgt = ae->twinNode();
             double sx = GA.x(src), sy = GA.y(src);
             double tx = GA.x(tgt), ty = GA.y(tgt);
             // Let u = t - s.
