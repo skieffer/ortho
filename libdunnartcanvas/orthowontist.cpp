@@ -467,6 +467,35 @@ void Planarization::chooseCombTreeFaces(void) {
         }
         // Place the tree at r0 in face f0
         QPair<node,node> nbrs = m_nodeComb.value(r0)->nbrs(f0);
+        node a = nbrs.first, c = nbrs.second;
+        node b = r0;
+        double ax = m_ga->x(a), ay = m_ga->y(a);
+        double bx = m_ga->x(b), by = m_ga->y(b);
+        double cx = m_ga->x(c), cy = m_ga->y(c);
+        // Introduce vectors u = a - b and v = c - b.
+        double ux = ax-bx, uy = ay-by;
+        double vx = cx-bx, vy = cy-by;
+        // Compute their sum, and its length.
+        double px = ux + vx, py = uy + vy;
+        double pl = sqrt(px*px+py*py);
+        // Normalise u and v.
+        double ul = sqrt(ux*ux+uy*uy);
+        ux /= ul; uy /= ul;
+        double vl = sqrt(vx*vx+vy*vy);
+        vx /= vl; vy /= vl;
+        // Now their sum is a bisector of the angle abc.
+        double wx = ux + vx, wy = uy + vy;
+        // Finally we want to scale the bisector so that it definitely lies inside
+        // the face. There are two cases. Either there are no nodes inside the
+        // triangle abc or else there are. In the first case, pl/2 is the distance
+        // from b to the line through a and c, making pl/4 a safe length.
+        // In the other case, s/2 is a safe length if s is the minimum separation
+        // between any two nodes in the graph. So we take the minimum of these two.
+        double d = min(m_minNodeSep/2, pl/4);
+        double wl = sqrt(wx*wx+wy*wy);
+        wx = d*wx/wl; wy = d*wy/wl;
+        // Now w is the displacement vector for the stub node s from the root node r0.
+        // That is, we define s by s - r0 = w.
         // TODO...
     }
 }
