@@ -274,6 +274,42 @@ public:
             p.second = m_node == n ? t : n;
             return p;
         }
+        /***
+          * Computes a normal vector pointing into the face, and bisecting the
+          * angle between the two adjEntries incident at this node.
+          */
+        QPointF normalIntoFace(face f, GraphAttributes &GA) {
+            QList<adjEntry> aes = aesPerFace.values(f);
+            QPointF p0 = normalIntoFace(aes.at(0), GA);
+            QPointF p1 = normalIntoFace(aes.at(1), GA);
+            QPointF n = p0 + p1;
+            double nx = n.x(), ny = n.y();
+            double nl = sqrt(nx*nx+ny*ny);
+            return QPointF(nx/nl, ny/nl);
+        }
+    private:
+        /***
+          * Computes a normal direction vector pointing perpendicular to
+          * the adjEntry ae and into the face it belongs to. This relies
+          * on an adjEntry for a face always being oriented so that the
+          * the face lies on the right.
+          */
+        QPointF normalIntoFace(adjEntry ae, GraphAttributes &GA) {
+            //node src = ae->theNode();
+            //node tgt = ae->twinNode();
+            node src = ae->twinNode();
+            node tgt = ae->theNode();
+            double sx = GA.x(src), sy = GA.y(src);
+            double tx = GA.x(tgt), ty = GA.y(tgt);
+            // Let u = t - s.
+            double ux = tx - sx, uy = ty - sy;
+            // Rotate u 90 deg clockwise to get v.
+            double vx = uy, vy = -ux;
+            // Normalise.
+            double vl = sqrt(vx*vx + vy*vy);
+            vx /= vl; vy /= vl;
+            return QPointF(vx,vy);
+        }
     };
 
 private:

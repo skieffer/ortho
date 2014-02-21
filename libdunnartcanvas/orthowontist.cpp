@@ -466,6 +466,22 @@ void Planarization::chooseCombTreeFaces(void) {
             weight.insert(f,u);
         }
         // Place the tree at r0 in face f0
+        QPointF n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
+        // For now just do a simple scaling.
+        double rw = m_ga->width(r0), rh = m_ga->height(r0);
+        double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;
+        double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
+
+        node stub = m_graph->newNode();
+        m_graph->newEdge(r0,stub);
+        double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
+        double x1 = x0 + d*n.x(), y1 = y0 + d*n.y();
+        m_ga->x(stub) = x1;
+        m_ga->y(stub) = y1;
+        m_ga->width(stub) = sw;
+        m_ga->height(stub) = sh;
+
+        /*
         QPair<node,node> nbrs = m_nodeComb.value(r0)->nbrs(f0);
         node a = nbrs.first, c = nbrs.second;
         node b = r0;
@@ -507,6 +523,7 @@ void Planarization::chooseCombTreeFaces(void) {
         m_ga->y(stub) = y1;
         m_ga->width(stub) = m_dummyNodeSize.width()/5;
         m_ga->height(stub) = m_dummyNodeSize.height()/5;
+        */
     }
     // Output
     bool writeout = true;
