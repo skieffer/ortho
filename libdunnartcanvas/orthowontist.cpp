@@ -164,17 +164,17 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     delete ec;
 
     m_comb = new CombinatorialEmbedding(*m_graph);
+    mapNodesToFaces();
+    findExternalFace();
+    computeMinNodeSep();
 
-    //DEBUG:
+    //DEBUG------------------------------------------------------------------
+    /*
     qDebug() << QString("Number of faces: %1").arg(m_comb->numberOfFaces());
-
     face f = m_comb->firstFace();
     int I = m_comb->maxFaceIndex();
-    // It does not detect the external face automatically?
-    // int exInd = m_comb->externalFace()->index();
     for (int i = 0; i <= I; i++) {
         QString announce = QString("Face %1:").arg(i);
-        // if (f->index()==exInd) announce += " (external face)";
         qDebug() << announce;
         adjEntry ae = f->firstAdj();
         int J = f->size();
@@ -196,8 +196,9 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         // Next face.
         f = f->succ();
     }
+    */
+    //END DEBUG--------------------------------------------------------------
 
-    findExternalFace();
 }
 
 void Planarization::findExternalFace(void) {
@@ -411,6 +412,120 @@ void Planarization::defineRootNodes(QList<node> roots) {
     foreach (node n, roots) {
         node m = m_origNodes.key(n);
         m_rootNodes.append(m);
+    }
+}
+
+void Planarization::chooseCombTreeFaces(void) {
+    // Assign weights to the faces.
+    // Initialize to 0.
+    QMap<face,double> weight;
+    face f = m_comb->firstFace();
+    int I = m_comb->maxFaceIndex();
+    for (int i = 0; i <= I; i++) {
+        weight.insert(f,0);
+        f = f->succ();
+    }
+    // Add tree weights to the totals for the faces.
+    foreach (node r, m_rootNodes) {
+        QList<face> faces = m_nodeComb.value(r)->faces();
+        int n = faces.size();
+        // Each face adjacent to r gets 1/n added to its total weight.
+        foreach (face f, faces) {
+            double u = weight.value(f);
+            weight.insert(f,u+1/n);
+        }
+    }
+    // Prepare list of trees to be placed.
+    QList<node> trees = QList<node>(m_rootNodes);
+    int numTrees = m_rootNodes.size();
+    while (!trees.empty()) {
+        // Choose a tree having an adjacent face of least weight.
+        double u0 = numTrees+1; // effectively +infty since no face has more weight than numTrees
+        node r0 = NULL;
+        face f0 = NULL;
+        int i0 = 0;
+        int n0 = 1;
+        QList<face> F0;
+        for (int i = 0; i < trees.size(); i++) {
+            node r = trees.at(i);
+            QList<face> F = m_nodeComb.value(r)->faces();
+            int n = F.size();
+            foreach (face f, F) {
+                double u = weight.value(f);
+                if (u < u0) {
+                    r0 = r; f0 = f; i0 = i; n0 = n; F0 = F; u0= u;
+                }
+            }
+        }
+        // Remove r0 from list of trees to be placed.
+        trees.removeAt(i0);
+        // Move all weight for r0 into f0.
+        foreach (face f, F0) {
+            double u = weight.value(f);
+            u += f==f0 ? (n0-1)/n0 : -1/n0;
+            weight.insert(f,u);
+        }
+        // Place the tree at r0 in face f0
+        QPair<node,node> nbrs = m_nodeComb.value(r0)->nbrs(f0);
+        // TODO...
+    }
+}
+
+void Planarization::computeMinNodeSep(void) {
+    // There is an O(n log n) algorithm for this by Shamos and Hoey
+    // (and even an O(n) expected time probabilistic version),
+    // but for now we just do the dumb O(n^2) comparison of all pairs of nodes.
+    double d = DBL_MAX;
+    QList<node> nodes;
+    node n;
+    forall_nodes(n,*m_graph) {
+        nodes.append(n);
+    }
+    int N = nodes.size();
+    for (int i = 0; i + 1 < N; i++) {
+        node n = nodes.at(i);
+        double x1 = m_ga->x(n), y1 = m_ga->y(n);
+        for (int j = i + 1; j < N; j++) {
+            node m = nodes.at(j);
+            double x2 = m_ga->x(m), y2 = m_ga->y(m);
+            double dx = x2-x1, dy = y2-y1;
+            double l = sqrt(dx*dx+dy*dy);
+            if (l < d) d = l;
+        }
+    }
+    m_minNodeSep = d;
+}
+
+void Planarization::mapNodesToFaces(void) {
+    bool debug = true;
+    if (debug) qDebug() << QString("Number of faces: %1").arg(m_comb->numberOfFaces());
+    // Initialize node combinatorial info map
+    node n;
+    forall_nodes(n,*m_graph) {
+        m_nodeComb.insert(n, new NodeCombStruct(n));
+    }
+    // Iterate over faces
+    face f = m_comb->firstFace();
+    int I = m_comb->maxFaceIndex();
+    for (int i = 0; i <= I; i++) {
+        if (debug) qDebug() << QString("Face %1:").arg(i);
+        adjEntry ae = f->firstAdj();
+        int J = f->size();
+        QString nodeList = "    ";
+        for (int j = 0; j < J; j++) {
+            node n = ae->theNode();
+            NodeCombStruct *ncs = m_nodeComb.value(n);
+            ncs->aesPerFace.insertMulti(f,ae);
+            node t = ae->theTwin();
+            NodeCombStruct *tcs = m_nodeComb.value(t);
+            tcs->aesPerFace.insertMulti(f,ae);
+            nodeList += nodeIDString(n) + " ";
+            // Next ae
+            ae = f->nextFaceEdge(ae);
+        }
+        if (debug) qDebug() << nodeList;
+        // Next face.
+        f = f->succ();
     }
 }
 
@@ -1213,7 +1328,8 @@ void BiComp::layout2(void) {
                                               aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->defineRootNodes(m2_rootNodes);
     m_planarization->idealLength(m_idealLength);
-    m_planarization->chooseFDTreeFaces();
+    //m_planarization->chooseFDTreeFaces();
+    m_planarization->chooseCombTreeFaces();
 
 
     // 2. Lay out external trees.

@@ -159,6 +159,7 @@ public:
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
+    void chooseCombTreeFaces(void);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
     void addDummyEdge(node a, node b) {
@@ -252,6 +253,29 @@ public:
         edge dEdge2Tgt;
     };
 
+    struct NodeCombStruct {
+        // Allows to associate with a node the faces to which it
+        // is adjacent, and the two adjEntries corresponding to
+        // each face.
+        NodeCombStruct(node n) : m_node(n) {}
+        node m_node;
+        QMap<face,adjEntry> aesPerFace;
+        QList<face> faces(void) { return aesPerFace.uniqueKeys(); }
+        QPair<node,node> nbrs(face f) {
+            QList<adjEntry> aes = aesPerFace.values(f);
+            QPair<node,node> p;
+            // first one
+            node n = aes.at(0)->theNode();
+            node t = aes.at(0)->theTwin();
+            p.first = m_node == n ? t : n;
+            // second one
+            n = aes.at(1)->theNode();
+            t = aes.at(1)->theTwin();
+            p.second = m_node == n ? t : n;
+            return p;
+        }
+    };
+
 private:
     void findHDHVCrossings(void);
     void findVDCrossings(void);
@@ -260,6 +284,8 @@ private:
     void simplePlanarize(void);
     void simplerPlanarize(void);
     void findExternalFace(void);
+    void mapNodesToFaces(void);
+    void computeMinNodeSep(void);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
@@ -282,6 +308,8 @@ private:
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
     face m_extFace;
+    QMap<node,NodeCombStruct*> m_nodeComb;
+    double m_minNodeSep;
 };
 
 class BiComp {
