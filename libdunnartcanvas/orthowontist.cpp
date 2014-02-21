@@ -196,6 +196,127 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         // Next face.
         f = f->succ();
     }
+
+    findExternalFace();
+}
+
+void Planarization::findExternalFace(void) {
+    bool debug = true;
+    // Find a node mx of minimal x-coordinate.
+    node mx = NULL, n = NULL;
+    forall_nodes(n,*m_graph) {
+        if (mx==NULL || m_ga->x(n) < m_ga->x(mx)) mx = n;
+    }
+    if (debug) qDebug() << QString("Leftmost node ")+nodeIDString(mx);
+    // Since there are no nodes to the left of mx, every neighbour a is
+    // such that the edge (mx,a) makes an angle from 0 to pi (inclusive)
+    // with the vertical vector (0,-1).
+    // This allows us to identify a "first" edge in the clockwise ordering.
+    // Namely, find a neighbouring node a0 for which the normalised dot
+    // product of a0-mx with the vector (0,-1) is largest.
+    // Then the edge (mx,a0) will come first in this ordering.
+    double mxx = m_ga->x(mx), mxy = m_ga->y(mx);
+    adjEntry ae = NULL;
+    adjEntry ae0 = NULL;
+    node a0 = NULL;
+    double dp0 = -2; // All normalized dp's will be in [-1,1], so -2 == -infty
+    forall_adj(ae,mx) {
+        node a = ae->twinNode();
+        double ax = m_ga->x(a), ay = m_ga->y(a);
+        double dx = mxx-ax, dy = mxy-ay;
+        double l = sqrt(dx*dx+dy*dy);
+        double dp = dy/l;
+        if (dp > dp0) {
+            ae0 = ae;
+            a0 = a;
+            dp0 = dp;
+        }
+    }
+    assert(ae0!=NULL);
+    if (debug) qDebug() << QString("Next node ")+nodeIDString(a0);
+    // Now form the list of adjacency elements around the external face.
+    // The list begins with ae0, and always proceeds to the successor in
+    // the clockwise order around the next node.
+    // For some reason this is the cyclic "predecessor" in OGDF, not "successor".
+    QList<adjEntry> aes;
+    aes.append(ae0);
+    ae = ae0->twin()->cyclicPred();
+    while (ae != ae0) {
+        aes.append(ae);
+        ae = ae->twin()->cyclicPred();
+    }
+    // Debug output:
+    if (debug) {
+        QString s = "External face nodes: ";
+        foreach (adjEntry z, aes) {
+            node n = z->theNode();
+            s += nodeIDString(n) + " " ;
+        }
+        qDebug() << s;
+    }
+    // Finally determine which of the faces is defined by these adjEntries.
+    int N = aes.size();
+    m_extFace = NULL;
+    face f = m_comb->firstFace();
+    int I = m_comb->maxFaceIndex();
+    for (int i = 0; i <= I; i++) {
+        // Consider the first ae in face f.
+        adjEntry ae = f->firstAdj();
+        if (debug) {
+            qDebug() << "=======================================================";
+            qDebug() << "Considering face "+QString::number(i);
+            qDebug() << "Begins with node "+nodeIDString(ae->theNode());
+        }
+        // If it is not in aes at all, then f is not the external face.
+        if (!aes.contains(ae)) {
+            f = f->succ();
+            continue;
+        }
+        // Consider the next ae in the face f.
+        // Is this the next ae, on either side, in the external face that we found?
+        int j0 = aes.indexOf(ae);
+        ae = f->nextFaceEdge(ae);
+        if (debug) {
+            qDebug() << QString("Agrees at index %1 in our list.").arg(j0);
+            qDebug() << "Next node is "+nodeIDString(ae->theNode());
+        }
+        int dir = 0;
+        if (ae==aes.at( (j0+1) % N )) {
+            dir = 1;
+        } else if (ae==aes.at( (j0-1) % N )) {
+            dir = -1;
+        }
+        // If not, then give up on face f.
+        if (dir==0) {
+            f = f->succ();
+            continue;
+        }
+        // If so, then continue in that same direction, and see if
+        // f has all the same ae's as aes.
+        if (debug) qDebug() << "This agrees in direction: "+QString::number(dir);
+        int j = 2;
+        while (j <= N) {
+            ae = f->nextFaceEdge(ae);
+            if (debug) qDebug() << "Next node is "+nodeIDString(ae->theNode());
+            int k = (j0+dir*j) % N;
+            if (ae!=aes.at(k)) {
+                if (debug) qDebug() << QString("Disagrees at index %1.").arg(k);
+                break;
+            } else {
+                if (debug) qDebug() << QString("Agrees at index %1.").arg(k);
+            }
+            j++;
+        }
+        if (j == N) {
+            // In this case we have found the external face.
+            m_extFace = f;
+            break;
+        }
+        // Otherwise, try the next face.
+        f = f->succ();
+    }
+    //assert(m_extFace!=NULL);
+    //qDebug() << QString("External face is number %1").arg(m_extFace->index());
 }
 
 /***
@@ -300,7 +421,7 @@ void Planarization::chooseFDTreeFaces(void) {
         i++;
         //qDebug() << QString("node at: %1, %2").arg(m_ga->x(n)).arg(m_ga->y(n));
         //qDebug() << m_ga->colorNode(n).cstr();
-        qDebug() << QString("node shape: %1").arg(m_ga->shapeNode(n));
+        //qDebug() << QString("node shape: %1").arg(m_ga->shapeNode(n));
     }
     edge e = NULL;
     forall_edges(e,*m_graph) {
@@ -540,13 +661,15 @@ void Planarization::Edge::connectCrossings(void) {
     nodes.prepend(first);
     nodes.append(last);
     // Delete original edge.
-    m_plan->m_graph->delEdge(m_ogdfEdge);
+    //m_plan->m_graph->delEdge(m_ogdfEdge);
+    m_plan->delEdge(m_ogdfEdge);
     // Add an edge between each pair of nodes.
     int N = nodes.size();
     for (int i = 0; i + 1 < N; i++) {
         node a = nodes.at(i), b = nodes.at(i+1);
-        edge e = m_plan->m_graph->newEdge(a,b);
-        m_plan->m_dummyEdges.append(e);
+        //edge e = m_plan->m_graph->newEdge(a,b);
+        //m_plan->m_dummyEdges.append(e);
+        m_plan->addDummyEdge(a,b);
     }
 }
 

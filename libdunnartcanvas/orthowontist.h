@@ -160,6 +160,21 @@ public:
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
     void idealLength(double L) { m_idealLength = L; }
+    void delEdge(edge e) { m_graph->delEdge(e); }
+    void addDummyEdge(node a, node b) {
+        edge e = m_graph->newEdge(a,b);
+        m_dummyEdges.append(e);
+    }
+    QString nodeIDString(node n) {
+        QString id = "";
+        if (m_dummyNodes.contains(n)) {
+            id = "d" + QString::number(m_dummyNodes.indexOf(n));
+        } else {
+            int i = m_dunnartShapes.value(n)->internalId();
+            id = QString::number(i);
+        }
+        return id;
+    }
 
     struct Edge;
 
@@ -237,13 +252,14 @@ public:
         edge dEdge2Tgt;
     };
 
-//private:
+private:
     void findHDHVCrossings(void);
     void findVDCrossings(void);
     void findDDCrossings(void);
     void processCrossings(void);
     void simplePlanarize(void);
     void simplerPlanarize(void);
+    void findExternalFace(void);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
@@ -265,6 +281,7 @@ public:
     QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
+    face m_extFace;
 };
 
 class BiComp {
