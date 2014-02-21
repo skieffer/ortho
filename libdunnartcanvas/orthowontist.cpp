@@ -475,6 +475,9 @@ void Planarization::chooseCombTreeFaces(void) {
         // Introduce vectors u = a - b and v = c - b.
         double ux = ax-bx, uy = ay-by;
         double vx = cx-bx, vy = cy-by;
+
+        // TODO: handle angles pi and greater!
+
         // Compute their sum, and its length.
         double px = ux + vx, py = uy + vy;
         double pl = sqrt(px*px+py*py);
