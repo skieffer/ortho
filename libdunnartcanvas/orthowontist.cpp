@@ -260,13 +260,19 @@ void Planarization::findExternalFace(void) {
     face f = m_comb->firstFace();
     int I = m_comb->maxFaceIndex();
     for (int i = 0; i <= I; i++) {
-        // Consider the first ae in face f.
-        adjEntry ae = f->firstAdj();
         if (debug) {
             qDebug() << "=======================================================";
             qDebug() << "Considering face "+QString::number(i);
-            qDebug() << "Begins with node "+nodeIDString(ae->theNode());
         }
+        // If the face has the wrong number of edges, then it is not a match.
+        if (f->size()!=N) {
+            if (debug) qDebug() << "Wrong number of edges.";
+            f = f->succ();
+            continue;
+        }
+        // Consider the first ae in face f.
+        adjEntry ae = f->firstAdj();
+        if (debug) qDebug() << "Begins with node "+nodeIDString(ae->theNode());
         // If it is not in aes at all, then f is not the external face.
         if (!aes.contains(ae)) {
             f = f->succ();
@@ -295,7 +301,7 @@ void Planarization::findExternalFace(void) {
         // f has all the same ae's as aes.
         if (debug) qDebug() << "This agrees in direction: "+QString::number(dir);
         int j = 2;
-        while (j <= N) {
+        while (j < N) {
             ae = f->nextFaceEdge(ae);
             if (debug) qDebug() << "Next node is "+nodeIDString(ae->theNode());
             int k = (j0+dir*j) % N;
@@ -315,8 +321,8 @@ void Planarization::findExternalFace(void) {
         // Otherwise, try the next face.
         f = f->succ();
     }
-    //assert(m_extFace!=NULL);
-    //qDebug() << QString("External face is number %1").arg(m_extFace->index());
+    assert(m_extFace!=NULL);
+    qDebug() << QString("External face is number %1").arg(m_extFace->index());
 }
 
 /***
