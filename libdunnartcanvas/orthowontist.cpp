@@ -451,6 +451,9 @@ void Planarization::chooseCombTreeFaces(void) {
     // Prepare list of trees to be placed.
     QList<node> trees = QList<node>(m_rootNodes);
     int numTrees = m_rootNodes.size();
+    // Keep track of stub nodes in case we want to remove them.
+    QList<node> stubs;
+    // Loop until no trees remain.
     while (!trees.empty()) {
         // debug
         if (debug) {
@@ -508,6 +511,7 @@ void Planarization::chooseCombTreeFaces(void) {
         // Create stub node and place it.
         node stub = m_graph->newNode();
         m_graph->newEdge(r0,stub);
+        stubs.append(stub);
         double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
         double x1 = x0 + d*n.x(), y1 = y0 + d*n.y();
         m_ga->x(stub) = x1;
@@ -520,6 +524,13 @@ void Planarization::chooseCombTreeFaces(void) {
     if (writeout) {
         // Write out the results.
         m_ga->writeGML("comb_face_choices.gml");
+    }
+    // Cleanup
+    bool removeStubs = true;
+    if (removeStubs) {
+        foreach (node s, stubs) {
+            m_graph->delNode(s);
+        }
     }
 }
 
@@ -609,6 +620,7 @@ void Planarization::chooseFDTreeFaces(void) {
     cola::ConstrainedFDLayout *fdlayout = new cola::ConstrainedFDLayout(rs,es,il,op);
 
     // Ask fdlayout for the force vectors.
+    QList<node> stubs;
     foreach (node r, m_rootNodes) {
         int u = m_nodeIndices.value(r);
         std::vector<double> ng = fdlayout->negStressGradForNodeOnceRemoved(u);
@@ -621,6 +633,7 @@ void Planarization::chooseFDTreeFaces(void) {
         dy = len*dy/l;
         // Add stub node.
         node stub = m_graph->newNode();
+        stubs.append(stub);
         m_graph->newEdge(r,stub);
         double x0 = m_ga->x(r), y0 = m_ga->y(r);
         double x1 = x0 + dx, y1 = y0 + dy;
@@ -635,6 +648,13 @@ void Planarization::chooseFDTreeFaces(void) {
     if (writeout) {
         // Write out the results.
         m_ga->writeGML("FD_face_choices.gml");
+    }
+    // Cleanup
+    bool removeStubs = true;
+    if (removeStubs) {
+        foreach (node s, stubs) {
+            m_graph->delNode(s);
+        }
     }
 }
 
@@ -1380,7 +1400,7 @@ void BiComp::layout2(void) {
                                               aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->defineRootNodes(m2_rootNodes);
     m_planarization->idealLength(m_idealLength);
-    //m_planarization->chooseFDTreeFaces();
+    m_planarization->chooseFDTreeFaces();
     m_planarization->chooseCombTreeFaces();
 
 
