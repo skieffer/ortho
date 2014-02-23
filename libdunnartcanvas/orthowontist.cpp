@@ -504,6 +504,20 @@ void Planarization::chooseCombTreeFaces(void) {
         }
         // Place the tree at r0 in face f0
         QPointF n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
+
+        //DEBUG
+        if (isnan(n.x())) {
+            QString a = nodeIDString(r0);
+            QList<adjEntry> aes = m_nodeComb.value(r0)->aesPerFace.values(f0);
+            QString b1 = nodeIDString(aes.at(0)->theNode());
+            QString b2 = nodeIDString(aes.at(0)->twinNode());
+            QString c1 = nodeIDString(aes.at(1)->theNode());
+            QString c2 = nodeIDString(aes.at(1)->twinNode());
+            qDebug() << "foo";
+        }
+
+        //END DEBUG
+
         // For now just do a simple scaling.
         double rw = m_ga->width(r0), rh = m_ga->height(r0);
         double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;

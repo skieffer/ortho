@@ -285,6 +285,11 @@ public:
             QPointF n = p0 + p1;
             double nx = n.x(), ny = n.y();
             double nl = sqrt(nx*nx+ny*ny);
+
+            if (nl==0) {
+                qDebug() << "foo";
+            }
+
             return QPointF(nx/nl, ny/nl);
         }
     private:
@@ -305,6 +310,11 @@ public:
             double vx = uy, vy = -ux;
             // Normalise.
             double vl = sqrt(vx*vx + vy*vy);
+
+            if (vl==0) {
+                qDebug() << "foo";
+            }
+
             vx /= vl; vy /= vl;
             return QPointF(vx,vy);
         }
