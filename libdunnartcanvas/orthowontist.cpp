@@ -506,7 +506,7 @@ void Planarization::chooseCombTreeFaces(void) {
         QPointF n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
 
         //DEBUG
-        if (isnan(n.x())) {
+        if (std::isnan(n.x())) {
             QString a = nodeIDString(r0);
             QList<adjEntry> aes = m_nodeComb.value(r0)->aesPerFace.values(f0);
             QString b1 = nodeIDString(aes.at(0)->theNode());
