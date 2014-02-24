@@ -80,6 +80,13 @@
 
 #include "libdunnartcanvas/orthowontist.h"
 
+#include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
+#include "CGAL/Polygon_2.h"
+
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef CGAL::Point_2<K> Point;
+typedef CGAL::Polygon_2<K> Polygon_2;
+
 using namespace ogdf;
 
 namespace ow {
@@ -432,6 +439,7 @@ void Planarization::chooseCombTreeFaces(void) {
         int n = faces.size();
         // Each face adjacent to r gets 1/n added to its total weight.
         foreach (face f, faces) {
+            if (f==m_extFace) continue; // external face is infinite sink
             double u = weight.value(f);
             u += 1/(double)n;
             weight.insert(f,u);
@@ -480,14 +488,55 @@ void Planarization::chooseCombTreeFaces(void) {
                 }
             }
         }
+        // List all faces of this tree that are of minimal weight.
+        QList<face> M;
+        foreach (face f, F0) {
+            if (weight.value(f)==u0) M.append(f);
+        }
         // debug
         if (debug) {
-            qDebug() << "Chose tree at " + nodeIDString(r0) + QString(" and face %1 with weight %2.").arg(f0->index()).arg(u0);
+            qDebug() << "Chose tree at " + nodeIDString(r0);
+            qDebug() << QString("Faces of minimal weight %1 are:").arg(u0);
+            QString s = "";
+            foreach (face f, M) s += QString::number(f->index()) + " ";
+            qDebug() << s;
         }
+        // Choose a face of minimal weight.
+        //if (M.size() >= 0) {
+        if (M.size() < 2) {
+            f0 = M.first();
+        } else {
+            // If there are two or more faces of minimal weight, choose one with greatest area.
+            double A0 = 0;
+            f0 = NULL;
+            foreach (face f, M) {
+                Polygon_2 p;
+                adjEntry ae = f->firstAdj();
+                int J = f->size();
+                for (int j = 0; j < J; j++) {
+                    node n = ae->theNode();
+                    double x = m_ga->x(n), y = m_ga->y(n);
+                    //if (debug) qDebug() << QString("Node %1 at %2, %3.").arg(nodeIDString(n)).arg(x).arg(y);
+                    if (debug) qDebug() << QString("Node at %1, %2.").arg(x).arg(y);
+                    p.push_back(Point(x,y));
+                    // Next ae
+                    ae = f->nextFaceEdge(ae);
+                }
+                double A = abs(p.area());
+                if (debug) qDebug() << QString("Face %1 has area %2.").arg(f->index()).arg(A);
+                if (A > A0) {
+                    A0 = A;
+                    f0 = f;
+                }
+            }
+            if (debug) qDebug() << QString("Chose face %1.").arg(f0->index());
+        }
+        assert(f0!=NULL);
         // Remove r0 from list of trees to be placed.
         trees.removeAt(i0);
         // Move all weight for r0 into f0.
         foreach (face f, F0) {
+            if (f==m_extFace) continue; // external face is infinite sink
             double u = weight.value(f);
             u += f==f0 ? (n0-1)/n0 : -1/n0;
             weight.insert(f,u);
