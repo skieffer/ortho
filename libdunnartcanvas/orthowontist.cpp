@@ -537,7 +537,11 @@ void Planarization::chooseCombTreeFaces(void) {
     bool writeout = true;
     if (writeout) {
         // Write out the results.
-        m_ga->writeGML("comb_face_choices.gml");
+        QString fn = "comb_FC_"+filename+".gml";
+        char *c = new char[fn.size()+1];
+        for (int i = 0; i < fn.size(); i++) c[i] = fn.at(i).toAscii();
+        c[fn.size()] = (char)(0);
+        m_ga->writeGML(c);
     }
     // Cleanup
     bool removeStubs = true;
@@ -661,7 +665,11 @@ void Planarization::chooseFDTreeFaces(void) {
     bool writeout = true;
     if (writeout) {
         // Write out the results.
-        m_ga->writeGML("FD_face_choices.gml");
+        QString fn = "FD_FC_"+filename+".gml";
+        char *c = new char[fn.size()+1];
+        for (int i = 0; i < fn.size(); i++) c[i] = fn.at(i).toAscii();
+        c[fn.size()] = (char)(0);
+        m_ga->writeGML(c);
     }
     // Cleanup
     bool removeStubs = true;
@@ -1412,6 +1420,7 @@ void BiComp::layout2(void) {
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
+    m_planarization->filename = filename;
     m_planarization->defineRootNodes(m2_rootNodes);
     m_planarization->idealLength(m_idealLength);
     m_planarization->chooseFDTreeFaces();
@@ -2675,6 +2684,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         B->idealLength(idealLength);
         B->nodePadding(nodePadding);
         B->dummyNodeSize(QSizeF(avgDim,avgDim));
+        B->filename = filename;
         B->layout2();
     }
 

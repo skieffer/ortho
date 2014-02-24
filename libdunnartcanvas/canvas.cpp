@@ -5716,6 +5716,8 @@ void Canvas::orthoLayout2()
 void Canvas::orthowontist(void)
 {
     ow::Orthowontist ow(this);
+    QString fn = m_filename.split("/").last().split(".").first();
+    ow.filename = fn;
     CanvasItemsList L = items();
     ow.run2(L);
     //router()->processActions();

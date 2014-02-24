@@ -176,6 +176,7 @@ public:
         }
         return id;
     }
+    QString filename;
 
     struct Edge;
 
@@ -387,6 +388,7 @@ public:
 
     // 2nd version
     void noteRoot(ExternalTree *E);
+    QString filename;
 private:
     void postACACola(bool preventOverlaps, double idealLength,
                      QMap<node,int> nodeIndices, cola::CompoundConstraints sepcos);
@@ -506,6 +508,7 @@ public:
     Orthowontist(Canvas *canvas);
     void run1(QList<CanvasItem*> items);
     void run2(QList<CanvasItem*> items);
+    QString filename;
 private:
     void buildOGDFGraph(CanvasItemsList items,
             Graph& G, GraphAttributes& GA, shapemap &nodeShapes, connmap &edgeConns);
