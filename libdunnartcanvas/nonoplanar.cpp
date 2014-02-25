@@ -504,6 +504,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
     }
     // Place the trees, in order of descending size.
     foreach (node r, trees) {
+        if (debug) qDebug() << QString("Placing tree %1.").arg(nodeIDString(r));
         QList<face> F = m_nodeComb.value(r)->faces();
         QList<SortableFace*> SF;
         foreach (face f, F) {
@@ -511,8 +512,23 @@ void Planarization::chooseGreedyTreeFaces(void) {
             SF.append(sf);
         }
         qSort(SF.begin(), SF.end(), cmpFaces);
+        QList<face> faces;
+        for (int i = 0; i < SF.size(); i++) {
+            SortableFace *sf = SF.at(i);
+            faces.append(sf->f);
+        }
+        // Test:
+        if (debug) {
+            QString s = "Face order:\n";
+            foreach (face f, faces) {
+                s += QString::number(f->index()) + " ";
+            }
+            qDebug() << s;
+        }
+
     }
-    // TODO ...
+    // ...
+    qDebug() << "foo";
 }
 
 void Planarization::chooseCombTreeFaces(void) {
