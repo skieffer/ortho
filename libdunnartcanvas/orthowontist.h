@@ -153,7 +153,16 @@ static int cmpEdgeEvent(const void *p1, const void *p2);
 
 class Planarization;
 
+struct SortableFace {
+    SortableFace(face f0, node r0, Planarization *P0) :
+        f(f0), r(r0), P(P0) {}
+    face f;
+    node r;
+    Planarization *P;
+};
+
 static bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2);
+static int cmpFaces(SortableFace *s1, SortableFace *s2);
 
 class Planarization {
 public:
@@ -166,6 +175,7 @@ public:
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
+    double areaOfFace(face f);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
     void idealLength(double L) { m_idealLength = L; }
@@ -303,7 +313,39 @@ public:
 
             return QPointF(nx/nl, ny/nl);
         }
-    //private:
+        /***
+          * Say which cardinal directions are free for this node in this face.
+          * We use ints 0, 1, 2, 3, corresp. to powers of sqrt(-1).
+          */
+        QSet<int> freeCardinals(face f, GraphAttributes &GA) {
+            double tolerance = pi/36.0;
+            QList<adjEntry> aes = aesPerFace.values(f);
+            adjEntry ae = aes.at(0);
+            adjEntry ae0 = ae->theNode()==m_node ? aes.at(1) : ae;
+            adjEntry ae1 = ae->theNode()==m_node ? ae : aes.at(1);
+            // Now ae0 is the one that has m_node at its head, and ae1 has it at its tail.
+            // So since the face is always on the right-hand side, ae0 will yield the lower
+            // bound on the available angles, and ae1 the upper bound.
+            node c = ae1->twinNode();
+            node b = m_node;
+            node a = ae0->theNode();
+            double ax = GA.x(a), ay = GA.y(a);
+            double bx = GA.x(b), by = GA.y(b);
+            double cx = GA.x(c), cy = GA.y(c);
+            double ub = atan2(by-ay,ax-bx), lb = atan2(by-cy,cx-bx); // the y's are negated since graphics y-axis goes downward
+            if (ub <= lb) ub += 2*pi;
+            // Now lb and ub are in the range from -pi to +3*pi.
+            QSet<int> free;
+            for (int k = -2; k <= 6; k++) {
+                double a = k*pi/2;
+                double aFlat = a - tolerance, aSharp = a + tolerance;
+                int direc = (k+4) % 4;
+                if (aFlat >= lb && aSharp <= ub) free.insert(direc);
+            }
+            return free;
+        }
+
+    private:
         /***
           * Computes a normal direction vector pointing perpendicular to
           * the adjEntry ae and into the face it belongs to. This relies
@@ -341,6 +383,7 @@ public:
     void findExternalFace(void);
     void mapNodesToFaces(void);
     void computeMinNodeSep(void);
+    void computeFreeSides(void);
     void offsetAlignment(node r, node s, double offset);
     bool areAligned(node r, node s);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
@@ -352,6 +395,7 @@ public:
     QMap<node,node> m_origNodes;
     QMap<edge,edge> m_origEdges;
     QMap<edge,int> m_alignments;
+    QMap<node,QSet<int> > m_freeSides;
     QList<Edge*> mH;
     QList<Edge*> mV;
     QList<Edge*> mD;
