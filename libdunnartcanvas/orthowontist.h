@@ -160,6 +160,7 @@ public:
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
+    void layoutTreeForRoot(ExternalTree *E, node root);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
     void addDummyEdge(node a, node b) {
@@ -177,6 +178,7 @@ public:
         return id;
     }
     QString filename;
+    QMap<node,QPointF> origRootToStubPos;
 
     struct Edge;
 
@@ -331,6 +333,8 @@ private:
     void findExternalFace(void);
     void mapNodesToFaces(void);
     void computeMinNodeSep(void);
+    void offsetAlignment(node r, node s, double offset);
+    bool areAligned(node r, node s);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
     QSizeF m_dummyNodeSize;
@@ -355,6 +359,7 @@ private:
     face m_extFace;
     QMap<node,NodeCombStruct*> m_nodeComb;
     double m_minNodeSep;
+    QMap<node,node> m_rootsToStubs;
 };
 
 class BiComp {
@@ -407,7 +412,7 @@ private:
     Planarization *m_planarization;
 
     // 2nd version
-    QList<node> m2_rootNodes;
+    QMap<node,ExternalTree*> m2_rootsToTrees;
 };
 
 struct ConvTest1 : public cola::TestConvergence
