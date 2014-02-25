@@ -151,15 +151,22 @@ private:
 
 static int cmpEdgeEvent(const void *p1, const void *p2);
 
+class Planarization;
+
+static bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2);
+
 class Planarization {
 public:
     Planarization(Graph &G, GraphAttributes &GA,
                   QMap<edge,int> alignments, QSizeF dummyNodeSize,
                   shapemap nodeShapes);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
+    bool cmpTreesBySize2(node r1, node r2);
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
+    void chooseGreedyTreeFaces(void);
+    void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
@@ -179,6 +186,7 @@ public:
     }
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
+    QMap<node,QSizeF> origRootToTreeSize;
 
     struct Edge;
 
@@ -295,7 +303,7 @@ public:
 
             return QPointF(nx/nl, ny/nl);
         }
-    private:
+    //private:
         /***
           * Computes a normal direction vector pointing perpendicular to
           * the adjEntry ae and into the face it belongs to. This relies
@@ -323,7 +331,7 @@ public:
         }
     };
 
-private:
+//private:
     void findHDHVCrossings(void);
     void findVDCrossings(void);
     void findDDCrossings(void);

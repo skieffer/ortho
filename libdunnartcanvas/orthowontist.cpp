@@ -34,6 +34,7 @@
 #include <QPointF>
 #include <QSizeF>
 #include <QTime>
+#include <QtAlgorithms>
 
 #include "libvpsc/rectangle.h"
 
@@ -420,6 +421,42 @@ void Planarization::defineRootNodes(QList<node> roots) {
         node m = m_origNodes.key(n);
         m_rootNodes.append(m);
     }
+}
+
+bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2) {
+    Planarization *P = r1.second;
+    node n1 = P->m_origNodes.value(r1.first);
+    node n2 = P->m_origNodes.value(r2.first);
+    QSizeF s1 = P->origRootToTreeSize.value(n1);
+    QSizeF s2 = P->origRootToTreeSize.value(n2);
+    double A1 = s1.width() * s1.height();
+    double A2 = s2.width() * s2.height();
+    return A2 < A1;
+}
+
+void Planarization::chooseGreedyTreeFaces(void) {
+    bool debug = true;
+    // Sort trees by descending size
+    QList< QPair<node,Planarization*> > treez;
+    foreach (node r, m_rootNodes) {
+        treez.append(QPair<node,Planarization*>(r,this));
+    }
+    qSort(treez.begin(), treez.end(), cmpTreesBySize);
+    QList<node> trees;
+    for (int i = 0; i < treez.size(); i++) {
+        QPair<node,Planarization*> foo = treez.at(i);
+        trees.append(foo.first);
+    }
+    // Test:
+    if (debug) {
+        foreach (node t, trees) {
+            node o = m_origNodes.value(t);
+            QSizeF s = origRootToTreeSize.value(o);
+            double A = s.width() * s.height();
+            qDebug() << QString("Tree area: %1").arg(A);
+        }
+    }
+    qDebug() << "foo";
 }
 
 void Planarization::chooseCombTreeFaces(void) {
@@ -1514,14 +1551,25 @@ void BiComp::layout2(void) {
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
+    // 1.25. Give trees an initial layout, just so we know their sizes.
+    QMap<node,QSizeF> treeSizes;
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        E->treeLayout();
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->filename = filename;
+    m_planarization->setTreeSizes(treeSizes);
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->idealLength(m_idealLength);
     //m_planarization->chooseFDTreeFaces();
-    m_planarization->chooseCombTreeFaces();
+    //m_planarization->chooseCombTreeFaces();
+    m_planarization->chooseGreedyTreeFaces();
 
 
     // 2. Lay out external trees.
