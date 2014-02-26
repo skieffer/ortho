@@ -179,11 +179,14 @@ public:
     QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
+    cola::CompoundConstraints faceLiftForNode(face f0, node s0);
+    void writeOutGraphWithStubs(QString fn);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
-    void addDummyEdge(node a, node b) {
+    void addDummyEdge(node a, node b, int alignment) {
         edge e = m_graph->newEdge(a,b);
         m_dummyEdges.append(e);
+        m_alignments.insert(e,alignment);
     }
     QString nodeIDString(node n) {
         QString id = "";

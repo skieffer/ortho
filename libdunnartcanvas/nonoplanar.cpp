@@ -500,6 +500,12 @@ QRectF Planarization::bboxWithoutTrees(void) {
     return QRectF(QPointF(x,y),QPointF(X,Y));
 }
 
+cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0) {
+    cola::CompoundConstraints ccs;
+    // TODO
+    return ccs;
+}
+
 void Planarization::chooseGreedyTreeFaces(void) {
     bool debug = true;
     // Sort trees by descending size
@@ -516,10 +522,6 @@ void Planarization::chooseGreedyTreeFaces(void) {
     // Place the trees, in order of descending size.
     // Keep track of stub nodes in case we want to remove them.
     QList<node> stubs;
-    // Keep track of stub edges so they can be added at the end.
-    // It is important that they not be added during the process of tree placement, or
-    // else they will mess up the adjacency structure in the graph.
-    QList< QPair<node,node> > stubEdges;
     // Get the initial bounding box, before we start to place any trees.
     QRectF bbox = bboxWithoutTrees();
     foreach (node r0, trees) {
@@ -612,24 +614,11 @@ void Planarization::chooseGreedyTreeFaces(void) {
         node rOrig = m_origNodes.value(r0);
         QPointF pos(x1,y1);
         origRootToStubPos.insert(rOrig,pos);
-        // Note edge, to be added later.
-        stubEdges.append(QPair<node,node>(r0,stub));
     }
-    // Now can add the edges.
-    for (int i = 0; i < stubEdges.size(); i++) {
-        QPair<node,node> e = stubEdges.at(i);
-        m_graph->newEdge(e.first,e.second);
-    }
-    // Output
-    bool writeout = true;
-    if (writeout) {
-        // Write out the results.
-        QString fn = "greedy_FC_"+filename+".gml";
-        char *c = new char[fn.size()+1];
-        for (int i = 0; i < fn.size(); i++) c[i] = fn.at(i).toAscii();
-        c[fn.size()] = (char)(0);
-        m_ga->writeGML(c);
-    }
+
+    // Diagnostic output:
+    writeOutGraphWithStubs("greedy_FC_"+filename+".gml");
+
     // Cleanup
     bool removeStubs = false;
     if (removeStubs) {
@@ -637,6 +626,37 @@ void Planarization::chooseGreedyTreeFaces(void) {
             m_graph->delNode(s);
         }
     }
+}
+
+void Planarization::writeOutGraphWithStubs(QString fn) {
+    Graph G;
+    GraphAttributes GA(G);
+    QMap<node,node> nodemap;
+    node n;
+    forall_nodes(n,*m_graph) {
+        node m = G.newNode();
+        nodemap.insert(n,m);
+        GA.x(m) = m_ga->x(n);
+        GA.y(m) = m_ga->y(n);
+        GA.width(m) = m_ga->width(n);
+        GA.height(m) = m_ga->height(n);
+    }
+    edge e;
+    forall_edges(e,*m_graph) {
+        node m1 = nodemap.value(e->source());
+        node m2 = nodemap.value(e->target());
+        G.newEdge(m1,m2);
+    }
+    foreach (node r, m_rootsToStubs.keys()) {
+        node s = m_rootsToStubs.value(r);
+        node m1 = nodemap.value(r);
+        node m2 = nodemap.value(s);
+        G.newEdge(m1,m2);
+    }
+    char *c = new char[fn.size()+1];
+    for (int i = 0; i < fn.size(); i++) c[i] = fn.at(i).toAscii();
+    c[fn.size()] = (char)(0);
+    GA.writeGML(c);
 }
 
 void Planarization::chooseCombTreeFaces(void) {
@@ -1191,15 +1211,18 @@ void Planarization::Edge::connectCrossings(void) {
     nodes.prepend(first);
     nodes.append(last);
     // Delete original edge.
-    //m_plan->m_graph->delEdge(m_ogdfEdge);
     m_plan->delEdge(m_ogdfEdge);
     // Add an edge between each pair of nodes.
     int N = nodes.size();
     for (int i = 0; i + 1 < N; i++) {
         node a = nodes.at(i), b = nodes.at(i+1);
-        //edge e = m_plan->m_graph->newEdge(a,b);
-        //m_plan->m_dummyEdges.append(e);
-        m_plan->addDummyEdge(a,b);
+        int af = 0;
+        if (m_etype==HTYPE) {
+            af = ACAHORIZ;
+        } else if (m_etype==VTYPE) {
+            af = ACAVERT;
+        }
+        m_plan->addDummyEdge(a,b,af);
     }
 }
 
