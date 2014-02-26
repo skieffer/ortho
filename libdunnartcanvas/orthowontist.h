@@ -176,10 +176,16 @@ public:
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
     double areaOfFace(face f);
+    QRectF nodeRect(node n);
     QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
-    cola::CompoundConstraints faceLiftForNode(face f0, node s0);
+    QList<EdgeNode*> genEdgeNodesForFace(face f);
+    cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
+                                                QList<node> ns,
+                                                QList<EdgeNode*> es,
+                                                double gap);
+    cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
     void writeOutGraphWithStubs(QString fn);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }

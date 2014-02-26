@@ -500,9 +500,46 @@ QRectF Planarization::bboxWithoutTrees(void) {
     return QRectF(QPointF(x,y),QPointF(X,Y));
 }
 
-cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0) {
+QRectF Planarization::nodeRect(node n) {
+    double cx = m_ga->x(n);
+    double cy = m_ga->y(n);
+    double w = m_ga->width(n);
+    double h = m_ga->height(n);
+    double x = cx - w/2.0;
+    double y = cy - h/2.0;
+    double X = u + w;
+    double Y = v + h;
+    return QRectF(QPointF(x,y),QPointF(X,Y));
+}
+
+QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
+    QList<EdgeNode*> ens;
+    adjEntry ae = f->firstAdj();
+    int J = f->size();
+    for (int j = 0; j < J; j++) {
+        node n = ae->theNode(), t = ae->twinNode();
+        QRectF Rn = nodeRect(n), Rt = nodeRect(t);
+        EdgeNode *E = new EdgeNode(Rn,Rt);
+        ens.append(E);
+        // Next ae
+        ae = f->nextFaceEdge(ae);
+    }
+    return ens;
+}
+
+cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, double gap) {
     cola::CompoundConstraints ccs;
-    // TODO
+    QList<EdgeNode> ens = genEdgeNodesForFace(f0);
+    double pad = gap/2;
+    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
+    cola::NonOverlapConstraints *noc =
+            new cola::NonOverlapConstraints(priority);
+    int N = ens.size();
+    // Variables and Rectangles.
+    vpsc::Variables vs;
+    vpsc::Rectangles rs;
+    // Add stubnode.
+    //... TODO
     return ccs;
 }
 
