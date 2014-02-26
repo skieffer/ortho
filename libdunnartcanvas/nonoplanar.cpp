@@ -435,8 +435,7 @@ bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2
     return A2 < A1;
 }
 
-int cmpFaces(SortableFace *s1, SortableFace *s2) {
-    // returned boolean says whether s1 should come before s2 in the ordering
+bool cmpFaces(SortableFace *s1, SortableFace *s2) {
     Planarization *P = s1->P;
     GraphAttributes *GA = P->m_ga;
     node r = s1->r; // should equal s2->r
@@ -450,16 +449,16 @@ int cmpFaces(SortableFace *s1, SortableFace *s2) {
 
     face f1 = s1->f, f2 = s2->f;
     // Prefer exterior face, primarily.
-    if (f1==P->m_extFace && f2!=P->m_extFace) return -1;
-    if (f2==P->m_extFace && f1!=P->m_extFace) return 1;
+    face ext = P->m_extFace;
+    if (f1==ext && f2!=ext) return true;
+    if (f2==ext && f1!=ext) return false;
     // Secondarily, prefer a face in which the stub edge can be aligned horiz. or vert.
     QSet<int> C1 = P->m_nodeComb.value(r)->freeCardinals(f1,*GA);
     QSet<int> C2 = P->m_nodeComb.value(r)->freeCardinals(f2,*GA);
-    if (!C1.empty() && C2.empty()) return -1;
-    if (C1.empty() && !C2.empty()) return 1;
+    if (!C1.empty() && C2.empty()) return true;
+    if (C1.empty() && !C2.empty()) return false;
     // Thirdly and finally, prefer a face of greater area.
-    double d = P->areaOfFace(f2) - P->areaOfFace(f1);
-    return (d > 0) - (0 > d);
+    return P->areaOfFace(f1) > P->areaOfFace(f2);
 }
 
 void Planarization::computeFreeSides(void) {
@@ -480,6 +479,27 @@ double Planarization::areaOfFace(face f) {
     return A;
 }
 
+QRectF Planarization::bboxWithoutTrees(void) {
+    double x = DBL_MAX, X = DBL_MIN;
+    double y = DBL_MAX, Y = DBL_MIN;
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        double cx = m_ga->x(n);
+        double cy = m_ga->y(n);
+        double w = m_ga->width(n);
+        double h = m_ga->height(n);
+        double u = cx - w/2.0;
+        double v = cy - h/2.0;
+        double U = u + w;
+        double V = v + h;
+        if (u<x) x = u;
+        if (U>X) X = U;
+        if (v<y) y = v;
+        if (V>Y) Y = V;
+    }
+    return QRectF(QPointF(x,y),QPointF(X,Y));
+}
+
 void Planarization::chooseGreedyTreeFaces(void) {
     bool debug = true;
     // Sort trees by descending size
@@ -493,22 +513,29 @@ void Planarization::chooseGreedyTreeFaces(void) {
         QPair<node,Planarization*> foo = treez.at(i);
         trees.append(foo.first);
     }
-    // Test:
-    if (debug) {
-        foreach (node t, trees) {
-            node o = m_origNodes.value(t);
+    // Place the trees, in order of descending size.
+    // Keep track of stub nodes in case we want to remove them.
+    QList<node> stubs;
+    // Keep track of stub edges so they can be added at the end.
+    // It is important that they not be added during the process of tree placement, or
+    // else they will mess up the adjacency structure in the graph.
+    QList< QPair<node,node> > stubEdges;
+    // Get the initial bounding box, before we start to place any trees.
+    QRectF bbox = bboxWithoutTrees();
+    foreach (node r0, trees) {
+        // debug
+        if (debug) {
+            qDebug() << QString("Placing tree %1.").arg(nodeIDString(r0));
+            node o = m_origNodes.value(r0);
             QSizeF s = origRootToTreeSize.value(o);
             double A = s.width() * s.height();
-            qDebug() << QString("Tree area: %1").arg(A);
+            qDebug() << QString("  Tree area: %1").arg(A);
         }
-    }
-    // Place the trees, in order of descending size.
-    foreach (node r, trees) {
-        if (debug) qDebug() << QString("Placing tree %1.").arg(nodeIDString(r));
-        QList<face> F = m_nodeComb.value(r)->faces();
+        // Sort the faces for this tree.
+        QList<face> F = m_nodeComb.value(r0)->faces();
         QList<SortableFace*> SF;
         foreach (face f, F) {
-            SortableFace *sf = new SortableFace(f,r,this);
+            SortableFace *sf = new SortableFace(f,r0,this);
             SF.append(sf);
         }
         qSort(SF.begin(), SF.end(), cmpFaces);
@@ -517,18 +544,99 @@ void Planarization::chooseGreedyTreeFaces(void) {
             SortableFace *sf = SF.at(i);
             faces.append(sf->f);
         }
-        // Test:
+        // debug
         if (debug) {
-            QString s = "Face order:\n";
+            QString s = "  Face order:\n";
             foreach (face f, faces) {
                 s += QString::number(f->index()) + " ";
             }
             qDebug() << s;
         }
+        // Choose the first face.
+        face f0 = faces.first();
+        // Place the tree at r0 in face f0
 
+        // Choose a direction for the stub edge.
+        NodeCombStruct *ncs = m_nodeComb.value(r0);
+        QSet<int> cards = ncs->freeCardinals(f0,*m_ga);
+        QPointF n;
+        int cardinalDirec = -1;
+        if (cards.empty()) {
+            // In this case just use the normal into the face.
+            n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
+        } else {
+            // Choose to align the stub edge in one of the available cardinal directions.
+            // TODO: use the bounding box to make an educated choice.
+            // For now, we just choose the first one.
+            cardinalDirec = cards.toList().first();
+            // Map cardinal direction numbers 0,1,2,3 to corresp. unit vectors
+            // (1,0), (0,-1), (-1,0), (0,1), in excessively clever way.
+            // (Recall, y-axis increases downward.)
+            int d = cardinalDirec;
+            int d2 = d*d;
+            int d3 = d2*d;
+            double x = (d3-3*d2-d+3)/3;
+            double y = (-d3+6*d2-8*d)/3;
+            n = QPointF(x,y);
+        }
+
+        //DEBUG
+        if (isnan(n.x())) {
+            QString a = nodeIDString(r0);
+            QList<adjEntry> aes = m_nodeComb.value(r0)->aesPerFace.values(f0);
+            QString b1 = nodeIDString(aes.at(0)->theNode());
+            QString b2 = nodeIDString(aes.at(0)->twinNode());
+            QString c1 = nodeIDString(aes.at(1)->theNode());
+            QString c2 = nodeIDString(aes.at(1)->twinNode());
+            qDebug() << QString("ERROR: Singular normal: %1, %2, %3, %4, %5.").arg(a).arg(b1).arg(b2).arg(c1).arg(c2);
+        }
+        //END DEBUG
+
+        // For now just do a simple scaling.
+        double rw = m_ga->width(r0), rh = m_ga->height(r0);
+        double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;
+        double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
+        // Create stub node and place it.
+        node stub = m_graph->newNode();
+        stubs.append(stub);
+        m_rootsToStubs.insert(r0,stub);
+        double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
+        double x1 = x0 + d*n.x(), y1 = y0 + d*n.y();
+        m_ga->x(stub) = x1;
+        m_ga->y(stub) = y1;
+        m_ga->width(stub) = sw;
+        m_ga->height(stub) = sh;
+        // Record alignment if there was one.
+        if (cardinalDirec >= 0) m_stubAlignments.insert(stub,cardinalDirec);
+        // Record chosen position for retrieval by BC.
+        node rOrig = m_origNodes.value(r0);
+        QPointF pos(x1,y1);
+        origRootToStubPos.insert(rOrig,pos);
+        // Note edge, to be added later.
+        stubEdges.append(QPair<node,node>(r0,stub));
     }
-    // ...
-    qDebug() << "foo";
+    // Now can add the edges.
+    for (int i = 0; i < stubEdges.size(); i++) {
+        QPair<node,node> e = stubEdges.at(i);
+        m_graph->newEdge(e.first,e.second);
+    }
+    // Output
+    bool writeout = true;
+    if (writeout) {
+        // Write out the results.
+        QString fn = "greedy_FC_"+filename+".gml";
+        char *c = new char[fn.size()+1];
+        for (int i = 0; i < fn.size(); i++) c[i] = fn.at(i).toAscii();
+        c[fn.size()] = (char)(0);
+        m_ga->writeGML(c);
+    }
+    // Cleanup
+    bool removeStubs = false;
+    if (removeStubs) {
+        foreach (node s, stubs) {
+            m_graph->delNode(s);
+        }
+    }
 }
 
 void Planarization::chooseCombTreeFaces(void) {

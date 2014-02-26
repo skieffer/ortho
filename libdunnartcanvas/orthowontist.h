@@ -162,7 +162,7 @@ struct SortableFace {
 };
 
 static bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2);
-static int cmpFaces(SortableFace *s1, SortableFace *s2);
+static bool cmpFaces(SortableFace *s1, SortableFace *s2);
 
 class Planarization {
 public:
@@ -176,6 +176,7 @@ public:
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
     double areaOfFace(face f);
+    QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
     void idealLength(double L) { m_idealLength = L; }
@@ -306,11 +307,6 @@ public:
             QPointF n = p0 + p1;
             double nx = n.x(), ny = n.y();
             double nl = sqrt(nx*nx+ny*ny);
-
-            if (nl==0) {
-                qDebug() << "foo";
-            }
-
             return QPointF(nx/nl, ny/nl);
         }
         /***
@@ -324,7 +320,7 @@ public:
             adjEntry ae0 = ae->theNode()==m_node ? aes.at(1) : ae;
             adjEntry ae1 = ae->theNode()==m_node ? ae : aes.at(1);
             // Now ae0 is the one that has m_node at its head, and ae1 has it at its tail.
-            // So since the face is always on the right-hand side, ae0 will yield the lower
+            // So since the face is always on the (left-hand side?), ae0 will yield the lower
             // bound on the available angles, and ae1 the upper bound.
             node c = ae1->twinNode();
             node b = m_node;
@@ -395,6 +391,7 @@ public:
     QMap<node,node> m_origNodes;
     QMap<edge,edge> m_origEdges;
     QMap<edge,int> m_alignments;
+    QMap<node,int> m_stubAlignments; // int is 0,1,2,3 to indicate cardinal
     QMap<node,QSet<int> > m_freeSides;
     QList<Edge*> mH;
     QList<Edge*> mV;
