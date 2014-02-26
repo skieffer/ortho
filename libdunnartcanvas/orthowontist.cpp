@@ -80,6 +80,13 @@
 
 #include "libdunnartcanvas/orthowontist.h"
 
+#include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
+#include "CGAL/Polygon_2.h"
+
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef CGAL::Point_2<K> Point;
+typedef CGAL::Polygon_2<K> Polygon_2;
+
 using namespace ogdf;
 
 namespace ow {
@@ -432,6 +439,7 @@ void Planarization::chooseCombTreeFaces(void) {
         int n = faces.size();
         // Each face adjacent to r gets 1/n added to its total weight.
         foreach (face f, faces) {
+            if (f==m_extFace) continue; // external face is infinite sink
             double u = weight.value(f);
             u += 1/(double)n;
             weight.insert(f,u);
@@ -453,6 +461,10 @@ void Planarization::chooseCombTreeFaces(void) {
     int numTrees = m_rootNodes.size();
     // Keep track of stub nodes in case we want to remove them.
     QList<node> stubs;
+    // Keep track of stub edges so they can be added at the end.
+    // It is important that they not be added during the process of tree placement, or
+    // else they will mess up the adjacency structure in the graph.
+    QList< QPair<node,node> > stubEdges;
     // Loop until no trees remain.
     while (!trees.empty()) {
         // debug
@@ -480,14 +492,55 @@ void Planarization::chooseCombTreeFaces(void) {
                 }
             }
         }
+        // List all faces of this tree that are of minimal weight.
+        QList<face> M;
+        foreach (face f, F0) {
+            if (weight.value(f)==u0) M.append(f);
+        }
         // debug
         if (debug) {
-            qDebug() << "Chose tree at " + nodeIDString(r0) + QString(" and face %1 with weight %2.").arg(f0->index()).arg(u0);
+            qDebug() << "Chose tree at " + nodeIDString(r0);
+            qDebug() << QString("Faces of minimal weight %1 are:").arg(u0);
+            QString s = "";
+            foreach (face f, M) s += QString::number(f->index()) + " ";
+            qDebug() << s;
         }
+        // Choose a face of minimal weight.
+        //if (M.size() >= 0) {
+        if (M.size() < 2) {
+            f0 = M.first();
+        } else {
+            // If there are two or more faces of minimal weight, choose one with greatest area.
+            double A0 = 0;
+            f0 = NULL;
+            foreach (face f, M) {
+                Polygon_2 p;
+                adjEntry ae = f->firstAdj();
+                int J = f->size();
+                for (int j = 0; j < J; j++) {
+                    node n = ae->theNode();
+                    double x = m_ga->x(n), y = m_ga->y(n);
+                    //if (debug) qDebug() << QString("Node %1 at %2, %3.").arg(nodeIDString(n)).arg(x).arg(y);
+                    if (debug) qDebug() << QString("Node at %1, %2.").arg(x).arg(y);
+                    p.push_back(Point(x,y));
+                    // Next ae
+                    ae = f->nextFaceEdge(ae);
+                }
+                double A = abs(p.area());
+                if (debug) qDebug() << QString("Face %1 has area %2.").arg(f->index()).arg(A);
+                if (A > A0) {
+                    A0 = A;
+                    f0 = f;
+                }
+            }
+            if (debug) qDebug() << QString("Chose face %1.").arg(f0->index());
+        }
+        assert(f0!=NULL);
         // Remove r0 from list of trees to be placed.
         trees.removeAt(i0);
         // Move all weight for r0 into f0.
         foreach (face f, F0) {
+            if (f==m_extFace) continue; // external face is infinite sink
             double u = weight.value(f);
             u += f==f0 ? (n0-1)/n0 : -1/n0;
             weight.insert(f,u);
@@ -513,9 +566,8 @@ void Planarization::chooseCombTreeFaces(void) {
             QString b2 = nodeIDString(aes.at(0)->twinNode());
             QString c1 = nodeIDString(aes.at(1)->theNode());
             QString c2 = nodeIDString(aes.at(1)->twinNode());
-            qDebug() << "foo";
+            qDebug() << QString("ERROR: Singular normal: %1, %2, %3, %4, %5.").arg(a).arg(b1).arg(b2).arg(c1).arg(c2);
         }
-
         //END DEBUG
 
         // For now just do a simple scaling.
@@ -524,14 +576,25 @@ void Planarization::chooseCombTreeFaces(void) {
         double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
         // Create stub node and place it.
         node stub = m_graph->newNode();
-        m_graph->newEdge(r0,stub);
         stubs.append(stub);
+        m_rootsToStubs.insert(r0,stub);
         double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
         double x1 = x0 + d*n.x(), y1 = y0 + d*n.y();
         m_ga->x(stub) = x1;
         m_ga->y(stub) = y1;
         m_ga->width(stub) = sw;
         m_ga->height(stub) = sh;
+        // Record chosen position for retrieval by BC.
+        node rOrig = m_origNodes.value(r0);
+        QPointF pos(x1,y1);
+        origRootToStubPos.insert(rOrig,pos);
+        // Note edge, to be added later.
+        stubEdges.append(QPair<node,node>(r0,stub));
+    }
+    // Now can add the edges.
+    for (int i = 0; i < stubEdges.size(); i++) {
+        QPair<node,node> e = stubEdges.at(i);
+        m_graph->newEdge(e.first,e.second);
     }
     // Output
     bool writeout = true;
@@ -544,12 +607,46 @@ void Planarization::chooseCombTreeFaces(void) {
         m_ga->writeGML(c);
     }
     // Cleanup
-    bool removeStubs = true;
+    bool removeStubs = false;
     if (removeStubs) {
         foreach (node s, stubs) {
             m_graph->delNode(s);
         }
     }
+}
+
+void Planarization::layoutTreeForRoot(ExternalTree *E, node root) {
+    node r = m_origNodes.key(root);
+    node s = m_rootsToStubs.value(r);
+    // Determine closest cardinal direction of line from tap to stub.
+    double rx=m_ga->x(r),ry=m_ga->y(r);
+    double sx=m_ga->x(s),sy=m_ga->y(s);
+    double vx=sx-rx, vy=sy-ry;
+    ogdf::Orientation orient = vx >= vy ?
+                (vx >= -vy ? leftToRight : topToBottom) :
+                (vx >= -vy ? bottomToTop : rightToLeft) ;
+    // Lay out tree.
+    E->orientation(orient);
+    E->treeLayout();
+    // Read size.
+    QSizeF size = E->rootlessBBox().size();
+    // If stub edge was aligned, offset that alignment if necessary.
+    if (areAligned(r,s) && E->needsAlignmentOffset()) {
+        double offset = E->alignmentOffset();
+        offsetAlignment(r,s,offset);
+    }
+    // Set size in stub node.
+    m_ga->width(s) = size.width();
+    m_ga->height(s) = size.height();
+}
+
+void Planarization::offsetAlignment(node r, node s, double offset) {
+    // TODO
+}
+
+bool Planarization::areAligned(node r, node s) {
+    // TODO
+    return false;
 }
 
 void Planarization::computeMinNodeSep(void) {
@@ -1245,7 +1342,7 @@ void BiComp::noteRoot(ExternalTree *E) {
     // Get own node representing that shape.
     node ownRootNode = m_dunnartShapes.key(Eshape);
     // Note that this node is a root.
-    m2_rootNodes.append(ownRootNode);
+    m2_rootsToTrees.insert(ownRootNode,E);
 }
 
 void BiComp::addStubNodeForTree(ExternalTree *E, QSizeF size) {
@@ -1421,14 +1518,21 @@ void BiComp::layout2(void) {
     m_planarization = new Planarization(*m_graph, *m_ga,
                                               aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->filename = filename;
-    m_planarization->defineRootNodes(m2_rootNodes);
+    m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->idealLength(m_idealLength);
-    m_planarization->chooseFDTreeFaces();
+    //m_planarization->chooseFDTreeFaces();
     m_planarization->chooseCombTreeFaces();
 
 
     // 2. Lay out external trees.
     //    Set stubnode sizes according to bounding boxes of laid out trees.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        m_planarization->layoutTreeForRoot(E,root);
+        //QPointF pos = m_planarization->origRootToStubPos.value(root);
+    }
+
+    /*
     foreach (node stub, m_stubnodesToTrees.keys()) {
         ExternalTree *E = m_stubnodesToTrees.value(stub);
         ShapeObj *Eshape = E->rootShape();
@@ -1496,6 +1600,7 @@ void BiComp::layout2(void) {
     // Keep the ACA sep-cos.
     foreach (cola::CompoundConstraint *cc, aca->ccs()) sepcos.push_back(cc);
     postACACola(preventOverlaps, m_idealLength, nodeIndices, sepcos);
+    */
 
     // 5. Translate trees.
     translateTrees();
@@ -2726,12 +2831,12 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
             }
         }
 
-        /*
+
         foreach (ExternalTree *E, EE) {
             E->updateShapePositions();
             E->orthogonalRouting(true);
         }
-        */
+
 
         foreach (BiComp *B, BB) {
             B->updateShapePositions();
