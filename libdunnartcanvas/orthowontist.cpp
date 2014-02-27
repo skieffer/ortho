@@ -478,7 +478,7 @@ void BiComp::layout2(void) {
 
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
-                                              aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
+        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->filename = filename;
     m_planarization->setTreeSizes(treeSizes);
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());

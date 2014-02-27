@@ -97,9 +97,12 @@ namespace ow {
 
 Planarization::Planarization(Graph &G, GraphAttributes &GA,
                              QMap<edge,int> alignments,
-                             QSizeF dummyNodeSize, shapemap nodeShapes) :
-    m_dummyNodeSize(dummyNodeSize)
+                             QSizeF avgNodeSize, shapemap nodeShapes) :
+    m_avgNodeSize(avgNodeSize)
 {
+    m_avgNodeDim = (avgNodeSize.width()+avgNodeSize.height())/2;
+    m_dummyNodeSize = m_avgNodeSize;
+    m_stubNodeSize = QSizeF(m_avgNodeSize.width()/5,m_avgNodeSize.height()/5);
     // Build local copy of original graph.
     m_graph = new Graph();
     m_ga = new GraphAttributes(*m_graph,
@@ -555,10 +558,14 @@ cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, doubl
     return ccs;
 }
 
+cola::CompoundConstraints Planarization::ordAlignsForEdges(void) {
+    // TODO
+}
+
 double Planarization::edgeLengthForNodes(node s, node t) {
     double sw = m_ga->width(s), sh = m_ga->height(s);
     double tw = m_ga->width(t), th = m_ga->height(t);
-    double d = m_dummyNodeSize.width();
+    double d = m_avgNodeDim;
     return (sw+sh)/4 + d + (tw+th)/4;
 }
 
@@ -571,7 +578,22 @@ void Planarization::expand(int steps) {
         vpsc::Rectangles rs;
         foreach (node n, m_normalNodes) rs.push_back(vpscNodeRect(n));
         foreach (node n, m_dummyNodes)  rs.push_back(vpscNodeRect(n));
-        foreach (node n, m_stubNodes)   rs.push_back(vpscNodeRect(n));
+        foreach (node s, m_stubNodes) {
+            // Set size.
+            node r = m_rootsToStubs.key(s);
+            node r0 = m_origNodes.value(r);
+            QSizeF S1 = origRootToTreeSize.value(r0);
+            QSizeF S0 = m_stubNodeSize;
+            double w0 = S0.width(), h0 = S0.height();
+            double w1 = S1.width(), h1 = S1.height();
+            double t = ((double)n) / ((double)steps);
+            double w = w0 + (w1 - w0)*t;
+            double h = h0 + (h1 - h0)*t;
+            m_ga->width(s) = w;
+            m_ga->height(s) = h;
+            // Make rectangle.
+            rs.push_back(vpscNodeRect(n));
+        }
 
         // es and eLengths
         std::vector<cola::Edge> es;
@@ -605,9 +627,16 @@ void Planarization::expand(int steps) {
         // ccs
         cola::CompoundConstraints ccs;
         // A. ordered alignments for aligned edges
-        // ...
+        cola::CompoundConstraints oa = ordAlignsForEdges();
+        foreach (cola::CompoundConstraint *cc, oa) ccs.push_back(cc);
         // B. face-lift constraints for trees
-        // ...
+        foreach (node r, m_rootNodes) {
+            face f = m_faceAssigns.value(r);
+            node s = m_rootsToStubs.value(r);
+            double gap = m_avgNodeDim;
+            cola::CompoundConstraints fl = faceLiftForNode(f,s,gap);
+            foreach (cola::CompoundConstraint *cc, fl) ccs.push_back(cc);
+        }
 
         // 2. Run the FD layout.
         bool preventOverlaps = true;
@@ -726,7 +755,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
 
         // For now just do a simple scaling.
         double rw = m_ga->width(r0), rh = m_ga->height(r0);
-        double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;
+        double sw = m_stubNodeSize.width(), sh = m_stubNodeSize.height();
         double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
         // Create stub node and place it.
         node stub = m_graph->newNode();
@@ -986,7 +1015,7 @@ void Planarization::chooseCombTreeFaces(void) {
 
         // For now just do a simple scaling.
         double rw = m_ga->width(r0), rh = m_ga->height(r0);
-        double sw = m_dummyNodeSize.width()/5, sh = m_dummyNodeSize.height()/5;
+        double sw = m_stubNodeSize.width(), sh = m_stubNodeSize.height();
         double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
         // Create stub node and place it.
         node stub = m_graph->newNode();
@@ -1158,7 +1187,7 @@ void Planarization::chooseFDTreeFaces(void) {
         // the dummy node dimension.
         double dx = ng.at(0), dy = ng.at(1);
         double l = sqrt(dx*dx + dy*dy);
-        double len = 2*m_dummyNodeSize.width();
+        double len = 2*m_avgNodeDim;
         dx = len*dx/l;
         dy = len*dy/l;
         // Add stub node.
@@ -1169,8 +1198,8 @@ void Planarization::chooseFDTreeFaces(void) {
         double x1 = x0 + dx, y1 = y0 + dy;
         m_ga->x(stub) = x1;
         m_ga->y(stub) = y1;
-        m_ga->width(stub) = m_dummyNodeSize.width()/5;
-        m_ga->height(stub) = m_dummyNodeSize.height()/5;
+        m_ga->width(stub) = m_stubNodeSize.width();
+        m_ga->height(stub) = m_stubNodeSize.height();
         //m_ga->labelNode(stub) = ogdf::String('T');
     }
     // Output

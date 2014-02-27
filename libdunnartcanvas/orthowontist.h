@@ -167,7 +167,7 @@ static bool cmpFaces(SortableFace *s1, SortableFace *s2);
 class Planarization {
 public:
     Planarization(Graph &G, GraphAttributes &GA,
-                  QMap<edge,int> alignments, QSizeF dummyNodeSize,
+                  QMap<edge,int> alignments, QSizeF avgNodeSize,
                   shapemap nodeShapes);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     bool cmpTreesBySize2(node r1, node r2);
@@ -180,12 +180,6 @@ public:
     QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
-    QList<EdgeNode*> genEdgeNodesForFace(face f);
-    cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
-                                                QList<node> ns,
-                                                QList<EdgeNode*> es,
-                                                double gap);
-    cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
     void writeOutGraphWithStubs(QString fn);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
@@ -397,13 +391,22 @@ public:
     void indexNodesAndEdges(void);
     vpsc::Rectangle *vpscNodeRect(node n);
     double edgeLengthForNodes(node s, node t);
+    cola::CompoundConstraints ordAlignsForEdges(void);
+    QList<EdgeNode*> genEdgeNodesForFace(face f);
+    cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
+                                                QList<node> ns,
+                                                QList<EdgeNode*> es,
+                                                double gap);
+    cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
+    QSizeF m_avgNodeSize;
+    double m_avgNodeDim;
     QSizeF m_dummyNodeSize;
+    QSizeF m_stubNodeSize;
     double m_idealLength;
     Graph *m_graph;
     GraphAttributes *m_ga;
     QMap<node,node> m_origNodes;
     QMap<edge,edge> m_origEdges;
-    QMap<edge,int> m_alignments;
     QMap<node,QSet<int> > m_freeSides;
     QList<Edge*> mH;
     QList<Edge*> mV;
@@ -422,6 +425,7 @@ public:
     face m_extFace;
     QMap<node,NodeCombStruct*> m_nodeComb;
     double m_minNodeSep;
+    QMap<edge,int> m_alignments;
     QMap<node,node> m_rootsToStubs;
     QMap<node,int> m_stubAlignments; // stub node to int in 0,1,2,3 to indicate cardinal
     QMap<node,face> m_faceAssigns; // roots to faces
