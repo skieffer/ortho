@@ -877,7 +877,7 @@ void ACALayout::run(void)
     } else {
         acaLoopOneByOne();
     }
-    finalLayout();
+    //finalLayout();
 }
 
 void ACALayout::readPositions(Graph &G, GraphAttributes &GA)
@@ -998,7 +998,7 @@ void ACALayout::initialLayout(void) {
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
                                           false,10.0,m_edgeLengths);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    test->minIterations = 100;
+    //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
@@ -1043,7 +1043,7 @@ void ACALayout::finalLayout(void) {
                                           false,10.0,m_edgeLengths);
     fdlayout->setConstraints(m_ccs);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    test->minIterations = 100;
+    //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S3-noOP-again");
     fdlayout->setConvergenceTest(test);

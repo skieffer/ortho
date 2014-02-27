@@ -662,7 +662,7 @@ cola::CompoundConstraints Planarization::ordAlignsForEdges(void) {
         node s = m_rootsToStubs.value(r);
         if (m_stubAlignments.keys().contains(s)) {
             int a = m_stubAlignments.value(s);
-            ACAFlags af = (ACAFlags) a;
+            ACAFlags af = a % 2 == 0 ? ACAHORIZ : ACAVERT;
             OrdAlign *oa = ordAlignForNodes(r,s,af);
             ccs.push_back(oa->sep);
             ccs.push_back(oa->algn);
@@ -753,7 +753,7 @@ void Planarization::expand(int steps) {
                 new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
                                               false,10.0,eLengths);
         fdlayout->setConstraints(ccs);
-        ConvTest1 *test = new ConvTest1(1e-4,100);
+        ConvTest1 *test = new ConvTest1(1e-3,5);
         //test->minIterations = 10;
         test->setLayout(fdlayout);
         test->name = QString("Expand-%1").arg(n);
