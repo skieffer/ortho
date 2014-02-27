@@ -151,6 +151,14 @@ private:
 
 static int cmpEdgeEvent(const void *p1, const void *p2);
 
+struct OrdAlign {
+    OrdAlign(cola::SeparationConstraint *s,
+             cola::AlignmentConstraint *a) :
+        sep(s), algn(a) {}
+    cola::SeparationConstraint *sep;
+    cola::AlignmentConstraint *algn;
+};
+
 class Planarization;
 
 struct SortableFace {
@@ -391,6 +399,7 @@ public:
     void indexNodesAndEdges(void);
     vpsc::Rectangle *vpscNodeRect(node n);
     double edgeLengthForNodes(node s, node t);
+    OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af);
     cola::CompoundConstraints ordAlignsForEdges(void);
     QList<EdgeNode*> genEdgeNodesForFace(face f);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
@@ -427,7 +436,12 @@ public:
     double m_minNodeSep;
     QMap<edge,int> m_alignments;
     QMap<node,node> m_rootsToStubs;
-    QMap<node,int> m_stubAlignments; // stub node to int in 0,1,2,3 to indicate cardinal
+
+    // stub node to int in 0,1,2,3 to indicate cardinal
+    // Domain consists of precisely those stub nodes
+    // whose edges are to be aligned.
+    QMap<node,int> m_stubAlignments;
+
     QMap<node,face> m_faceAssigns; // roots to faces
     QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     QMap<edge,int> m_edgeIndices; // only for normal and dummy edges

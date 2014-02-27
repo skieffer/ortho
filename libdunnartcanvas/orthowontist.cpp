@@ -1255,6 +1255,7 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
         double sep = sa->af == ACAHORIZ ?
                     (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        // FIXME: Canvas::Horizontal? Shouldn't it be ACAHORIZ?
         int l = sa->af == Canvas::Horizontal ?
                     (rsrc->getCentreX() < rtgt->getCentreX() ? src : tgt) :
                     (rsrc->getCentreY() < rtgt->getCentreY() ? src : tgt);

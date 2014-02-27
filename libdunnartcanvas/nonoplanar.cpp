@@ -542,6 +542,9 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
     return ens;
 }
 
+/***
+  * Return separation constraints to create space for node s0 in face f0.
+  */
 cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, double gap) {
     cola::CompoundConstraints ccs;
     QList<EdgeNode*> ens = genEdgeNodesForFace(f0);
@@ -558,8 +561,55 @@ cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, doubl
     return ccs;
 }
 
+OrdAlign *Planarization::ordAlignForNodes(node s, node t, ACAFlags af) {
+    double sx = m_ga->x(s), sy = m_ga->y(s);
+    double sw = m_ga->width(s), sh = m_ga->height(s);
+    double tx = m_ga->x(t), ty = m_ga->y(t);
+    double tw = m_ga->width(t), th = m_ga->height(t);
+    vpsc::Dim sepDim = af == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
+    vpsc::Dim algnDim = af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+    double sep = af == ACAHORIZ ? (sw+tw)/2.0 : (sh+th)/2.0;
+    int i = m_nodeIndices.value(s), j = m_nodeIndices.value(t);
+    int l = af == ACAHORIZ ? (sx<tx ? i : j) : (sy<ty ? i : j);
+    int r = l == i ? j : i;
+    cola::SeparationConstraint *sepc = new cola::SeparationConstraint(sepDim,l,r,sep);
+    cola::AlignmentConstraint *algn = new cola::AlignmentConstraint(algnDim);
+    algn->addShape(l,0);
+    algn->addShape(r,0);
+    OrdAlign *oa = new OrdAlign(sepc,algn);
+    return oa;
+}
+
+/***
+  * Create all "ordered alignment" constraints for aligned edges.
+  * (I.e. one alignment and one separation constraint for each.)
+  */
 cola::CompoundConstraints Planarization::ordAlignsForEdges(void) {
-    // TODO
+    cola::CompoundConstraints ccs;
+    // Edges in graph
+    edge e;
+    forall_edges(e,*m_graph) {
+        int a = m_alignments.value(e);
+        if (a!=0) {
+            node s = e->source(), t = e->target();
+            ACAFlags af = (ACAFlags) a;
+            OrdAlign *oa = ordAlignForNodes(s,t,af);
+            ccs.push_back(oa->sep);
+            ccs.push_back(oa->algn);
+        }
+    }
+    // Stub edges
+    foreach (node r, m_rootNodes) {
+        node s = m_rootsToStubs.value(r);
+        if (m_stubAlignments.keys().contains(s)) {
+            int a = m_stubAlignments.value(s);
+            ACAFlags af = (ACAFlags) a;
+            OrdAlign *oa = ordAlignForNodes(r,s,af);
+            ccs.push_back(oa->sep);
+            ccs.push_back(oa->algn);
+        }
+    }
+    return ccs;
 }
 
 double Planarization::edgeLengthForNodes(node s, node t) {
@@ -571,13 +621,12 @@ double Planarization::edgeLengthForNodes(node s, node t) {
 
 void Planarization::expand(int steps) {
     for (int n = 1; n <= steps; n++) {
-
         // 1. Define rs, es, ccs, eLengths.
 
         // rs
         vpsc::Rectangles rs;
-        foreach (node n, m_normalNodes) rs.push_back(vpscNodeRect(n));
-        foreach (node n, m_dummyNodes)  rs.push_back(vpscNodeRect(n));
+        foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u));
+        foreach (node u, m_dummyNodes)  rs.push_back(vpscNodeRect(u));
         foreach (node s, m_stubNodes) {
             // Set size.
             node r = m_rootsToStubs.key(s);
@@ -592,7 +641,7 @@ void Planarization::expand(int steps) {
             m_ga->width(s) = w;
             m_ga->height(s) = h;
             // Make rectangle.
-            rs.push_back(vpscNodeRect(n));
+            rs.push_back(vpscNodeRect(s));
         }
 
         // es and eLengths
@@ -660,7 +709,6 @@ void Planarization::expand(int steps) {
             m_ga->x(n) = r->getCentreX();
             m_ga->y(n) = r->getCentreY();
         }
-
     }
 }
 
