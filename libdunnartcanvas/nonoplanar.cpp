@@ -905,7 +905,9 @@ void Planarization::indexNodesAndEdges(void) {
     // (Dummy nodes and stub nodes are already known.)
     node n;
     forall_nodes(n,*m_graph) {
-        if (!m_dummyNodes.contains(n)) m_normalNodes.append(n);
+        if (!m_dummyNodes.contains(n) && !m_stubNodes.contains(n)) {
+            m_normalNodes.append(n);
+        }
     }
     // Now make the mapping from nodes to indices, which saves us
     // from having to search through lists for nodes later.
