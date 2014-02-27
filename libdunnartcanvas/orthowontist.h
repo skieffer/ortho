@@ -404,7 +404,7 @@ public:
     QList<EdgeNode*> genEdgeNodesForFace(face f);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
                                                 QList<node> ns,
-                                                QList<EdgeNode*> es,
+                                                QList<EdgeNode*> ens,
                                                 double gap);
     cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
     QSizeF m_avgNodeSize;

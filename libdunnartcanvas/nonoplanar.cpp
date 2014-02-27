@@ -535,6 +535,8 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
         node n = ae->theNode(), t = ae->twinNode();
         QRectF Rn = nodeRect(n), Rt = nodeRect(t);
         EdgeNode *E = new EdgeNode(Rn,Rt);
+        int ni = m_nodeIndices.value(n), ti = m_nodeIndices.value(t);
+        E->setIndices(ni,ti);
         ens.append(E);
         // Next ae
         ae = f->nextFaceEdge(ae);
@@ -543,21 +545,78 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
 }
 
 /***
+  * Generate separation constraints to keep the nodes a distance of gap away from
+  * the EdgeNodes, in the dimension requested.
+  */
+cola::CompoundConstraints Planarization::genNodeEdgeSepCos(
+        vpsc::Dim dim, QList<node> ns, QList<EdgeNode *> ens, double gap) {
+    cola::CompoundConstraints ccs;
+    double pad = gap/2;
+    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
+    cola::NonOverlapConstraints *noc =
+            new cola::NonOverlapConstraints(priority);
+    int Ne = ens.size();
+    int Nn = ns.size();
+    // Variables and Rectangles.
+    vpsc::Variables vs;
+    vpsc::Rectangles rs;
+    // Add edgenodes first.
+    for (int i = 0; i < Ne; i++) {
+        EdgeNode E = *ens.at(i);
+        noc->addShape(i, E.bbox.width()/2 + pad, E.bbox.height()/2 + pad);
+        double p = dim==vpsc::HORIZONTAL ? E.bbox.center().x() : E.bbox.center().y();
+        vpsc::Variable *v = new vpsc::Variable(i,p);
+        vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(E.bbox.left(),E.bbox.right(),E.bbox.top(),E.bbox.bottom());
+        rs.push_back(r);
+    }
+    // Add nodes.
+    for (int j = 0; j < Nn; j++) {
+        node s = ns.at(j);
+        double w=m_ga->width(s), h=m_ga->height(s);
+        double cx=m_ga->x(s), cy=m_ga->y(s);
+        double p = dim == vpsc::HORIZONTAL ? cx : cy;
+        noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
+        vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
+        vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2,cx+w/2,cy-h/2,cy+h/2);
+        rs.push_back(r);
+    }
+    // Generate vpsc constraints.
+    vpsc::Constraints cs;
+    noc->generateSeparationConstraints(dim,vs,cs,rs);
+    // Convert into cola constraints.
+    foreach (vpsc::Constraint *c, cs) {
+        int l = c->left->id, r = c->right->id;
+
+        // Reject constraints that hold between two edgenodes or two nodes.
+        if ( (l < Ne && r < Ne) || (l >= Ne && r >= Ne) ) continue;
+
+        // Convert IDs to global indices.
+        l = l < Ne ? ens.at(l)->srcIndex : m_nodeIndices.value(ns.at(l-Ne));
+        r = r < Ne ? ens.at(r)->srcIndex : m_nodeIndices.value(ns.at(r-Ne));
+
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,c->gap);
+        ccs.push_back(s);
+    }
+    // Clean up
+    // FIXME: why does this cause segfaults?
+    //foreach (vpsc::Variable *v, vs) delete v;
+    return ccs;
+}
+
+/***
   * Return separation constraints to create space for node s0 in face f0.
   */
 cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, double gap) {
     cola::CompoundConstraints ccs;
     QList<EdgeNode*> ens = genEdgeNodesForFace(f0);
-    double pad = gap/2;
-    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
-    cola::NonOverlapConstraints *noc =
-            new cola::NonOverlapConstraints(priority);
-    int N = ens.size();
-    // Variables and Rectangles.
-    vpsc::Variables vs;
-    vpsc::Rectangles rs;
-    // Add stubnode.
-    //... TODO
+    QList<node> ns;
+    ns.append(s0);
+    cola::CompoundConstraints ccx = genNodeEdgeSepCos(vpsc::HORIZONTAL,ns,ens,gap);
+    cola::CompoundConstraints ccy = genNodeEdgeSepCos(vpsc::VERTICAL,  ns,ens,gap);
+    foreach (cola::CompoundConstraint *cc, ccx) ccs.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, ccy) ccs.push_back(cc);
     return ccs;
 }
 
