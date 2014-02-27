@@ -507,9 +507,21 @@ QRectF Planarization::nodeRect(node n) {
     double h = m_ga->height(n);
     double x = cx - w/2.0;
     double y = cy - h/2.0;
-    double X = u + w;
-    double Y = v + h;
+    double X = x + w;
+    double Y = y + h;
     return QRectF(QPointF(x,y),QPointF(X,Y));
+}
+
+vpsc::Rectangle *Planarization::vpscNodeRect(node n) {
+    double cx = m_ga->x(n);
+    double cy = m_ga->y(n);
+    double w = m_ga->width(n);
+    double h = m_ga->height(n);
+    double x = cx - w/2.0;
+    double y = cy - h/2.0;
+    double X = x + w;
+    double Y = y + h;
+    return new vpsc::Rectangle(x,X,y,Y);
 }
 
 QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
@@ -529,7 +541,7 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
 
 cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, double gap) {
     cola::CompoundConstraints ccs;
-    QList<EdgeNode> ens = genEdgeNodesForFace(f0);
+    QList<EdgeNode*> ens = genEdgeNodesForFace(f0);
     double pad = gap/2;
     unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
     cola::NonOverlapConstraints *noc =
@@ -541,6 +553,86 @@ cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, doubl
     // Add stubnode.
     //... TODO
     return ccs;
+}
+
+double Planarization::edgeLengthForNodes(node s, node t) {
+    double sw = m_ga->width(s), sh = m_ga->height(s);
+    double tw = m_ga->width(t), th = m_ga->height(t);
+    double d = m_dummyNodeSize.width();
+    return (sw+sh)/4 + d + (tw+th)/4;
+}
+
+void Planarization::expand(int steps) {
+    for (int n = 1; n <= steps; n++) {
+
+        // 1. Define rs, es, ccs, eLengths.
+
+        // rs
+        vpsc::Rectangles rs;
+        foreach (node n, m_normalNodes) rs.push_back(vpscNodeRect(n));
+        foreach (node n, m_dummyNodes)  rs.push_back(vpscNodeRect(n));
+        foreach (node n, m_stubNodes)   rs.push_back(vpscNodeRect(n));
+
+        // es and eLengths
+        std::vector<cola::Edge> es;
+        int Ne = m_normalEdges.size() + m_dummyEdges.size() + m_rootNodes.size();
+        double *eLengths = new double[Ne];
+        int j = 0;
+        // edges actually in the graph
+        foreach (edge e, m_normalEdges) {
+            node s = e->source(), t = e->target();
+            int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+            es.push_back( cola::Edge(si,ti) );
+            eLengths[j] = edgeLengthForNodes(s,t);
+            j++;
+        }
+        foreach (edge e, m_dummyEdges) {
+            node s = e->source(), t = e->target();
+            int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+            es.push_back( cola::Edge(si,ti) );
+            eLengths[j] = edgeLengthForNodes(s,t);
+            j++;
+        }
+        // stub edges
+        foreach (node r, m_rootNodes) {
+            node s = m_rootsToStubs.value(r);
+            int ri = m_nodeIndices.value(r), si = m_nodeIndices.value(s);
+            es.push_back( cola::Edge(ri,si) );
+            eLengths[j] = edgeLengthForNodes(r,s);
+            j++;
+        }
+
+        // ccs
+        cola::CompoundConstraints ccs;
+        // A. ordered alignments for aligned edges
+        // ...
+        // B. face-lift constraints for trees
+        // ...
+
+        // 2. Run the FD layout.
+        bool preventOverlaps = true;
+        double iL = 1.0;
+        cola::ConstrainedFDLayout *fdlayout =
+                new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                              false,10.0,eLengths);
+        fdlayout->setConstraints(ccs);
+        ConvTest1 *test = new ConvTest1(1e-4,100);
+        //test->minIterations = 10;
+        test->setLayout(fdlayout);
+        test->name = QString("Expand-%1").arg(n);
+        fdlayout->setConvergenceTest(test);
+        fdlayout->run(true,true);
+        delete fdlayout;
+
+        // 3. Update m_ga.
+        node n;
+        forall_nodes(n,*m_graph) {
+            vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
+            m_ga->x(n) = r->getCentreX();
+            m_ga->y(n) = r->getCentreY();
+        }
+
+    }
 }
 
 void Planarization::chooseGreedyTreeFaces(void) {
@@ -594,6 +686,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
         // Choose the first face.
         face f0 = faces.first();
         // Place the tree at r0 in face f0
+        m_faceAssigns.insert(r0,f0);
 
         // Choose a direction for the stub edge.
         NodeCombStruct *ncs = m_nodeComb.value(r0);
@@ -637,6 +730,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
         double d = ( sqrt(rw*rw+rh*rh) + sqrt(sw*sw+sh*sh) ) / 2;
         // Create stub node and place it.
         node stub = m_graph->newNode();
+        m_stubNodes.append(stub);
         stubs.append(stub);
         m_rootsToStubs.insert(r0,stub);
         double x0 = m_ga->x(r0), y0 = m_ga->y(r0);
@@ -648,6 +742,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
         // Record alignment if there was one.
         if (cardinalDirec >= 0) m_stubAlignments.insert(stub,cardinalDirec);
         // Record chosen position for retrieval by BC.
+        // FIXME: Do we actually need this?
         node rOrig = m_origNodes.value(r0);
         QPointF pos(x1,y1);
         origRootToStubPos.insert(rOrig,pos);
@@ -662,6 +757,51 @@ void Planarization::chooseGreedyTreeFaces(void) {
         foreach (node s, stubs) {
             m_graph->delNode(s);
         }
+    }
+
+    // Index the nodes.
+    indexNodesAndEdges();
+}
+
+void Planarization::indexNodesAndEdges(void) {
+    // NODES
+    // First figure out which are the normal nodes.
+    // (Dummy nodes and stub nodes are already known.)
+    node n;
+    forall_nodes(n,*m_graph) {
+        if (!m_dummyNodes.contains(n)) m_normalNodes.append(n);
+    }
+    // Now make the mapping from nodes to indices, which saves us
+    // from having to search through lists for nodes later.
+    m_nodeIndices.clear();
+    int i = 0;
+    // 1. Normal nodes
+    foreach (node n, m_normalNodes) {
+        m_nodeIndices.insert(n,i); i++;
+    }
+    // 2. Dummy nodes
+    foreach (node n, m_dummyNodes) {
+        m_nodeIndices.insert(n,i); i++;
+    }
+    // 3. Stub nodes
+    foreach (node n, m_stubNodes) {
+        m_nodeIndices.insert(n,i); i++;
+    }
+
+    // EDGES
+    // Figure out which are the normal ones
+    edge e;
+    forall_edges(e,*m_graph) {
+        if (!m_dummyEdges.contains(e)) m_normalEdges.append(e);
+    }
+    // Now make mapping.
+    m_edgeIndices.clear();
+    int j = 0;
+    foreach (edge e, m_normalEdges) {
+        m_edgeIndices.insert(e,j); j++;
+    }
+    foreach (edge e, m_dummyEdges) {
+        m_edgeIndices.insert(e,j); j++;
     }
 }
 

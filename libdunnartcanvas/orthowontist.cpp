@@ -486,6 +486,7 @@ void BiComp::layout2(void) {
     //m_planarization->chooseFDTreeFaces();
     //m_planarization->chooseCombTreeFaces();
     m_planarization->chooseGreedyTreeFaces();
+    m_planarization->expand(10);
 
 
     // 2. Lay out external trees.

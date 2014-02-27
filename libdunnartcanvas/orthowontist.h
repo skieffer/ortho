@@ -204,6 +204,7 @@ public:
         }
         return id;
     }
+    void expand(int steps);
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
     QMap<node,QSizeF> origRootToTreeSize;
@@ -393,6 +394,9 @@ public:
     bool areAligned(node r, node s);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
+    void indexNodesAndEdges(void);
+    vpsc::Rectangle *vpscNodeRect(node n);
+    double edgeLengthForNodes(node s, node t);
     QSizeF m_dummyNodeSize;
     double m_idealLength;
     Graph *m_graph;
@@ -400,24 +404,29 @@ public:
     QMap<node,node> m_origNodes;
     QMap<edge,edge> m_origEdges;
     QMap<edge,int> m_alignments;
-    QMap<node,int> m_stubAlignments; // int is 0,1,2,3 to indicate cardinal
     QMap<node,QSet<int> > m_freeSides;
     QList<Edge*> mH;
     QList<Edge*> mV;
     QList<Edge*> mD;
+    QList<node> m_normalNodes;
     QList<node> m_dummyNodes;
+    QList<node> m_rootNodes;
+    QList<node> m_stubNodes;
+    QList<edge> m_normalEdges;
     QList<edge> m_dummyEdges;
     QList<DummyCross*> m_dummyCrosses;
-    QList<node> m_rootNodes;
     shapemap m_dunnartShapes;
     CombinatorialEmbedding *m_comb;
-    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
     face m_extFace;
     QMap<node,NodeCombStruct*> m_nodeComb;
     double m_minNodeSep;
     QMap<node,node> m_rootsToStubs;
+    QMap<node,int> m_stubAlignments; // stub node to int in 0,1,2,3 to indicate cardinal
+    QMap<node,face> m_faceAssigns; // roots to faces
+    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
+    QMap<edge,int> m_edgeIndices; // only for normal and dummy edges
 };
 
 class BiComp {
