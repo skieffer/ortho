@@ -527,11 +527,15 @@ vpsc::Rectangle *Planarization::vpscNodeRect(node n) {
     return new vpsc::Rectangle(x,X,y,Y);
 }
 
-QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
+QList<EdgeNode*> Planarization::genEdgeNodesForFace(ACAFlags af0, face f) {
     QList<EdgeNode*> ens;
     adjEntry ae = f->firstAdj();
     int J = f->size();
     for (int j = 0; j < J; j++) {
+        edge e = ae->theEdge();
+        ACAFlags af = (ACAFlags) m_alignments.value(e);
+        int a = af & af0;
+        if (a==0) continue;
         node n = ae->theNode(), t = ae->twinNode();
         QRectF Rn = nodeRect(n), Rt = nodeRect(t);
         EdgeNode *E = new EdgeNode(Rn,Rt);
@@ -550,6 +554,7 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(face f) {
   */
 cola::CompoundConstraints Planarization::genNodeEdgeSepCos(
         vpsc::Dim dim, QList<node> ns, QList<EdgeNode *> ens, double gap) {
+    bool debug = true;
     cola::CompoundConstraints ccs;
     double pad = gap/2;
     unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
@@ -586,6 +591,9 @@ cola::CompoundConstraints Planarization::genNodeEdgeSepCos(
     vpsc::Constraints cs;
     noc->generateSeparationConstraints(dim,vs,cs,rs);
     // Convert into cola constraints.
+    if (debug) {
+        //qDebug() << "Face-lift constraints (dim, left ID, right ID, gap):";
+    }
     foreach (vpsc::Constraint *c, cs) {
         int l = c->left->id, r = c->right->id;
 
@@ -595,6 +603,29 @@ cola::CompoundConstraints Planarization::genNodeEdgeSepCos(
         // Convert IDs to global indices.
         l = l < Ne ? ens.at(l)->srcIndex : m_nodeIndices.value(ns.at(l-Ne));
         r = r < Ne ? ens.at(r)->srcIndex : m_nodeIndices.value(ns.at(r-Ne));
+
+        // Diagnostic:
+        if (debug) {
+            QString s = "";
+            s += dim==vpsc::HORIZONTAL ? "x: " : "y: ";
+            node nl = m_nodeIndices.key(l);
+            if (m_stubNodes.contains(nl)) {
+                nl = m_rootsToStubs.key(nl);
+                s += "s" + nodeIDString(nl);
+            } else {
+                s += nodeIDString(nl);
+            }
+            node nr = m_nodeIndices.key(r);
+            if (m_stubNodes.contains(nr)) {
+                nr = m_rootsToStubs.key(nr);
+                s += ", s" + nodeIDString(nr);
+            } else {
+                s += ", " + nodeIDString(nr);
+            }
+            s += ", " + QString::number(c->gap);
+            qDebug() << s;
+        }
+        // -----------
 
         cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,c->gap);
         ccs.push_back(s);
@@ -609,12 +640,20 @@ cola::CompoundConstraints Planarization::genNodeEdgeSepCos(
   * Return separation constraints to create space for node s0 in face f0.
   */
 cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, double gap) {
+    bool debug = true;
+    if (debug) {
+        int fn = f0->index();
+        node r = m_rootsToStubs.key(s0);
+        QString rID = nodeIDString(r);
+        qDebug() << QString("Face-lift for face %1, root %2").arg(fn).arg(rID);
+    }
     cola::CompoundConstraints ccs;
-    QList<EdgeNode*> ens = genEdgeNodesForFace(f0);
     QList<node> ns;
     ns.append(s0);
-    cola::CompoundConstraints ccx = genNodeEdgeSepCos(vpsc::HORIZONTAL,ns,ens,gap);
-    cola::CompoundConstraints ccy = genNodeEdgeSepCos(vpsc::VERTICAL,  ns,ens,gap);
+    QList<EdgeNode*> ensx = genEdgeNodesForFace(ACAVERT, f0);
+    cola::CompoundConstraints ccx = genNodeEdgeSepCos(vpsc::HORIZONTAL,ns,ensx,gap);
+    QList<EdgeNode*> ensy = genEdgeNodesForFace(ACAHORIZ, f0);
+    cola::CompoundConstraints ccy = genNodeEdgeSepCos(vpsc::VERTICAL,  ns,ensy,gap);
     foreach (cola::CompoundConstraint *cc, ccx) ccs.push_back(cc);
     foreach (cola::CompoundConstraint *cc, ccy) ccs.push_back(cc);
     return ccs;
@@ -679,8 +718,36 @@ double Planarization::edgeLengthForNodes(node s, node t) {
 }
 
 void Planarization::expand(int steps) {
+    bool debug = true;
+
+    // Compute es just once.
+
+    // es
+    std::vector<cola::Edge> es;
+    // edges actually in the graph
+    foreach (edge e, m_normalEdges) {
+        node s = e->source(), t = e->target();
+        int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+        es.push_back( cola::Edge(si,ti) );
+    }
+    foreach (edge e, m_dummyEdges) {
+        node s = e->source(), t = e->target();
+        int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+        es.push_back( cola::Edge(si,ti) );
+    }
+    // stub edges
+    foreach (node r, m_rootNodes) {
+        node s = m_rootsToStubs.value(r);
+        int ri = m_nodeIndices.value(r), si = m_nodeIndices.value(s);
+        es.push_back( cola::Edge(ri,si) );
+    }
+
     for (int n = 1; n <= steps; n++) {
-        // 1. Define rs, es, ccs, eLengths.
+        if (debug) {
+            qDebug() << "===========================================================";
+            qDebug() << "Expansion step " + QString::number(n);
+        }
+        // 1. Recompute rs, eLengths, and ccs each iteration.
 
         // rs
         vpsc::Rectangles rs;
@@ -703,36 +770,30 @@ void Planarization::expand(int steps) {
             rs.push_back(vpscNodeRect(s));
         }
 
-        // es and eLengths
-        std::vector<cola::Edge> es;
+        // eLengths
         int Ne = m_normalEdges.size() + m_dummyEdges.size() + m_rootNodes.size();
         double *eLengths = new double[Ne];
         int j = 0;
         // edges actually in the graph
         foreach (edge e, m_normalEdges) {
             node s = e->source(), t = e->target();
-            int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
-            es.push_back( cola::Edge(si,ti) );
             eLengths[j] = edgeLengthForNodes(s,t);
             j++;
         }
         foreach (edge e, m_dummyEdges) {
             node s = e->source(), t = e->target();
-            int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
-            es.push_back( cola::Edge(si,ti) );
             eLengths[j] = edgeLengthForNodes(s,t);
             j++;
         }
         // stub edges
         foreach (node r, m_rootNodes) {
             node s = m_rootsToStubs.value(r);
-            int ri = m_nodeIndices.value(r), si = m_nodeIndices.value(s);
-            es.push_back( cola::Edge(ri,si) );
             eLengths[j] = edgeLengthForNodes(r,s);
             j++;
         }
 
-        // ccs
+        // ccs need to be recomputed since the gaps change as the
+        // stub sizes grow.
         cola::CompoundConstraints ccs;
         // A. ordered alignments for aligned edges
         cola::CompoundConstraints oa = ordAlignsForEdges();
@@ -747,7 +808,7 @@ void Planarization::expand(int steps) {
         }
 
         // 2. Run the FD layout.
-        bool preventOverlaps = true;
+        bool preventOverlaps = false;
         double iL = 1.0;
         cola::ConstrainedFDLayout *fdlayout =
                 new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,

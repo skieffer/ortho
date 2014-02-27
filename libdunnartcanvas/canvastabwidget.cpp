@@ -164,6 +164,7 @@ CanvasTabWidget::CanvasTabWidget(QMainWindow *window) :
 
     m_action_orthoLayout2 = new QAction("Ortho Layout 2",this);
     m_action_orthowontist = new QAction("Orthowontist",this);
+    m_action_orthowontist->setShortcut(QKeySequence::Bold);
 
     m_action_lock = new QAction(QIcon(":/resources/images/locklayout.png"),
             tr("Pin/Unpin"), this);

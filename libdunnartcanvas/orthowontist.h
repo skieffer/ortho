@@ -200,6 +200,8 @@ public:
         QString id = "";
         if (m_dummyNodes.contains(n)) {
             id = "d" + QString::number(m_dummyNodes.indexOf(n));
+        } else if (m_stubNodes.contains(n)) {
+            id = "s" + QString::number(m_stubNodes.indexOf(n));
         } else {
             int i = m_dunnartShapes.value(n)->internalId();
             id = QString::number(i);
@@ -401,7 +403,7 @@ public:
     double edgeLengthForNodes(node s, node t);
     OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af);
     cola::CompoundConstraints ordAlignsForEdges(void);
-    QList<EdgeNode*> genEdgeNodesForFace(face f);
+    QList<EdgeNode*> genEdgeNodesForFace(ACAFlags af0, face f);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
                                                 QList<node> ns,
                                                 QList<EdgeNode*> ens,
