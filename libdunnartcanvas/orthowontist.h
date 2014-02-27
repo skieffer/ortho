@@ -151,21 +151,50 @@ private:
 
 static int cmpEdgeEvent(const void *p1, const void *p2);
 
+struct OrdAlign {
+    OrdAlign(cola::SeparationConstraint *s,
+             cola::AlignmentConstraint *a) :
+        sep(s), algn(a) {}
+    cola::SeparationConstraint *sep;
+    cola::AlignmentConstraint *algn;
+};
+
+class Planarization;
+
+struct SortableFace {
+    SortableFace(face f0, node r0, Planarization *P0) :
+        f(f0), r(r0), P(P0) {}
+    face f;
+    node r;
+    Planarization *P;
+};
+
+static bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2);
+static bool cmpFaces(SortableFace *s1, SortableFace *s2);
+
 class Planarization {
 public:
     Planarization(Graph &G, GraphAttributes &GA,
-                  QMap<edge,int> alignments, QSizeF dummyNodeSize,
+                  QMap<edge,int> alignments, QSizeF avgNodeSize,
                   shapemap nodeShapes);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
+    bool cmpTreesBySize2(node r1, node r2);
     void defineRootNodes(QList<node> roots);
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
+    void chooseGreedyTreeFaces(void);
+    double areaOfFace(face f);
+    QRectF nodeRect(node n);
+    QRectF bboxWithoutTrees(void);
+    void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
+    void writeOutGraphWithStubs(QString fn);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
-    void addDummyEdge(node a, node b) {
+    void addDummyEdge(node a, node b, int alignment) {
         edge e = m_graph->newEdge(a,b);
         m_dummyEdges.append(e);
+        m_alignments.insert(e,alignment);
     }
     QString nodeIDString(node n) {
         QString id = "";
@@ -177,8 +206,10 @@ public:
         }
         return id;
     }
+    void expand(int steps);
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
+    QMap<node,QSizeF> origRootToTreeSize;
 
     struct Edge;
 
@@ -288,13 +319,40 @@ public:
             QPointF n = p0 + p1;
             double nx = n.x(), ny = n.y();
             double nl = sqrt(nx*nx+ny*ny);
-
-            if (nl==0) {
-                qDebug() << "foo";
-            }
-
             return QPointF(nx/nl, ny/nl);
         }
+        /***
+          * Say which cardinal directions are free for this node in this face.
+          * We use ints 0, 1, 2, 3, corresp. to powers of sqrt(-1).
+          */
+        QSet<int> freeCardinals(face f, GraphAttributes &GA) {
+            double tolerance = pi/36.0;
+            QList<adjEntry> aes = aesPerFace.values(f);
+            adjEntry ae = aes.at(0);
+            adjEntry ae0 = ae->theNode()==m_node ? aes.at(1) : ae;
+            adjEntry ae1 = ae->theNode()==m_node ? ae : aes.at(1);
+            // Now ae0 is the one that has m_node at its head, and ae1 has it at its tail.
+            // So since the face is always on the (left-hand side?), ae0 will yield the lower
+            // bound on the available angles, and ae1 the upper bound.
+            node c = ae1->twinNode();
+            node b = m_node;
+            node a = ae0->theNode();
+            double ax = GA.x(a), ay = GA.y(a);
+            double bx = GA.x(b), by = GA.y(b);
+            double cx = GA.x(c), cy = GA.y(c);
+            double ub = atan2(by-ay,ax-bx), lb = atan2(by-cy,cx-bx); // the y's are negated since graphics y-axis goes downward
+            if (ub <= lb) ub += 2*pi;
+            // Now lb and ub are in the range from -pi to +3*pi.
+            QSet<int> free;
+            for (int k = -2; k <= 6; k++) {
+                double a = k*pi/2;
+                double aFlat = a - tolerance, aSharp = a + tolerance;
+                int direc = (k+4) % 4;
+                if (aFlat >= lb && aSharp <= ub) free.insert(direc);
+            }
+            return free;
+        }
+
     private:
         /***
           * Computes a normal direction vector pointing perpendicular to
@@ -323,7 +381,7 @@ public:
         }
     };
 
-private:
+//private:
     void findHDHVCrossings(void);
     void findVDCrossings(void);
     void findDDCrossings(void);
@@ -333,33 +391,60 @@ private:
     void findExternalFace(void);
     void mapNodesToFaces(void);
     void computeMinNodeSep(void);
+    void computeFreeSides(void);
     void offsetAlignment(node r, node s, double offset);
     bool areAligned(node r, node s);
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
+    void indexNodesAndEdges(void);
+    vpsc::Rectangle *vpscNodeRect(node n);
+    double edgeLengthForNodes(node s, node t);
+    OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af);
+    cola::CompoundConstraints ordAlignsForEdges(void);
+    QList<EdgeNode*> genEdgeNodesForFace(face f);
+    cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
+                                                QList<node> ns,
+                                                QList<EdgeNode*> ens,
+                                                double gap);
+    cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
+    QSizeF m_avgNodeSize;
+    double m_avgNodeDim;
     QSizeF m_dummyNodeSize;
+    QSizeF m_stubNodeSize;
     double m_idealLength;
     Graph *m_graph;
     GraphAttributes *m_ga;
     QMap<node,node> m_origNodes;
     QMap<edge,edge> m_origEdges;
-    QMap<edge,int> m_alignments;
+    QMap<node,QSet<int> > m_freeSides;
     QList<Edge*> mH;
     QList<Edge*> mV;
     QList<Edge*> mD;
+    QList<node> m_normalNodes;
     QList<node> m_dummyNodes;
+    QList<node> m_rootNodes;
+    QList<node> m_stubNodes;
+    QList<edge> m_normalEdges;
     QList<edge> m_dummyEdges;
     QList<DummyCross*> m_dummyCrosses;
-    QList<node> m_rootNodes;
     shapemap m_dunnartShapes;
     CombinatorialEmbedding *m_comb;
-    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     vpsc::Rectangles rs;
     std::vector<cola::Edge> es;
     face m_extFace;
     QMap<node,NodeCombStruct*> m_nodeComb;
     double m_minNodeSep;
+    QMap<edge,int> m_alignments;
     QMap<node,node> m_rootsToStubs;
+
+    // stub node to int in 0,1,2,3 to indicate cardinal
+    // Domain consists of precisely those stub nodes
+    // whose edges are to be aligned.
+    QMap<node,int> m_stubAlignments;
+
+    QMap<node,face> m_faceAssigns; // roots to faces
+    QMap<node,int> m_nodeIndices; // map node to index of rect representing it
+    QMap<edge,int> m_edgeIndices; // only for normal and dummy edges
 };
 
 class BiComp {

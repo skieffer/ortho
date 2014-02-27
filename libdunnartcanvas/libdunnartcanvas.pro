@@ -94,7 +94,8 @@ SOURCES += \
     canvasapplication.cpp \
     pluginapplicationmanager.cpp \
     ui/canvasoverview.cpp \
-    orthowontist.cpp
+    orthowontist.cpp \
+    nonoplanar.cpp
 
 HEADERS += \
         align3.h \
@@ -154,7 +155,8 @@ HEADERS += \
     canvasapplication.h \
     pluginapplicationmanager.h \
     ui/canvasoverview.h \
-    orthowontist.h
+    orthowontist.h \
+    nonoplanar.h
 
 
 displaygithash {

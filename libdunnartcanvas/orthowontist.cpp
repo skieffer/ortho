@@ -34,6 +34,7 @@
 #include <QPointF>
 #include <QSizeF>
 #include <QTime>
+#include <QtAlgorithms>
 
 #include "libvpsc/rectangle.h"
 
@@ -1514,14 +1515,26 @@ void BiComp::layout2(void) {
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
+    // 1.25. Give trees an initial layout, just so we know their sizes.
+    QMap<node,QSizeF> treeSizes;
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        E->treeLayout();
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
     // 1.5. Build planarization.
     m_planarization = new Planarization(*m_graph, *m_ga,
-                                              aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
+        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->filename = filename;
+    m_planarization->setTreeSizes(treeSizes);
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->idealLength(m_idealLength);
     //m_planarization->chooseFDTreeFaces();
-    m_planarization->chooseCombTreeFaces();
+    //m_planarization->chooseCombTreeFaces();
+    m_planarization->chooseGreedyTreeFaces();
+    m_planarization->expand(10);
 
 
     // 2. Lay out external trees.
@@ -1912,7 +1925,7 @@ void ACALayout::run(void)
     } else {
         acaLoopOneByOne();
     }
-    finalLayout();
+    //finalLayout();
 }
 
 void ACALayout::readPositions(Graph &G, GraphAttributes &GA)
@@ -2033,7 +2046,7 @@ void ACALayout::initialLayout(void) {
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
                                           false,10.0,m_edgeLengths);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    test->minIterations = 100;
+    //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S1-noOP");
     fdlayout->setConvergenceTest(test);
@@ -2078,7 +2091,7 @@ void ACALayout::finalLayout(void) {
                                           false,10.0,m_edgeLengths);
     fdlayout->setConstraints(m_ccs);
     ConvTest1 *test = new ConvTest1(1e-3,100);
-    test->minIterations = 100;
+    //test->minIterations = 100;
     test->setLayout(fdlayout);
     test->name = m_debugName+QString("-S3-noOP-again");
     fdlayout->setConvergenceTest(test);
@@ -2290,6 +2303,7 @@ ACASeparatedAlignment *ACALayout::chooseSA(void)
         vpsc::Dim algnDim = sa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
         double sep = sa->af == ACAHORIZ ?
                     (rsrc->width()+rtgt->width())/2.0 : (rsrc->height()+rtgt->height())/2.0;
+        // FIXME: Canvas::Horizontal? Shouldn't it be ACAHORIZ?
         int l = sa->af == Canvas::Horizontal ?
                     (rsrc->getCentreX() < rtgt->getCentreX() ? src : tgt) :
                     (rsrc->getCentreY() < rtgt->getCentreY() ? src : tgt);
