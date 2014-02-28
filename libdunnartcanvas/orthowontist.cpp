@@ -462,7 +462,7 @@ void BiComp::layout2(void) {
 
     aca->idealLength(1);
     aca->edgeLengths(edgeLengths(nodeIndices,colaEdges));
-    aca->nodePadding(nodePadding(nodeIndices));
+    //aca->nodePadding(nodePadding(nodeIndices));
 
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
@@ -710,6 +710,11 @@ double *BiComp::edgeLengths(QMap<node, int> nodeIndices, std::vector<cola::Edge>
     foreach (cola::Edge e, colaEdges) {
         int srcIdx = e.first, tgtIdx = e.second;
         node src = nodeIndices.key(srcIdx), tgt = nodeIndices.key(tgtIdx);
+        double ws=m_ga->width(src), hs=m_ga->height(src);
+        double wt=m_ga->width(tgt), ht=m_ga->height(tgt);
+        eL[i++] = (ws+hs+wt+ht)/2;
+        continue;
+
         // If neither node is a stubnode, then use own ideal length as length.
         if (!m_stubnodesToTrees.contains(src) && !m_stubnodesToTrees.contains(tgt)) {
             eL[i++] = m_idealLength;
@@ -721,7 +726,7 @@ double *BiComp::edgeLengths(QMap<node, int> nodeIndices, std::vector<cola::Edge>
             // Use their average dimension.
             double ws=m_ga->width(src), hs=m_ga->height(src);
             double wt=m_ga->width(tgt), ht=m_ga->height(tgt);
-            eL[i++] = (ws+hs+wt+ht)/4;
+            eL[i++] = (ws+hs+wt+ht)/2;
         }
     }
     return eL;
