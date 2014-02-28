@@ -817,7 +817,7 @@ void Planarization::expand(int steps) {
                 new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
                                               false,10.0,eLengths);
         fdlayout->setConstraints(ccs);
-        ConvTest1 *test = new ConvTest1(1e-3,5);
+        ConvTest1 *test = new ConvTest1(1e-3,2);
         //test->minIterations = 10;
         test->setLayout(fdlayout);
         test->name = QString("Expand-%1").arg(n);
@@ -832,6 +832,80 @@ void Planarization::expand(int steps) {
             m_ga->x(n) = r->getCentreX();
             m_ga->y(n) = r->getCentreY();
         }
+    }
+}
+
+/***
+  * Handles just the normal and dummy nodes -- no stub nodes.
+  */
+void Planarization::removeOverlaps(void) {
+    // 0. Index nodes and edges.
+    indexNodesAndEdges();
+
+    // 1. Compute rs, es, eLengths, and ccs.
+
+    // rs
+    vpsc::Rectangles rs;
+    node u;
+    //QMap<node,int> nodeIndices;
+    //int i = 0;
+    forall_nodes(u,*m_graph) {
+        rs.push_back(vpscNodeRect(u));
+        //nodeIndices.insert(u,i);
+        //i++;
+    }
+
+    // es and eLengths
+    std::vector<cola::Edge> es;
+    int Ne = m_graph->numberOfEdges();
+    double *eLengths = new double[Ne];
+    int j = 0;
+    edge e;
+    forall_edges(e,*m_graph) {
+        node s = e->source(), t = e->target();
+        int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+        es.push_back( cola::Edge(si,ti) );
+        eLengths[j] = edgeLengthForNodes(s,t);
+        j++;
+    }
+
+    // ccs
+    cola::CompoundConstraints ccs = ordAlignsForEdges();
+
+    // 2. Run the FD layout.
+    bool preventOverlaps = true;
+    double iL = 1.0;
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,eLengths);
+    fdlayout->setConstraints(ccs);
+    ConvTest1 *test = new ConvTest1(1e-3,20);
+    //test->minIterations = 10;
+    test->setLayout(fdlayout);
+    test->name = QString("DummyOverlaps");
+    fdlayout->setConvergenceTest(test);
+    fdlayout->run(true,true);
+
+    // 3. Update m_ga.
+    node n;
+    forall_nodes(n,*m_graph) {
+        vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
+        m_ga->x(n) = r->getCentreX();
+        m_ga->y(n) = r->getCentreY();
+    }
+    delete fdlayout;
+}
+
+ogdf::Orientation Planarization::treeOrientation(node root) {
+    root = m_origNodes.key(root);
+    node stub = m_rootsToStubs.value(root);
+    double rx = m_ga->x(root), ry = m_ga->y(root);
+    double sx = m_ga->x(stub), sy = m_ga->y(stub);
+    double dx = sx - rx, dy = sy - ry;
+    if (abs(dx) >= abs(dy)) {
+        return dx > 0 ? leftToRight : rightToLeft;
+    } else {
+        return dy > 0 ? topToBottom : bottomToTop;
     }
 }
 
@@ -968,6 +1042,7 @@ void Planarization::indexNodesAndEdges(void) {
     // First figure out which are the normal nodes.
     // (Dummy nodes and stub nodes are already known.)
     node n;
+    m_normalNodes.clear();
     forall_nodes(n,*m_graph) {
         if (!m_dummyNodes.contains(n) && !m_stubNodes.contains(n)) {
             m_normalNodes.append(n);
@@ -993,6 +1068,7 @@ void Planarization::indexNodesAndEdges(void) {
     // EDGES
     // Figure out which are the normal ones
     edge e;
+    m_normalEdges.clear();
     forall_edges(e,*m_graph) {
         if (!m_dummyEdges.contains(e)) m_normalEdges.append(e);
     }

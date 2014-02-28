@@ -189,6 +189,7 @@ public:
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
     void writeOutGraphWithStubs(QString fn);
+    ogdf::Orientation treeOrientation(node root);
     void idealLength(double L) { m_idealLength = L; }
     void delEdge(edge e) { m_graph->delEdge(e); }
     void addDummyEdge(node a, node b, int alignment) {
@@ -209,6 +210,7 @@ public:
         return id;
     }
     void expand(int steps);
+    void removeOverlaps(void);
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
     QMap<node,QSizeF> origRootToTreeSize;

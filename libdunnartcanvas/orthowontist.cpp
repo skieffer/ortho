@@ -480,12 +480,28 @@ void BiComp::layout2(void) {
     m_planarization = new Planarization(*m_graph, *m_ga,
         aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
     m_planarization->filename = filename;
+
+    m_planarization->removeOverlaps();
+
     m_planarization->setTreeSizes(treeSizes);
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->idealLength(m_idealLength);
     //m_planarization->chooseFDTreeFaces();
     //m_planarization->chooseCombTreeFaces();
     m_planarization->chooseGreedyTreeFaces();
+
+    // Now redo tree layouts, with the chosen orientations.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ogdf::Orientation ori = m_planarization->treeOrientation(root);
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        E->orientation(ori);
+        E->treeLayout();
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+    // Inform of the new sizes.
+    m_planarization->setTreeSizes(treeSizes);
+    // Expand to make room for trees.
     m_planarization->expand(10);
 
 
