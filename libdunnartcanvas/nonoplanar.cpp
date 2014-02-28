@@ -532,7 +532,12 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(ACAFlags af0, face f) {
     adjEntry ae = f->firstAdj();
     int J = f->size();
     for (int j = 0; j < J; j++) {
+        if (j>0) ae = f->nextFaceEdge(ae);//put this at top in case of 'continue's below
         edge e = ae->theEdge();
+        //DEBUG-----
+        //QString nID = nodeIDString(ae->theNode());
+        //QString tID = nodeIDString(ae->twinNode());
+        //----------
         ACAFlags af = (ACAFlags) m_alignments.value(e);
         int a = af & af0;
         if (a==0) continue;
@@ -542,8 +547,6 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(ACAFlags af0, face f) {
         int ni = m_nodeIndices.value(n), ti = m_nodeIndices.value(t);
         E->setIndices(ni,ti);
         ens.append(E);
-        // Next ae
-        ae = f->nextFaceEdge(ae);
     }
     return ens;
 }
