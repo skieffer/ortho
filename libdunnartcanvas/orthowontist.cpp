@@ -713,6 +713,7 @@ double *BiComp::edgeLengths(QMap<node, int> nodeIndices, std::vector<cola::Edge>
         double ws=m_ga->width(src), hs=m_ga->height(src);
         double wt=m_ga->width(tgt), ht=m_ga->height(tgt);
         eL[i++] = (ws+hs+wt+ht)/2;
+        // Skip the rest for now.
         continue;
 
         // If neither node is a stubnode, then use own ideal length as length.

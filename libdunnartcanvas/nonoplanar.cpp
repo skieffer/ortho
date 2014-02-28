@@ -735,27 +735,44 @@ double Planarization::edgeLengthForNodes(node s, node t) {
 
 /***
   * Create a horizontal or vertical separation constraint for each pair of
-  * stub nodes, the dimension being that in which their root nodes already
+  * stub nodes belonging to the same face, the dimension being that in
+  * which their root nodes already
   * differ predominantly. E.g. if the root nodes sit at (0,0) and (100,5), it
   * will be a horizontal separation constraint.
   */
 cola::CompoundConstraints Planarization::stubStubOP(void) {
+    bool debug = true;
+    if (debug) qDebug() << "Stub-stub non-overlap constraints:";
     cola::CompoundConstraints ccs;
-    QList<node> roots = m_rootsToStubs.keys();
-    int N = roots.size();
-    for (int i = 0; i + 1 < N; i++) {
-        node ri = roots.at(i);
-        node si = m_rootsToStubs.value(ri);
-        for (int j = i+1; j < N; j++) {
-            node rj = roots.at(j);
-            node sj = m_rootsToStubs.value(rj);
-            double rix = m_ga->x(ri), riy = m_ga->y(ri);
-            double rjx = m_ga->x(rj), rjy = m_ga->y(rj);
-            double dx = rjx - rix, dy = rjy - riy;
-            vpsc::Dim dim = abs(dx) > abs(dy) ? vpsc::HORIZONTAL : vpsc::VERTICAL;
-            double gap = m_avgNodeDim;
-            cola::SeparationConstraint *sep = sepCoForNodes(dim,si,sj,gap);
-            ccs.push_back(sep);
+    QSet<face> faces = m_faceAssigns.values().toSet();
+    foreach (face f, faces) {
+        if (debug) {
+            qDebug() << "-----------------------------------------------------";
+            qDebug() << QString("Face %1:").arg(f->index());
+        }
+        QList<node> roots = m_faceAssigns.keys(f);
+        int N = roots.size();
+        for (int i = 0; i + 1 < N; i++) {
+            node ri = roots.at(i);
+            node si = m_rootsToStubs.value(ri);
+            for (int j = i+1; j < N; j++) {
+                node rj = roots.at(j);
+                node sj = m_rootsToStubs.value(rj);
+                double rix = m_ga->x(ri), riy = m_ga->y(ri);
+                double rjx = m_ga->x(rj), rjy = m_ga->y(rj);
+                double dx = rjx - rix, dy = rjy - riy;
+                vpsc::Dim dim = abs(dx) > abs(dy) ? vpsc::HORIZONTAL : vpsc::VERTICAL;
+                double gap = m_avgNodeDim;
+                cola::SeparationConstraint *sep = sepCoForNodes(dim,si,sj,gap);
+                ccs.push_back(sep);
+                // debug
+                if (debug) {
+                    QString s = "    ";
+                    s += dim == vpsc::HORIZONTAL ? "x: " : "y: ";
+                    s += nodeIDString(si) + " " + nodeIDString(sj);
+                    qDebug() << s;
+                }
+            }
         }
     }
     return ccs;
@@ -855,7 +872,7 @@ void Planarization::expand(int steps) {
         foreach (cola::CompoundConstraint *cc, ssop) ccs.push_back(cc);
 
         // 2. Run the FD layout.
-        bool preventOverlaps = false;
+        bool preventOverlaps = true;
         double iL = 1.0;
         cola::ConstrainedFDLayout *fdlayout =
                 new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
