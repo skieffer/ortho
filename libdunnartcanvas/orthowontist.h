@@ -403,6 +403,7 @@ public:
     void indexNodesAndEdges(void);
     vpsc::Rectangle *vpscNodeRect(node n);
     double edgeLengthForNodes(node s, node t);
+    cola::SeparationConstraint *sepCoForNodes(vpsc::Dim dim, node s, node t, double gap);
     OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af);
     cola::CompoundConstraints ordAlignsForEdges(void);
     QList<EdgeNode*> genEdgeNodesForFace(ACAFlags af0, face f);
@@ -410,6 +411,7 @@ public:
                                                 QList<node> ns,
                                                 QList<EdgeNode*> ens,
                                                 double gap);
+    cola::CompoundConstraints stubStubOP(void);
     cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
     QSizeF m_avgNodeSize;
     double m_avgNodeDim;

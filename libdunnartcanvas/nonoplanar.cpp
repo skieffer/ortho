@@ -662,6 +662,19 @@ cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, doubl
     return ccs;
 }
 
+cola::SeparationConstraint *Planarization::sepCoForNodes(vpsc::Dim dim, node s, node t, double gap) {
+    double sx = m_ga->x(s), sy = m_ga->y(s);
+    double sw = m_ga->width(s), sh = m_ga->height(s);
+    double tx = m_ga->x(t), ty = m_ga->y(t);
+    double tw = m_ga->width(t), th = m_ga->height(t);
+    double sep = gap + (dim == vpsc::HORIZONTAL ? (sw+tw)/2.0 : (sh+th)/2.0);
+    int i = m_nodeIndices.value(s), j = m_nodeIndices.value(t);
+    int l = dim == vpsc::HORIZONTAL ? (sx<tx ? i : j) : (sy<ty ? i : j);
+    int r = l == i ? j : i;
+    cola::SeparationConstraint *sepc = new cola::SeparationConstraint(dim,l,r,sep);
+    return sepc;
+}
+
 OrdAlign *Planarization::ordAlignForNodes(node s, node t, ACAFlags af) {
     double sx = m_ga->x(s), sy = m_ga->y(s);
     double sw = m_ga->width(s), sh = m_ga->height(s);
@@ -718,6 +731,34 @@ double Planarization::edgeLengthForNodes(node s, node t) {
     double tw = m_ga->width(t), th = m_ga->height(t);
     double d = m_avgNodeDim;
     return (sw+sh)/4 + d + (tw+th)/4;
+}
+
+/***
+  * Create a horizontal or vertical separation constraint for each pair of
+  * stub nodes, the dimension being that in which their root nodes already
+  * differ predominantly. E.g. if the root nodes sit at (0,0) and (100,5), it
+  * will be a horizontal separation constraint.
+  */
+cola::CompoundConstraints Planarization::stubStubOP(void) {
+    cola::CompoundConstraints ccs;
+    QList<node> roots = m_rootsToStubs.keys();
+    int N = roots.size();
+    for (int i = 0; i + 1 < N; i++) {
+        node ri = roots.at(i);
+        node si = m_rootsToStubs.value(ri);
+        for (int j = i+1; j < N; j++) {
+            node rj = roots.at(j);
+            node sj = m_rootsToStubs.value(rj);
+            double rix = m_ga->x(ri), riy = m_ga->y(ri);
+            double rjx = m_ga->x(rj), rjy = m_ga->y(rj);
+            double dx = rjx - rix, dy = rjy - riy;
+            vpsc::Dim dim = abs(dx) > abs(dy) ? vpsc::HORIZONTAL : vpsc::VERTICAL;
+            double gap = m_avgNodeDim;
+            cola::SeparationConstraint *sep = sepCoForNodes(dim,si,sj,gap);
+            ccs.push_back(sep);
+        }
+    }
+    return ccs;
 }
 
 void Planarization::expand(int steps) {
@@ -809,6 +850,9 @@ void Planarization::expand(int steps) {
             cola::CompoundConstraints fl = faceLiftForNode(f,s,gap);
             foreach (cola::CompoundConstraint *cc, fl) ccs.push_back(cc);
         }
+        // C. stub-stub overlap prevention
+        cola::CompoundConstraints ssop = stubStubOP();
+        foreach (cola::CompoundConstraint *cc, ssop) ccs.push_back(cc);
 
         // 2. Run the FD layout.
         bool preventOverlaps = false;
