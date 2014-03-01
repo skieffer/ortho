@@ -482,6 +482,114 @@ double Planarization::areaOfFace(face f) {
     return A;
 }
 
+// Convenience method, to make a face into a list of pts, and
+// return the area using areaOfPolgon.
+double Planarization::areaOfFace2(face f) {
+    // Get list of points.
+    QList<QPointF> pts;
+    adjEntry ae = f->firstAdj();
+    int J = f->size();
+    for (int j = 0; j < J; j++) {
+        node n = ae->theNode();
+        double x = m_ga->x(n), y = m_ga->y(n);
+        pts.push_back(QPointF(x,y));
+        ae = f->nextFaceEdge(ae);
+    }
+    // Compute the area.
+    return areaOfPolygon(pts);
+}
+
+double Planarization::areaOfPolygon(QList<QPointF> pts) {
+    // Need at least tree points.
+    int N = pts.size();
+    if (N<3) return 0;
+    // Exactly three points is the base case.
+    if (N==3) return areaOfTriangle(pts);
+    // Else we have 4 or more points.
+    // There is a theorem stating that every simple, closed polygon
+    // must have at least one convex vertex, i.e. a vertex at which the
+    // interior angle is less than pi.
+    // Find such a vertex, B, with neighbours A and C.
+    QPointF A, B, C;
+    int i = -1;
+    bool convex = false;
+    while (i < N) {
+        i++;
+        // Grab three consecutive points A, B, C.
+        B = pts.at(i);
+        int iflat = i-1, isharp = i+1;
+        if (iflat < 0) iflat += N;
+        if (isharp >= N) isharp -= N;
+        A = pts.at(iflat);
+        C = pts.at(isharp);
+        // We assume the pts are ordered so that the interior of the polygon
+        // lies on the right-hand side.
+        // On that basis we check whether B is a convex point.
+        // Remember that the y-axis points downward!
+        assert(A!=B && B!=C && C!=A);
+        double x0 = B.x() - A.x(), y0 = B.y() - A.y();
+        double x1 = C.x() - B.x(), y1 = C.y() - B.y();
+        if (x0 == 0) {
+            if (y0 > 0) {
+                convex = x1 < 0;
+            } else {
+                convex = x1 > 0;
+            }
+        } else {
+            double m = y0/x0;
+            if (x0 > 0) {
+                convex = y1 > m*x1;
+            } else {
+                convex = y1 < m*x1;
+            }
+        }
+        if (convex) break;
+    }
+    assert(convex);
+    // Now we imagine that we clip the triangle ABC off the polygon...
+    pts.removeAt(i);
+    // ...and recurse.
+    return areaOfTriangle(A,B,C) + areaOfPolygon(pts);
+}
+
+double Planarization::areaOfTriangle(QList<QPointF> pts) {
+    QPointF A = pts.at(0);
+    QPointF B = pts.at(1);
+    QPointF C = pts.at(2);
+    return areaOfTriangle(A,B,C);
+}
+
+double Planarization::areaOfTriangle(QPointF A, QPointF B, QPointF C) {
+    // Recall that the cross product of two vectors in 3-space has magnitude
+    // equal to the area of the parallelogram that they span.
+    // The area of the triangle they span is half that.
+    // For our 2-dimensional vectors we can simply embed those in the
+    // subspace where z = 0. Then the cross product points straight up or down,
+    // and its magnitude is easy to compute.
+    double ux = B.x() - A.x(), uy = B.y() - A.y();
+    double vx = C.x() - A.x(), vy = C.y() - A.y();
+    return abs(ux*vy - uy*vx) / 2;
+}
+
+/*
+double Planarization::areaOfTriangle(QPointF A, QPointF B, QPointF C) {
+    assert(A!=B && B!=C && C!=A);
+    // Translate so that A lies at the origin (0,0).
+    C -= A;
+    B -= A;
+    // Compute the distance to B.
+    double bx = B.x(), by = B.y();
+    double b = sqrt(bx*bx + by*by);
+    // Rotate so that B lies on the positive x-axis at (b,0).
+    double cx = C.x(), cy = C.y();
+    //double cxp = (bx*cx + by*cy) / b;
+    double cyp = (bx*cy - by*cx) / b;
+    // Then b is the length of the base of the triangle,
+    // and abs(cyp) is the height.
+    return b * abs(cyp) / 2;
+}
+*/
+
 QRectF Planarization::bboxWithoutTrees(void) {
     double x = DBL_MAX, X = DBL_MIN;
     double y = DBL_MAX, Y = DBL_MIN;
