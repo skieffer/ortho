@@ -184,6 +184,10 @@ public:
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
     double areaOfFace(face f);
+    double areaOfFace2(face f);
+    double areaOfPolygon(QList<QPointF> pts);
+    double areaOfTriangle(QList<QPointF> pts);
+    double areaOfTriangle(QPointF A, QPointF B, QPointF C);
     QRectF nodeRect(node n);
     QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
