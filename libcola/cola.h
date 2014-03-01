@@ -757,7 +757,7 @@ public:
     void addEdgeNodeRepulsion(bool b) { m_addEdgeNodeRepulsion = b; }
     double most_recent_pure_stress;
     bool skip_attractive_forces;
-
+    bool neighbours_only;
     std::vector<double> negStressGradForNodeOnceRemoved(unsigned u);
 
 private:
@@ -792,6 +792,8 @@ private:
             vpsc::Variables (&vars)[2], unsigned int& priority, 
             cola::NonOverlapConstraints *noc, Cluster *cluster, 
             cola::CompoundConstraints& idleConstraints);
+
+    void computeNeighbours(std::vector< Edge > es);
 
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;

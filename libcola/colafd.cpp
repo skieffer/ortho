@@ -90,6 +90,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const double* eLengths,
         TestConvergence *doneTest, PreIteration* preIteration) 
     : skip_attractive_forces(true),
+      neighbours_only(false),
       n(rs.size()),
       X(valarray<double>(n)),
       Y(valarray<double>(n)),
@@ -132,6 +133,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         done = new TestConvergence();
         using_default_done = true;
     }
+
+    computeNeighbours(es);
 
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -223,6 +226,19 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         m_snapStressSigma = m_snap_distance;
         //m_snapStressBeta = 2*m_snapStressSigma;
         m_snapStressBeta = m_snap_strength;
+    }
+}
+
+void ConstrainedFDLayout::computeNeighbours(vector<Edge> es) {
+    for (int i = 0; i < n; i++) {
+        std::vector<unsigned> *v = new std::vector<unsigned>;
+        for (int j = 0; j < n; j++) v->push_back(0);
+        neighbours.push_back(*v);
+    }
+    foreach (Edge e, es) {
+        unsigned s = e.first, t = e.second;
+        neighbours[s][t] = 1;
+        neighbours[t][s] = 1;
     }
 }
 
