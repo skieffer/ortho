@@ -180,6 +180,7 @@ public:
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     bool cmpTreesBySize2(node r1, node r2);
     void defineRootNodes(QList<node> roots);
+    void assignTrees(QMap<node,ExternalTree*> trees);
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
@@ -449,7 +450,7 @@ public:
     vpsc::Rectangle *vpscNodeRect(node n);
     double edgeLengthForNodes(node s, node t);
     cola::SeparationConstraint *sepCoForNodes(vpsc::Dim dim, node s, node t, double gap);
-    OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af);
+    OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af, double offset = 0);
     cola::CompoundConstraints ordAlignsForEdges(void);
     QList<EdgeNode*> genEdgeNodesForFace(ACAFlags af0, face f);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
@@ -487,6 +488,7 @@ public:
     double m_minNodeSep;
     QMap<edge,int> m_alignments;
     QMap<node,node> m_rootsToStubs;
+    QMap<node,ExternalTree*> m_rootsToTrees;
 
     // stub node to int in 0,1,2,3 to indicate cardinal
     // Domain consists of precisely those stub nodes

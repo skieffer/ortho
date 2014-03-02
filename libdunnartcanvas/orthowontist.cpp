@@ -488,6 +488,7 @@ void BiComp::layout2(void) {
 
     m_planarization->setTreeSizes(treeSizes);
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
+    m_planarization->assignTrees(m2_rootsToTrees);
     m_planarization->idealLength(m_idealLength);
     //m_planarization->chooseFDTreeFaces();
     //m_planarization->chooseCombTreeFaces();

@@ -430,6 +430,14 @@ void Planarization::defineRootNodes(QList<node> roots) {
     }
 }
 
+void Planarization::assignTrees(QMap<node, ExternalTree *> trees) {
+    m_rootsToTrees.clear();
+    foreach (node n, trees.keys()) {
+        node m = m_origNodes.key(n);
+        m_rootsToTrees.insert(m,trees.value(n));
+    }
+}
+
 bool cmpTreesBySize(QPair<node,Planarization*> r1, QPair<node,Planarization*> r2) {
     Planarization *P = r1.second;
     node n1 = P->m_origNodes.value(r1.first);
@@ -973,7 +981,8 @@ cola::SeparationConstraint *Planarization::sepCoForNodes(vpsc::Dim dim, node s, 
     return sepc;
 }
 
-OrdAlign *Planarization::ordAlignForNodes(node s, node t, ACAFlags af) {
+OrdAlign *Planarization::ordAlignForNodes(node s, node t, ACAFlags af, double offset) {
+    // Offset will always be applied to node t.
     double sx = m_ga->x(s), sy = m_ga->y(s);
     double sw = m_ga->width(s), sh = m_ga->height(s);
     double tx = m_ga->x(t), ty = m_ga->y(t);
@@ -984,10 +993,12 @@ OrdAlign *Planarization::ordAlignForNodes(node s, node t, ACAFlags af) {
     int i = m_nodeIndices.value(s), j = m_nodeIndices.value(t);
     int l = af == ACAHORIZ ? (sx<tx ? i : j) : (sy<ty ? i : j);
     int r = l == i ? j : i;
+    double lOff = l == i ? 0 : offset;
+    double rOff = l == i ? offset : 0;
     cola::SeparationConstraint *sepc = new cola::SeparationConstraint(sepDim,l,r,sep);
     cola::AlignmentConstraint *algn = new cola::AlignmentConstraint(algnDim);
-    algn->addShape(l,0);
-    algn->addShape(r,0);
+    algn->addShape(l,lOff);
+    algn->addShape(r,rOff);
     OrdAlign *oa = new OrdAlign(sepc,algn);
     return oa;
 }
@@ -1016,7 +1027,9 @@ cola::CompoundConstraints Planarization::ordAlignsForEdges(void) {
         if (m_stubAlignments.keys().contains(s)) {
             int a = m_stubAlignments.value(s);
             ACAFlags af = a % 2 == 0 ? ACAHORIZ : ACAVERT;
-            OrdAlign *oa = ordAlignForNodes(r,s,af);
+            ExternalTree *E = m_rootsToTrees.value(r);
+            double offset = E->alignmentOffset();
+            OrdAlign *oa = ordAlignForNodes(r,s,af,offset);
             ccs.push_back(oa->sep);
             ccs.push_back(oa->algn);
         }
