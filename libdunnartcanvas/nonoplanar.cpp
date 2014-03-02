@@ -821,11 +821,15 @@ QRectF Planarization::nodeRect(node n) {
     return QRectF(QPointF(x,y),QPointF(X,Y));
 }
 
-vpsc::Rectangle *Planarization::vpscNodeRect(node n) {
+vpsc::Rectangle *Planarization::vpscNodeRect(node n, bool doubleSize) {
     double cx = m_ga->x(n);
     double cy = m_ga->y(n);
     double w = m_ga->width(n);
     double h = m_ga->height(n);
+    if (doubleSize) {
+        w *= 2;
+        h *= 2;
+    }
     double x = cx - w/2.0;
     double y = cy - h/2.0;
     double X = x + w;
@@ -1258,7 +1262,7 @@ void Planarization::distribWithNbrStress(void) {
 
     // rs
     vpsc::Rectangles rs;
-    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u));
+    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u,true));
     foreach (node u, m_dummyNodes)  rs.push_back(vpscNodeRect(u));
     foreach (node s, m_stubNodes) rs.push_back(vpscNodeRect(s));
 

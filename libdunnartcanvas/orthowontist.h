@@ -447,7 +447,7 @@ public:
     QList<Edge*> addDummyCross(Edge *e1, Edge *e2, QPointF p);
     void addCrossing(Edge *e1, Edge *e2, QPointF p);
     void indexNodesAndEdges(void);
-    vpsc::Rectangle *vpscNodeRect(node n);
+    vpsc::Rectangle *vpscNodeRect(node n, bool doubleSize = false);
     double edgeLengthForNodes(node s, node t);
     cola::SeparationConstraint *sepCoForNodes(vpsc::Dim dim, node s, node t, double gap);
     OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af, double offset = 0);
