@@ -214,6 +214,7 @@ public:
         }
         return id;
     }
+    bool thereAreEdgesBetweenNodes(node s, node t);
     void expand(int steps);
     void removeOverlaps(void);
     QString filename;

@@ -488,6 +488,8 @@ double Planarization::areaOfFace(face f) {
 #endif
 
 double Planarization::areaOfFace3(face f) {
+    bool debug = true;
+    qDebug() << "Area of polygon:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     // Points
     QList<AreaPoint*> pts;
     adjEntry ae = f->firstAdj();
@@ -495,6 +497,7 @@ double Planarization::areaOfFace3(face f) {
     for (int j = 0; j < J; j++) {
         node n = ae->theNode();
         double x = m_ga->x(n), y = m_ga->y(n);
+        if (debug) qDebug() << QString("    %1,%2").arg(x).arg(y);
         pts.push_back(new AreaPoint(x,y));
         ae = f->nextFaceEdge(ae);
     }
@@ -508,6 +511,7 @@ double Planarization::areaOfFace3(face f) {
     }
     // Compute the area.
     double A = areaOfPolygon(pts);
+    if (debug) qDebug() << QString("    area: %1").arg(A);
     return A;
 }
 
@@ -1027,12 +1031,37 @@ double Planarization::edgeLengthForNodes(node s, node t) {
     return (sw+sh)/4 + d + (tw+th)/4;
 }
 
+bool Planarization::thereAreEdgesBetweenNodes(node s, node t) {
+    double sx = m_ga->x(s), sy = m_ga->y(s);
+    double tx = m_ga->x(t), ty = m_ga->y(t);
+    QLineF nodeLine(sx,sy,tx,ty);
+    bool thereAreEdges = false;
+    edge e;
+    forall_edges(e,*m_graph) {
+        // Check whether e intersects the line segment btw s and t.
+        node a = e->source(), b = e->target();
+        double ax = m_ga->x(a), ay = m_ga->y(a);
+        double bx = m_ga->x(b), by = m_ga->y(b);
+        QLineF edgeLine(ax,ay,bx,by);
+        QPointF *p = NULL;
+        QLineF::IntersectType itype = nodeLine.intersect(edgeLine,p);
+        if (itype == QLineF::BoundedIntersection) {
+            thereAreEdges = true;
+            break;
+        }
+    }
+    return thereAreEdges;
+}
+
 /***
   * Create a horizontal or vertical separation constraint for each pair of
   * stub nodes belonging to the same face, the dimension being that in
   * which their root nodes already
   * differ predominantly. E.g. if the root nodes sit at (0,0) and (100,5), it
   * will be a horizontal separation constraint.
+  * One exception: for two stubs belonging to the external face, put a sepco
+  * between them only if there are no edges separating them, i.e. iff the line
+  * segment connecting their centres does not intersect any edges in the graph.
   */
 cola::CompoundConstraints Planarization::stubStubOP(void) {
     bool debug = true;
@@ -1052,6 +1081,7 @@ cola::CompoundConstraints Planarization::stubStubOP(void) {
             for (int j = i+1; j < N; j++) {
                 node rj = roots.at(j);
                 node sj = m_rootsToStubs.value(rj);
+                if (f==m_extFace && thereAreEdgesBetweenNodes(si,sj)) continue;
                 double rix = m_ga->x(ri), riy = m_ga->y(ri);
                 double rjx = m_ga->x(rj), rjy = m_ga->y(rj);
                 double dx = rjx - rix, dy = rjy - riy;
