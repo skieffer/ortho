@@ -511,6 +511,15 @@ void BiComp::layout2(void) {
     // distribute nodes.
     m_planarization->distribWithNbrStress();
 
+    // Update node positions.
+    m_planarization->translateNodes(*m_graph, *m_ga);
+
+    // Translate trees.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        m_planarization->translateTree(E,root);
+    }
+
 
     /*
     // 2. Lay out external trees.
@@ -1692,10 +1701,10 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
 void Orthowontist::run2(QList<CanvasItem*> items) {
     bool debug = true;
-    bool useColours = true;
-    bool showNumbers = true;
+    bool useColours = false;
+    bool showNumbers = false;
     bool drawStubnodes = false;
-    bool drawDummynodes = true;
+    bool drawDummynodes = false;
     shapemap nodeShapes;
     connmap edgeConns;
     Graph G;

@@ -193,6 +193,8 @@ public:
     QRectF bboxWithoutTrees(void);
     void setTreeSizes(QMap<node,QSizeF> sizes) { origRootToTreeSize = sizes; }
     void layoutTreeForRoot(ExternalTree *E, node root);
+    void translateTree(ExternalTree *E, node root);
+    void translateNodes(Graph &G, GraphAttributes &GA);
     void writeOutGraphWithStubs(QString fn);
     ogdf::Orientation treeOrientation(node root);
     void idealLength(double L) { m_idealLength = L; }

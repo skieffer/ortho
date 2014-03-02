@@ -1295,7 +1295,7 @@ void Planarization::distribWithNbrStress(void) {
             new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
                                           false,10.0,eLengths);
     fdlayout->setConstraints(ccs);
-    ConvTest1 *test = new ConvTest1(1e-3,2);
+    ConvTest1 *test = new ConvTest1(1e-4,50);
     //test->minIterations = 10;
     test->setLayout(fdlayout);
     test->name = QString("NeighbourStress");
@@ -1311,6 +1311,26 @@ void Planarization::distribWithNbrStress(void) {
         vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
         m_ga->x(n) = r->getCentreX();
         m_ga->y(n) = r->getCentreY();
+    }
+}
+
+void Planarization::translateTree(ExternalTree *E, node root) {
+    node r = m_origNodes.key(root);
+    node stub = m_rootsToStubs.value(r);
+    double cx=m_ga->x(stub), cy=m_ga->y(stub);
+    double w=m_ga->width(stub), h=m_ga->height(stub);
+    double x = cx-w/2, y = cy-h/2;
+    QPointF p = E->rootlessBBox().topLeft();
+    double dx=x-p.x(), dy=y-p.y();
+    E->translate(QPointF(dx,dy));
+}
+
+void Planarization::translateNodes(Graph &G, GraphAttributes &GA) {
+    node n;
+    forall_nodes(n,G) {
+        node m = m_origNodes.key(n);
+        GA.x(n) = m_ga->x(m);
+        GA.y(n) = m_ga->y(m);
     }
 }
 
@@ -1384,7 +1404,7 @@ ogdf::Orientation Planarization::treeOrientation(node root) {
     if (abs(dx) >= abs(dy)) {
         return dx > 0 ? leftToRight : rightToLeft;
     } else {
-        return dy > 0 ? topToBottom : bottomToTop;
+        return dy < 0 ? topToBottom : bottomToTop;
     }
 }
 
