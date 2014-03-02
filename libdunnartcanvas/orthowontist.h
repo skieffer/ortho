@@ -185,6 +185,7 @@ public:
     void chooseGreedyTreeFaces(void);
     double areaOfFace(face f);
     double areaOfFace2(face f);
+    double areaOfFace3(face f);
     double areaOfPolygon(QList<QPointF> pts);
     double areaOfTriangle(QList<QPointF> pts);
     double areaOfTriangle(QPointF A, QPointF B, QPointF C);
@@ -218,6 +219,42 @@ public:
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
     QMap<node,QSizeF> origRootToTreeSize;
+
+    struct AreaEdge;
+
+    struct AreaPoint {
+        AreaPoint(double u, double v) :
+            x(u), y(v), e0(NULL), e1(NULL) {}
+        double x;
+        double y;
+        AreaEdge *e0;
+        AreaEdge *e1;
+    };
+
+    struct AreaEdge {
+        AreaEdge(AreaPoint *u0, AreaPoint *u1) :
+            v0(u0), v1(u1), open(false), top(NULL), twin(NULL) {}
+        AreaPoint *v0;
+        AreaPoint *v1;
+        bool open;
+        AreaPoint *top;
+        AreaEdge *twin;
+        double x(double y) {
+            double x0 = v0->x, y0 = v0->y;
+            double x1 = v1->x, y1 = v1->y;
+            assert(y0!=y1);
+            double m = (x1-x0)/(y1-y0);
+            return x0 + m*(y-y0);
+        }
+        AreaPoint *p(double y) {
+            double x0 = x(y);
+            return new AreaPoint(x0,y);
+        }
+    };
+
+    double areaOfPolygon(QList<AreaPoint*> pts);
+    void rotateAwayHorizontals(QList<AreaPoint*>& pts);
+    double triTrapArea(AreaPoint *a, AreaPoint *b, AreaPoint *c, AreaPoint *d);
 
     struct Edge;
 
@@ -456,6 +493,9 @@ public:
     QMap<node,int> m_nodeIndices; // map node to index of rect representing it
     QMap<edge,int> m_edgeIndices; // only for normal and dummy edges
 };
+
+static bool cmpAreaPointsByY(Planarization::AreaPoint *a,
+                             Planarization::AreaPoint *b);
 
 class BiComp {
 public:

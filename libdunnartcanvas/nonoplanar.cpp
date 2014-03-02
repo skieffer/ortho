@@ -81,12 +81,15 @@
 
 #include "libdunnartcanvas/orthowontist.h"
 
+//#define CGAL
+#ifdef CGAL
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
 #include "CGAL/Polygon_2.h"
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Point_2<K> Point;
 typedef CGAL::Polygon_2<K> Polygon_2;
+#endif
 
 using namespace ogdf;
 
@@ -461,13 +464,14 @@ bool cmpFaces(SortableFace *s1, SortableFace *s2) {
     if (!C1.empty() && C2.empty()) return true;
     if (C1.empty() && !C2.empty()) return false;
     // Thirdly and finally, prefer a face of greater area.
-    return P->areaOfFace(f1) > P->areaOfFace(f2);
+    return P->areaOfFace3(f1) > P->areaOfFace3(f2);
 }
 
 void Planarization::computeFreeSides(void) {
     // TODO
 }
 
+#ifdef CGAL
 double Planarization::areaOfFace(face f) {
     Polygon_2 p;
     adjEntry ae = f->firstAdj();
@@ -481,10 +485,182 @@ double Planarization::areaOfFace(face f) {
     double A = abs(p.area());
     return A;
 }
+#endif
+
+double Planarization::areaOfFace3(face f) {
+    // Points
+    QList<AreaPoint*> pts;
+    adjEntry ae = f->firstAdj();
+    int J = f->size();
+    for (int j = 0; j < J; j++) {
+        node n = ae->theNode();
+        double x = m_ga->x(n), y = m_ga->y(n);
+        pts.push_back(new AreaPoint(x,y));
+        ae = f->nextFaceEdge(ae);
+    }
+    // Edges
+    for (int j = 0; j < J; j++) {
+        AreaPoint *u0 = pts.at(j);
+        AreaPoint *u1 = pts.at((j+1)%J);
+        AreaEdge *e = new AreaEdge(u0,u1);
+        u0->e0 = e;
+        u1->e1 = e;
+    }
+    // Compute the area.
+    double A = areaOfPolygon(pts);
+    return A;
+}
+
+double Planarization::areaOfPolygon(QList<AreaPoint *> pts) {
+    rotateAwayHorizontals(pts);
+    qSort(pts.begin(), pts.end(), cmpAreaPointsByY);
+    double area = 0;
+    foreach (AreaPoint *v, pts) {
+        AreaEdge *e0 = v->e0, *e1 = v->e1;
+        if (!e0->open && !e1->open) {
+            // Opening both edges.
+            // Both take v as their top point, and
+            // they are each other's twins.
+            e0->top = v;
+            e1->top = v;
+            e0->twin = e1;
+            e1->twin = e0;
+            e0->open = true;
+            e1->open = true;
+        } else if (e0->open && e1->open) {
+            // Closing both edges.
+            AreaPoint *t0 = e0->top, *t1 = e1->top;
+            if (e0->twin == e1) {
+                // The two edges are twinned.
+                // In this case we are closing the triangle with top line t0t1
+                // and base point v.
+                area += triTrapArea(t0,t1,v,v);
+                e0->open = false;
+                e1->open = false;
+            } else {
+                // The two edges have other twins.
+                AreaEdge *f0 = e0->twin, *f1 = e1->twin;
+                AreaPoint *u0 = f0->top, *u1 = f1->top;
+                // Let p0,p1 be the points where f0,f1 intersect y=v.y.
+                AreaPoint *p0 = f0->p(v->y), *p1 = f1->p(v->y);
+                // Add two trapezoids to the area.
+                area += triTrapArea(u0,t0,p0,v);
+                area += triTrapArea(u1,t1,p1,v);
+                // e0,e1 close
+                e0->open = false;
+                e1->open = false;
+                // f0,f1 now become twins, with top points p0,p1.
+                f0->twin = f1;
+                f1->twin = f0;
+                f0->top = p0;
+                f1->top = p1;
+            }
+        } else {
+            // Closing one edge and opening the other:
+            // Let e0 be the edge that is closing, and e1 opening.
+            if (e1->open) {
+                AreaEdge *tmp = e0;
+                e0 = e1;
+                e1 = tmp;
+            }
+            // Close e0.
+            AreaPoint *t0 = e0->top;
+            AreaEdge *f0 = e0->twin;
+            AreaPoint *u0 = f0->top, *p0 = f0->p(v->y);
+            area += triTrapArea(t0,u0,p0,v);
+            e0->open = false;
+            // Open e1.
+            e1->top = v;
+            e1->twin = f0;
+            e1->open = true;
+            // Update f0.
+            f0->top = p0;
+            f0->twin = e1;
+        }
+    }
+    return area;
+}
+
+bool cmpAreaPointsByY(Planarization::AreaPoint *a, Planarization::AreaPoint *b) {
+    return a->y < b->y;
+}
+
+/***
+  * The four points define a trapezoid.
+  * Points a and b must have the same y-coord y0,
+  * points c and d must have the same y-coord y1.
+  * We return the area of this trapezoid, and we accept the degenerate case
+  * in which a==b or c==d, making it into a triangle.
+  */
+double Planarization::triTrapArea(AreaPoint *a, AreaPoint *b, AreaPoint *c, AreaPoint *d) {
+    assert(a->y==b->y && c->y==d->y);
+    double b1 = abs(a->x - b->x);
+    double b2 = abs(c->x - d->x);
+    double h  = abs(a->y - c->y);
+    return h*(b1+b2)/2;
+}
+
+/***
+  * Rotate the points so that no two have the same y-coordinate.
+  */
+void Planarization::rotateAwayHorizontals(QList<AreaPoint *> &pts) {
+    // We will rotate by an angle somewhere between 30 and 60 degrees.
+    // Therefore we begin by noting all existing slopes that are
+    // between -sqrt(3) and -1/sqrt(3). These are the only ones that
+    // are in danger of being horizontal after the rotation.
+    // Instead of slopes, however, we record the positive rotations that
+    // would make them horizontal. Namely, for a slope of -m, where
+    // m > 0, we record the angle atan2(m,1).
+    QList<double> angles;
+    int N = pts.size();
+    double LB = -sqrt(3), UB = -1/sqrt(3);
+    for (int i = 0; i + 1 < N; i++) {
+        AreaPoint *a = pts.at(i);
+        double ax = a->x, ay = a->y;
+        for (int j = i + 1; j < N; j++) {
+            AreaPoint *b = pts.at(j);
+            double bx = b->x, by = b->y;
+            if (ax == bx) continue;
+            double m = (by-ay)/(bx-ax);
+            if (LB <= m && m <= UB) {
+                double alpha = atan2(-m,1);
+                angles.append(alpha);
+            }
+        }
+    }
+    // Add the two extreme angles to the list.
+    angles.append(pi/6);
+    angles.append(pi/3);
+    // Sort the angles.
+    qSort (angles.begin(), angles.end());
+    // For our rotation angle theta, we choose the midpoint of the largest
+    // gap in the sorted list.
+    double theta = 0;
+    double maxGap = 0;
+    int K = angles.size();
+    for (int k = 0; k + 1 < K; k++) {
+        double alpha = angles.at(k);
+        double beta = angles.at(k+1);
+        double gap = beta - alpha;
+        if (gap > maxGap) {
+            maxGap = gap;
+            theta = (alpha+beta)/2;
+        }
+    }
+    // Rotate by theta.
+    double s = sin(theta), c = cos(theta);
+    foreach (AreaPoint *p, pts) {
+        double x = p->x, y = p->y;
+        double u = c*x - s*y, v = s*x + c*y;
+        p->x = u;
+        p->y = v;
+    }
+}
 
 // Convenience method, to make a face into a list of pts, and
 // return the area using areaOfPolgon.
 double Planarization::areaOfFace2(face f) {
+    bool debug = true;
     // Get list of points.
     QList<QPointF> pts;
     adjEntry ae = f->firstAdj();
@@ -496,7 +672,17 @@ double Planarization::areaOfFace2(face f) {
         ae = f->nextFaceEdge(ae);
     }
     // Compute the area.
-    return areaOfPolygon(pts);
+    double A = areaOfPolygon(pts);
+    if (debug) {
+        qDebug() << "Area of polygon:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+        QString s = "";
+        foreach (QPointF p, pts) {
+            s += QString("    %1,%2\n").arg(p.x()).arg(p.y());
+        }
+        qDebug() << s;
+        qDebug() << QString("    area: %1").arg(A);
+    }
+    return A;
 }
 
 double Planarization::areaOfPolygon(QList<QPointF> pts) {
@@ -513,7 +699,7 @@ double Planarization::areaOfPolygon(QList<QPointF> pts) {
     QPointF A, B, C;
     int i = -1;
     bool convex = false;
-    while (i < N) {
+    while (i+1 < N) {
         i++;
         // Grab three consecutive points A, B, C.
         B = pts.at(i);
@@ -523,7 +709,7 @@ double Planarization::areaOfPolygon(QList<QPointF> pts) {
         A = pts.at(iflat);
         C = pts.at(isharp);
         // We assume the pts are ordered so that the interior of the polygon
-        // lies on the right-hand side.
+        // lies on the left-hand side.
         // On that basis we check whether B is a convex point.
         // Remember that the y-axis points downward!
         assert(A!=B && B!=C && C!=A);
@@ -531,16 +717,16 @@ double Planarization::areaOfPolygon(QList<QPointF> pts) {
         double x1 = C.x() - B.x(), y1 = C.y() - B.y();
         if (x0 == 0) {
             if (y0 > 0) {
-                convex = x1 < 0;
-            } else {
                 convex = x1 > 0;
+            } else {
+                convex = x1 < 0;
             }
         } else {
             double m = y0/x0;
             if (x0 > 0) {
-                convex = y1 > m*x1;
-            } else {
                 convex = y1 < m*x1;
+            } else {
+                convex = y1 > m*x1;
             }
         }
         if (convex) break;
@@ -1375,6 +1561,7 @@ void Planarization::chooseCombTreeFaces(void) {
             double A0 = 0;
             f0 = NULL;
             foreach (face f, M) {
+#ifdef CGAL
                 Polygon_2 p;
                 adjEntry ae = f->firstAdj();
                 int J = f->size();
@@ -1388,6 +1575,9 @@ void Planarization::chooseCombTreeFaces(void) {
                     ae = f->nextFaceEdge(ae);
                 }
                 double A = abs(p.area());
+#else
+                double A = areaOfFace2(f);
+#endif
                 if (debug) qDebug() << QString("Face %1 has area %2.").arg(f->index()).arg(A);
                 if (A > A0) {
                     A0 = A;
