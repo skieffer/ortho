@@ -490,6 +490,11 @@ void BiComp::layout2(void) {
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->assignTrees(m2_rootsToTrees);
     m_planarization->idealLength(m_idealLength);
+
+    // Do orthogonal routing of diagonal edges,
+    // and then add a "bend node" for each bend point in the routed edge.
+    // TODO ...
+
     //m_planarization->chooseFDTreeFaces();
     //m_planarization->chooseCombTreeFaces();
     m_planarization->chooseGreedyTreeFaces();
@@ -503,8 +508,10 @@ void BiComp::layout2(void) {
         QSizeF size = E->rootlessBBox().size();
         treeSizes.insert(root,size);
     }
+
     // Inform of the new sizes.
     m_planarization->setTreeSizes(treeSizes);
+
     // Expand to make room for trees.
     m_planarization->expand(10);
 
