@@ -507,7 +507,12 @@ void BiComp::layout2(void) {
     // Expand to make room for trees.
     m_planarization->expand(10);
 
+    // Lay out with "neighbour stress", in order to evenly
+    // distribute nodes.
+    m_planarization->distribWithNbrStress();
 
+
+    /*
     // 2. Lay out external trees.
     //    Set stubnode sizes according to bounding boxes of laid out trees.
     foreach (node root, m2_rootsToTrees.keys()) {
@@ -515,6 +520,7 @@ void BiComp::layout2(void) {
         m_planarization->layoutTreeForRoot(E,root);
         //QPointF pos = m_planarization->origRootToStubPos.value(root);
     }
+    */
 
     /*
     foreach (node stub, m_stubnodesToTrees.keys()) {

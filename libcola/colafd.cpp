@@ -1289,6 +1289,7 @@ void ConstrainedFDLayout::computeForces(
         double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
+            if (neighbours_only && neighbours[u][v]!=1) continue;
             unsigned short p = G[u][v];
             // no forces between disconnected parts of the graph
             if(p==0) continue;
@@ -1771,6 +1772,7 @@ double ConstrainedFDLayout::computeStress() const {
 #ifdef  BASICSTRESS
     for(unsigned u=0;(u + 1)<n;u++) {
         for(unsigned v=u+1;v<n;v++) {
+            if (neighbours_only && neighbours[u][v]!=1) continue;
             unsigned short p=G[u][v];
             // no forces between disconnected parts of the graph
             if(p==0) continue;

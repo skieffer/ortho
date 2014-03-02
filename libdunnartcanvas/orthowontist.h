@@ -217,6 +217,7 @@ public:
     bool thereAreEdgesBetweenNodes(node s, node t);
     void expand(int steps);
     void removeOverlaps(void);
+    void distribWithNbrStress(void);
     QString filename;
     QMap<node,QPointF> origRootToStubPos;
     QMap<node,QSizeF> origRootToTreeSize;

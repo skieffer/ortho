@@ -1220,6 +1220,100 @@ void Planarization::expand(int steps) {
     }
 }
 
+void Planarization::distribWithNbrStress(void) {
+    bool debug = true;
+
+    // es
+    std::vector<cola::Edge> es;
+    // edges actually in the graph
+    foreach (edge e, m_normalEdges) {
+        node s = e->source(), t = e->target();
+        int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+        es.push_back( cola::Edge(si,ti) );
+    }
+    foreach (edge e, m_dummyEdges) {
+        node s = e->source(), t = e->target();
+        int si = m_nodeIndices.value(s), ti = m_nodeIndices.value(t);
+        es.push_back( cola::Edge(si,ti) );
+    }
+    // stub edges
+    foreach (node r, m_rootNodes) {
+        node s = m_rootsToStubs.value(r);
+        int ri = m_nodeIndices.value(r), si = m_nodeIndices.value(s);
+        es.push_back( cola::Edge(ri,si) );
+    }
+
+    // rs
+    vpsc::Rectangles rs;
+    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u));
+    foreach (node u, m_dummyNodes)  rs.push_back(vpscNodeRect(u));
+    foreach (node s, m_stubNodes) rs.push_back(vpscNodeRect(s));
+
+    // eLengths
+    int Ne = m_normalEdges.size() + m_dummyEdges.size() + m_rootNodes.size();
+    double *eLengths = new double[Ne];
+    int j = 0;
+    // edges actually in the graph
+    foreach (edge e, m_normalEdges) {
+        node s = e->source(), t = e->target();
+        eLengths[j] = edgeLengthForNodes(s,t);
+        j++;
+    }
+    foreach (edge e, m_dummyEdges) {
+        node s = e->source(), t = e->target();
+        eLengths[j] = edgeLengthForNodes(s,t);
+        j++;
+    }
+    // stub edges
+    foreach (node r, m_rootNodes) {
+        node s = m_rootsToStubs.value(r);
+        eLengths[j] = edgeLengthForNodes(r,s);
+        j++;
+    }
+
+    // ccs
+    cola::CompoundConstraints ccs;
+    // A. ordered alignments for aligned edges
+    cola::CompoundConstraints oa = ordAlignsForEdges();
+    foreach (cola::CompoundConstraint *cc, oa) ccs.push_back(cc);
+    // B. face-lift constraints for trees
+    foreach (node r, m_rootNodes) {
+        face f = m_faceAssigns.value(r);
+        node s = m_rootsToStubs.value(r);
+        double gap = m_avgNodeDim;
+        cola::CompoundConstraints fl = faceLiftForNode(f,s,gap);
+        foreach (cola::CompoundConstraint *cc, fl) ccs.push_back(cc);
+    }
+    // C. stub-stub overlap prevention
+    cola::CompoundConstraints ssop = stubStubOP();
+    foreach (cola::CompoundConstraint *cc, ssop) ccs.push_back(cc);
+
+    // 2. Run the FD layout, with stress computed only between neighbouring nodes.
+    bool preventOverlaps = true;
+    double iL = 1.0;
+    cola::ConstrainedFDLayout *fdlayout =
+            new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,eLengths);
+    fdlayout->setConstraints(ccs);
+    ConvTest1 *test = new ConvTest1(1e-3,2);
+    //test->minIterations = 10;
+    test->setLayout(fdlayout);
+    test->name = QString("NeighbourStress");
+    fdlayout->setConvergenceTest(test);
+    // Neighbours only:
+    fdlayout->neighbours_only = true;
+    fdlayout->run(true,true);
+    delete fdlayout;
+
+    // 3. Update m_ga.
+    node n;
+    forall_nodes(n,*m_graph) {
+        vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
+        m_ga->x(n) = r->getCentreX();
+        m_ga->y(n) = r->getCentreY();
+    }
+}
+
 /***
   * Handles just the normal and dummy nodes -- no stub nodes.
   */
