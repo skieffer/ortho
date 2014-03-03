@@ -1862,6 +1862,8 @@ void Planarization::layoutTreeForRoot(ExternalTree *E, node root) {
 }
 
 void Planarization::offsetAlignment(node r, node s, double offset) {
+    Q_UNUSED (r)
+
     // TODO
 }
 
@@ -1929,17 +1931,18 @@ void Planarization::mapNodesToFaces(void) {
     }
 }
 
-Avoid::Polygon *Planarization::nodeAvoidPolygon(node n) {
+Avoid::Polygon Planarization::nodeAvoidPolygon(node n) {
     using namespace Avoid;
-    Polygon *P = new Polygon(4);
+    Polygon P(4);
     double cx = m_ga->x(n), cy = m_ga->y(n);
     double w = m_ga->width(n), h = m_ga->height(n);
     double x = cx - w/2, y = cy - h/2;
     double X = x + w, Y = y + h;
-    P->setPoint(0,*(new Point(x,y)));
-    P->setPoint(1,*(new Point(X,y)));
-    P->setPoint(2,*(new Point(X,Y)));
-    P->setPoint(3,*(new Point(x,Y)));
+    P.setPoint(0,Point(x,y));
+    P.setPoint(1,Point(X,y));
+    P.setPoint(2,Point(X,Y));
+    P.setPoint(3,Point(x,Y));
+    return P;
 }
 
 void Planarization::addBendsForDiagonalEdges(void) {
@@ -1966,9 +1969,9 @@ void Planarization::addBendsForDiagonalEdges(void) {
     node n;
     int i = 0;
     forall_nodes(n,*m_graph) {
-        Polygon *poly = nodeAvoidPolygon(n);
+        Polygon poly = nodeAvoidPolygon(n);
         //ShapeRef *sr = new ShapeRef(router2, *poly, i);
-        ShapeRef *sr = new ShapeRef(router2, *poly);
+        new ShapeRef(router2, poly);
         nodeIDs.insert(n,i); i++;
     }
     int numNodes = i;
@@ -2010,6 +2013,7 @@ void Planarization::addBendsForDiagonalEdges(void) {
             m_ga->width(b) = m_dummyNodeSize.width();
             m_ga->height(b) = m_dummyNodeSize.height();
             routeNodes.append(b);
+            m_bendNodes.append(b);
         }
         // Last node is the target node of the edge.
         node tgt = e->target();

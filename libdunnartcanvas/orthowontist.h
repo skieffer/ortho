@@ -212,6 +212,8 @@ public:
             id = "d" + QString::number(m_dummyNodes.indexOf(n));
         } else if (m_stubNodes.contains(n)) {
             id = "s" + QString::number(m_stubNodes.indexOf(n));
+        } else if (m_bendNodes.contains(n)) {
+            id = "b" + QString::number(m_bendNodes.indexOf(n));
         } else {
             int i = m_dunnartShapes.value(n)->internalId();
             id = QString::number(i);
@@ -219,7 +221,7 @@ public:
         return id;
     }
 
-    Avoid::Polygon *nodeAvoidPolygon(node n);
+    Avoid::Polygon nodeAvoidPolygon(node n);
 
     bool thereAreEdgesBetweenNodes(node s, node t);
     void expand(int steps);
@@ -484,6 +486,7 @@ public:
     QList<node> m_dummyNodes;
     QList<node> m_rootNodes;
     QList<node> m_stubNodes;
+    QList<node> m_bendNodes;
     QList<edge> m_normalEdges;
     QList<edge> m_dummyEdges;
     QList<DummyCross*> m_dummyCrosses;
