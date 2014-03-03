@@ -81,6 +81,8 @@
 
 #include "libdunnartcanvas/orthowontist.h"
 
+#include "libavoid/libavoid.h"
+
 //#define CGAL
 #ifdef CGAL
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
@@ -100,7 +102,8 @@ namespace ow {
 
 Planarization::Planarization(Graph &G, GraphAttributes &GA,
                              QMap<edge,int> alignments,
-                             QSizeF avgNodeSize, shapemap nodeShapes) :
+                             QSizeF avgNodeSize, shapemap nodeShapes,
+                             bool orthoDiagonals) :
     m_avgNodeSize(avgNodeSize)
 {
     m_avgNodeDim = (avgNodeSize.width()+avgNodeSize.height())/2;
@@ -161,6 +164,12 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
     */
 
     m_ga->writeGML("planarization.gml");
+
+    // Ortho routing for diagonal edges?
+    if (orthoDiagonals) {
+        addBendsForDiagonalEdges();
+        m_ga->writeGML("diagonals_removed.gml");
+    }
 
     // Order the edges around each node corresponding to
     // the embedding given by the GraphAttributes object.
@@ -1917,6 +1926,107 @@ void Planarization::mapNodesToFaces(void) {
         if (debug) qDebug() << nodeList;
         // Next face.
         f = f->succ();
+    }
+}
+
+Avoid::Polygon *Planarization::nodeAvoidPolygon(node n) {
+    using namespace Avoid;
+    Polygon *P = new Polygon(4);
+    double cx = m_ga->x(n), cy = m_ga->y(n);
+    double w = m_ga->width(n), h = m_ga->height(n);
+    double x = cx - w/2, y = cy - h/2;
+    double X = x + w, Y = y + h;
+    P->setPoint(0,*(new Point(x,y)));
+    P->setPoint(1,*(new Point(X,y)));
+    P->setPoint(2,*(new Point(X,Y)));
+    P->setPoint(3,*(new Point(x,Y)));
+}
+
+void Planarization::addBendsForDiagonalEdges(void) {
+    // Build list of diagonal edges.
+    // Meanwhile assign IDs to edges, in case we
+    // actually do need to do routing.
+    QMap<edge,int> edgeIDs;
+    QList<edge> diags;
+    edge e;
+    int j = 0;
+    forall_edges(e,*m_graph) {
+        edgeIDs.insert(e,j); j++;
+        if (!isAligned(e)) {
+            diags.append(e);
+        }
+    }
+    // If there are no diagonal edges, then there is nothing to do.
+    if (diags.empty()) return;
+    // Otherwise, build a router.
+    using namespace Avoid;
+    Router *router2 = new Router(OrthogonalRouting);
+    // Add nodes to router, and assign them IDs.
+    QMap<node,int> nodeIDs;
+    node n;
+    int i = 0;
+    forall_nodes(n,*m_graph) {
+        Polygon *poly = nodeAvoidPolygon(n);
+        //ShapeRef *sr = new ShapeRef(router2, *poly, i);
+        ShapeRef *sr = new ShapeRef(router2, *poly);
+        nodeIDs.insert(n,i); i++;
+    }
+    int numNodes = i;
+    int numEdges = j;
+    // Add edges to router.
+    // Add numNodes to their id numbers, so that all are distinct.
+    // Keep a mapping from edge objects to ConnRef objects.
+    QMap<edge,ConnRef*> eToCR;
+    forall_edges(e,*m_graph) {
+        int id = numNodes + edgeIDs.value(e);
+        //ConnRef *cref = new ConnRef(router2, id);
+        ConnRef *cref = new ConnRef(router2);
+        eToCR.insert(e,cref);
+        node s = e->source(), t = e->target();
+        double sx = m_ga->x(s), sy = m_ga->y(s);
+        double tx = m_ga->x(t), ty = m_ga->y(t);
+        ConnEnd srcPt(Point(sx, sy),ConnDirAll);
+        ConnEnd dstPt(Point(tx, ty),ConnDirAll);
+        cref->setEndpoints(srcPt, dstPt);
+    }
+    // Do the routing.
+    router2->processTransaction();
+    // Add the routes as nodes and aligned edges in the graph.
+    foreach (edge e, diags) {
+        ConnRef *cref = eToCR.value(e);
+        PolyLine route = cref->displayRoute();
+        int n = route.size();
+        // Make list of nodes in the route.
+        QList<node> routeNodes;
+        // First one is the source node of the edge.
+        node src = e->source();
+        routeNodes.append(src);
+        // Now create a new node for each internal point of the polyline.
+        for (int i = 1; i < n - 1; i++) {
+            Point p = route.at(i);
+            node b = m_graph->newNode();
+            m_ga->x(b) = p.x;
+            m_ga->y(b) = p.y;
+            m_ga->width(b) = m_dummyNodeSize.width();
+            m_ga->height(b) = m_dummyNodeSize.height();
+            routeNodes.append(b);
+        }
+        // Last node is the target node of the edge.
+        node tgt = e->target();
+        routeNodes.append(tgt);
+        // Delete the edge, but keep a record of its endpoints.
+        m_graph->delEdge(e);
+        m_deletedDiagonals.append( QPair<node,node>(src,tgt) );
+        // Add an aligned edge between each pair of consecutive route points.
+        for (int i = 0; i + 1 < n; i++) {
+            node a = routeNodes.at(i), b = routeNodes.at(i+1);
+            double ax = m_ga->x(a), ay = m_ga->y(a);
+            double bx = m_ga->x(b), by = m_ga->y(b);
+            double dx = bx - ax, dy = by - ay;
+            ACAFlags af = abs(dx) >= abs(dy) ? ACAHORIZ : ACAVERT;
+            edge e = m_graph->newEdge(a,b);
+            m_alignments.insert(e,af);
+        }
     }
 }
 

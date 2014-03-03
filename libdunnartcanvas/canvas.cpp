@@ -3843,6 +3843,7 @@ void Canvas::improveOrthogonalTopology()
     using namespace Avoid;
     // Create a router and set its parameters.
     Router *router2 = new Router(OrthogonalRouting);
+    /*
     router2->setRoutingParameter((RoutingParameter)0, 50);
     router2->setRoutingParameter((RoutingParameter)1, 0);
     router2->setRoutingParameter((RoutingParameter)2, 0);
@@ -3855,6 +3856,7 @@ void Canvas::improveOrthogonalTopology()
     router2->setRoutingOption((RoutingOption)1, true);
     router2->setRoutingOption((RoutingOption)2, false);
     router2->setRoutingOption((RoutingOption)3, false);
+    */
 
     // Keep track of router references to canvas shapes and connectors.
     cola::VariableIDMap idMap;

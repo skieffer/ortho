@@ -452,7 +452,7 @@ void BiComp::layout(void) {
 void BiComp::layout2(void) {
     bool debug = true;
 
-    // 1. Build and run ACA Layout.
+    // Build and run ACA Layout.
     ACALayout *aca = new ACALayout(*m_graph, *m_ga);
 
     QMap<node,int> nodeIndices = aca->nodeIndices();
@@ -470,7 +470,7 @@ void BiComp::layout2(void) {
     aca->run();
     aca->readPositions(*m_graph, *m_ga);
 
-    // 1.25. Give trees an initial layout, just so we know their sizes.
+    // Give trees an initial layout, just so we know their sizes.
     QMap<node,QSizeF> treeSizes;
     foreach (node root, m2_rootsToTrees.keys()) {
         ExternalTree *E = m2_rootsToTrees.value(root);
@@ -479,9 +479,11 @@ void BiComp::layout2(void) {
         treeSizes.insert(root,size);
     }
 
-    // 1.5. Build planarization.
+    // Build planarization.
+    bool orthoDiagonals = true;
     m_planarization = new Planarization(*m_graph, *m_ga,
-        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes);
+        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes,
+                                        orthoDiagonals);
     m_planarization->filename = filename;
 
     m_planarization->removeOverlaps();
@@ -490,10 +492,6 @@ void BiComp::layout2(void) {
     m_planarization->defineRootNodes(m2_rootsToTrees.keys());
     m_planarization->assignTrees(m2_rootsToTrees);
     m_planarization->idealLength(m_idealLength);
-
-    // Do orthogonal routing of diagonal edges,
-    // and then add a "bend node" for each bend point in the routed edge.
-    // TODO ...
 
     //m_planarization->chooseFDTreeFaces();
     //m_planarization->chooseCombTreeFaces();
@@ -527,94 +525,6 @@ void BiComp::layout2(void) {
         ExternalTree *E = m2_rootsToTrees.value(root);
         m_planarization->translateTree(E,root);
     }
-
-
-    /*
-    // 2. Lay out external trees.
-    //    Set stubnode sizes according to bounding boxes of laid out trees.
-    foreach (node root, m2_rootsToTrees.keys()) {
-        ExternalTree *E = m2_rootsToTrees.value(root);
-        m_planarization->layoutTreeForRoot(E,root);
-        //QPointF pos = m_planarization->origRootToStubPos.value(root);
-    }
-    */
-
-    /*
-    foreach (node stub, m_stubnodesToTrees.keys()) {
-        ExternalTree *E = m_stubnodesToTrees.value(stub);
-        ShapeObj *Eshape = E->rootShape();
-        node root = m_dunnartShapes.key(Eshape);
-        // Determine closest cardinal direction of line from tap to stub.
-        double rx=m_ga->x(root),ry=m_ga->y(root);
-        double sx=m_ga->x(stub),sy=m_ga->y(stub);
-        double vx=sx-rx, vy=sy-ry;
-        ogdf::Orientation orient = vx >= vy ?
-                    (vx >= -vy ? leftToRight : topToBottom) :
-                    (vx >= -vy ? bottomToTop : rightToLeft) ;
-        // Lay out tree.
-        E->orientation(orient);
-        E->treeLayout();
-        // Read size.
-        QSizeF size = E->rootlessBBox().size();
-        // If stub edge was aligned by ACA, offset that alignment if necessary.
-        int si = nodeIndices.value(stub), ri = nodeIndices.value(root);
-        if (aca->delibAligned(si,ri) && E->needsAlignmentOffset()) {
-            double offset = E->alignmentOffset();
-            assert(aca->offsetAlignment(ri,si,offset));
-        }
-        // Set size in stub node and corresponding shape object.
-        m_ga->width(stub) = size.width();
-        m_ga->height(stub) = size.height();
-        ShapeObj *stubShape = m_dunnartShapes.value(stub);
-        stubShape->setSize(size);
-    }
-
-    // 3. Build EdgeNodes, and generate sep-co's between them and the stubnodes.
-    QMap<vpsc::Dim,EdgeNode> ens = aca->generateEdgeNodes();
-    double padding = m_nodePadding;
-    cola::CompoundConstraints hSepcos =
-            generateStubEdgeSepCos(vpsc::HORIZONTAL, ens.values(vpsc::HORIZONTAL),
-                                   nodeIndices, padding);
-    cola::CompoundConstraints vSepcos =
-            generateStubEdgeSepCos(vpsc::VERTICAL, ens.values(vpsc::VERTICAL),
-                                   nodeIndices, padding);
-    cola::CompoundConstraints sepcos;
-    foreach (cola::CompoundConstraint *cc, hSepcos) sepcos.push_back(cc);
-    foreach (cola::CompoundConstraint *cc, vSepcos) sepcos.push_back(cc);
-
-    if (debug) {
-        foreach (cola::CompoundConstraint *cc, sepcos) {
-            cola::SeparationConstraint *sc = dynamic_cast<cola::SeparationConstraint*>(cc);
-            QList<QString> names;
-            int l = sc->left(), r = sc->right();
-            node nl = nodeIndices.key(l), nr = nodeIndices.key(r);
-            ShapeObj *shl = m_dunnartShapes.value(nl);
-            ShapeObj *shr = m_dunnartShapes.value(nr);
-            names.append((QString("%1").arg(shl->internalId())));
-            names.append((QString("%1").arg(shr->internalId())));
-
-            QString rel = sc->dimension() == vpsc::HORIZONTAL ? "left of" : "above";
-            qDebug() << QString("sepco %1 %2 %3 by %4")
-                        .arg(names.at(0))
-                        .arg(rel)
-                        .arg(names.at(1))
-                        .arg(sc->gap);
-        }
-    }
-
-    // 4. Run FD layout again.
-    bool preventOverlaps = true;
-    // Keep the ACA sep-cos.
-    foreach (cola::CompoundConstraint *cc, aca->ccs()) sepcos.push_back(cc);
-    postACACola(preventOverlaps, m_idealLength, nodeIndices, sepcos);
-    */
-
-    // 5. Translate trees.
-    translateTrees();
-
-
-
-    // ...
 
 }
 

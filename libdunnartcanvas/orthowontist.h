@@ -176,7 +176,7 @@ class Planarization {
 public:
     Planarization(Graph &G, GraphAttributes &GA,
                   QMap<edge,int> alignments, QSizeF avgNodeSize,
-                  shapemap nodeShapes);
+                  shapemap nodeShapes, bool orthoDiagonals = false);
     void addDummyNodeShapesToCanvas(Canvas *canvas);
     bool cmpTreesBySize2(node r1, node r2);
     void defineRootNodes(QList<node> roots);
@@ -184,6 +184,7 @@ public:
     void chooseFDTreeFaces(void);
     void chooseCombTreeFaces(void);
     void chooseGreedyTreeFaces(void);
+    void addBendsForDiagonalEdges(void);
     double areaOfFace(face f);
     double areaOfFace2(face f);
     double areaOfFace3(face f);
@@ -217,6 +218,9 @@ public:
         }
         return id;
     }
+
+    Avoid::Polygon *nodeAvoidPolygon(node n);
+
     bool thereAreEdgesBetweenNodes(node s, node t);
     void expand(int steps);
     void removeOverlaps(void);
@@ -459,6 +463,10 @@ public:
                                                 double gap);
     cola::CompoundConstraints stubStubOP(void);
     cola::CompoundConstraints faceLiftForNode(face f0, node s0, double gap);
+    bool isAligned(edge e) {
+        ACAFlags af = (ACAFlags) m_alignments.value(e);
+        return (af&ACAHORIZ) || (af&ACAVERT);
+    }
     QSizeF m_avgNodeSize;
     double m_avgNodeDim;
     QSizeF m_dummyNodeSize;
@@ -489,6 +497,7 @@ public:
     QMap<edge,int> m_alignments;
     QMap<node,node> m_rootsToStubs;
     QMap<node,ExternalTree*> m_rootsToTrees;
+    QList< QPair<node,node> > m_deletedDiagonals;
 
     // stub node to int in 0,1,2,3 to indicate cardinal
     // Domain consists of precisely those stub nodes
