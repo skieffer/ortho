@@ -1237,11 +1237,11 @@ void Planarization::expand(int steps) {
         delete fdlayout;
 
         // 3. Update m_ga.
-        node n;
-        forall_nodes(n,*m_graph) {
-            vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
-            m_ga->x(n) = r->getCentreX();
-            m_ga->y(n) = r->getCentreY();
+        node nd;
+        forall_nodes(nd,*m_graph) {
+            vpsc::Rectangle *r = rs.at(m_nodeIndices.value(nd));
+            m_ga->x(nd) = r->getCentreX();
+            m_ga->y(nd) = r->getCentreY();
         }
     }
 }
@@ -1512,7 +1512,7 @@ void Planarization::chooseGreedyTreeFaces(void) {
         }
 
         //DEBUG
-        if (isnan(n.x())) {
+        if (std::isnan(n.x())) {
             QString a = nodeIDString(r0);
             QList<adjEntry> aes = m_nodeComb.value(r0)->aesPerFace.values(f0);
             QString b1 = nodeIDString(aes.at(0)->theNode());
@@ -1780,7 +1780,7 @@ void Planarization::chooseCombTreeFaces(void) {
         QPointF n = m_nodeComb.value(r0)->normalIntoFace(f0,*m_ga);
 
         //DEBUG
-        if (isnan(n.x())) {
+        if (std::isnan(n.x())) {
             QString a = nodeIDString(r0);
             QList<adjEntry> aes = m_nodeComb.value(r0)->aesPerFace.values(f0);
             QString b1 = nodeIDString(aes.at(0)->theNode());

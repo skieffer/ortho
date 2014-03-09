@@ -1318,16 +1318,22 @@ double ACALayout::leafPenalty(int src, int tgt)
 ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                            shapemap nodeShapes, connmap edgeConns) :
     m_rootInG(rootInG),
-    m_orientation(ogdf::leftToRight)
+    m_orientation(ogdf::leftToRight),
+    m2_numNodes(nodes.size())
 {
-    assert(nodes.size() > 1);
+    assert(m2_numNodes > 1);
     m_graph = new Graph();
     QMap<node,node> nodemap; // maps passed nodes to own nodes; for use in creating edges
     m_ga = new GraphAttributes(*m_graph);
     foreach (node n, nodes) {
         node m = m_graph->newNode();
-        if (n==root) m_root = m;
+        TreeNode *tn = new TreeNode(m,this);
+        if (n==root) {
+            m_root = m;
+            m2_root = tn;
+        }
         nodemap.insert(n,m);
+        m2_nodesToTreeNodes(m,tn);
         ShapeObj *sh = nodeShapes.value(n);
         m_dunnartShapes.insert(m,sh);
         // Initialize size and position from Dunnart shape.
@@ -1343,7 +1349,37 @@ ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edg
         node m2 = nodemap.value(e->target());
         edge f = m_graph->newEdge(m1,m2);
         m_dunnartConns.insert(f, edgeConns.value(e));
+        TreeNode *tn1 = m2_nodesToTreeNodes.value(m1);
+        TreeNode *tn2 = m2_nodesToTreeNodes.value(m2);
+        tn2->parent = tn1;
+        tn1->kids.append(tn2);
     }
+    // Detemine ranks of all nodes.
+    QList<TreeNode*> queue;
+    m2_root->rank = 0;
+    m2_ranks.insertMulti(0,m2_root);
+    queue.push_back(m2_root);
+    while (!queue.empty()) {
+        TreeNode *tn = queue.takeFirst();
+        if (tn->kids.empty()) {
+            tn->isLeaf = true;
+            m2_leaves.append(tn);
+        } else {
+            foreach (TreeNode *tn1, tn->kids) {
+                tn1->rank = tn->rank + 1;
+                m2_ranks.insertMulti(tn->rank + 1,tn1);
+                queue.push_back(tn1);
+            }
+        }
+    }
+    // Compute depth and breadth.
+    m2_depth = m2_ranks.uniqueKeys().size();
+    int br = 0;
+    for (int i = 0; i < m2_depth; i++) {
+        int b = m2_ranks.values(i).size();
+        if (b > br) br = b;
+    }
+    m2_breadth = br;
 }
 
 QString ExternalTree::listNodes(void) {

@@ -124,6 +124,32 @@ struct EdgeNode {
 
 class ExternalTree {
 public:
+    // inner structs
+
+    struct TreeNode {
+        TreeNode(node n, ExternalTree *owner) :
+            parent(NULL), ogdfNode(n), isLeaf(false), rank(-1),
+            isomNumber(-1), owningTree(owner) {}
+        TreeNode *parent;
+        node ogdfNode;
+        bool isLeaf;
+        int rank;
+        // For use with AHU rooted tree isom. algorithm -----
+        int isomNumber;
+        QList<int> isomTuple;
+        // --------------------------------------------------
+        ExternalTree *owningTree;
+        QList<TreeNode*> kids;
+        void setCentre(QPointF p);
+    };
+
+    struct TreeIsomClass {
+        int numMembers;
+        ExternalTree *rep;
+        bool operator<(const TreeIsomClass &other);
+    };
+
+    // public member functions
     ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                  shapemap nodeShapes, connmap edgeConns);
     QString listNodes(void);
@@ -139,6 +165,9 @@ public:
     void placeRootAt(QPointF p);
     bool needsAlignmentOffset(void);
     double alignmentOffset(void);
+
+    void translate2(QPointF p);
+    void rotate2(ogdf::Orientation ori);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -147,6 +176,21 @@ private:
     shapemap m_dunnartShapes;
     connmap m_dunnartConns;
     ogdf::Orientation m_orientation;
+
+    QMap<node,TreeNode*> m2_nodesToTreeNodes;
+    QList<TreeNode*> m2_leaves;
+    QMap<int,TreeNode*> m2_ranks; // multmap
+    int m2_depth; // number of ranks
+    int m2_breadth; // max num nodes in any single rank
+    int m2_numNodes; // total number of nodes in tree
+    TreeNode* m2_root;
+    QList<ExternalTree*> cTrees2(void);
+    QList<TreeIsomClass*> getIsomClasses2(QList<ExternalTree*> trees);
+    QString m2_isomString;
+    QString computeIsomString2(void);
+    bool m2_actuallySymmetric;
+    bool symmetricLayout2(double g);
+
 };
 
 static int cmpEdgeEvent(const void *p1, const void *p2);
