@@ -134,9 +134,20 @@ public:
         node ogdfNode;
         bool isLeaf;
         int rank;
+        // --------------------------------------------------
         // For use with AHU rooted tree isom. algorithm -----
         int isomNumber;
         QList<int> isomTuple;
+
+        QString isomTupleString(void) {
+            QStringList L;
+            foreach (int n, isomTuple) {
+                L.append(QString::number(n));
+            }
+            return L.join(",");
+        }
+
+        bool operator <(TreeNode &other);
         // --------------------------------------------------
         ExternalTree *owningTree;
         QList<TreeNode*> kids;
@@ -144,9 +155,11 @@ public:
     };
 
     struct TreeIsomClass {
+        TreeIsomClass(ExternalTree *r, int num) :
+            numMembers(num), rep(r) {}
         int numMembers;
         ExternalTree *rep;
-        bool operator<(const TreeIsomClass &other);
+        bool operator <(const TreeIsomClass &other);
     };
 
     // public member functions
@@ -178,19 +191,37 @@ private:
     ogdf::Orientation m_orientation;
 
     QMap<node,TreeNode*> m2_nodesToTreeNodes;
-    QList<TreeNode*> m2_leaves;
     QMap<int,TreeNode*> m2_ranks; // multmap
-    int m2_depth; // number of ranks
-    int m2_breadth; // max num nodes in any single rank
-    int m2_numNodes; // total number of nodes in tree
+    QList<TreeNode*> m2_leaves;
+
+    QList<TreeNode*> leavesOfRank(int r) {
+        QList<TreeNode*> L;
+        foreach (TreeNode *tn, m2_ranks.values(r)) {
+            if (tn->isLeaf) L.append(tn);
+        }
+        return L;
+    }
+
+    QList<TreeNode*> nonleavesOfRank(int r) {
+        QList<TreeNode*> L;
+        foreach (TreeNode *tn, m2_ranks.values(r)) {
+            if (!tn->isLeaf) L.append(tn);
+        }
+        return L;
+    }
+
     TreeNode* m2_root;
     QList<ExternalTree*> cTrees2(void);
     QList<TreeIsomClass*> getIsomClasses2(QList<ExternalTree*> trees);
-    QString m2_isomString;
+    QList<TreeIsomClass*> getIsomClasses2(void);
     QString computeIsomString2(void);
-    bool m2_actuallySymmetric;
     bool symmetricLayout2(double g);
-
+public:
+    int m2_depth; // number of ranks
+    int m2_breadth; // max num nodes in any single rank
+    int m2_numNodes; // total number of nodes in tree
+    QString m2_isomString;
+    bool m2_actuallySymmetric;
 };
 
 static int cmpEdgeEvent(const void *p1, const void *p2);

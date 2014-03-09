@@ -1315,6 +1315,98 @@ double ACALayout::leafPenalty(int src, int tgt)
 // ------------------------------------------------------------------
 // ExternalTree -----------------------------------------------------
 
+bool ExternalTree::TreeIsomClass::operator <(const TreeIsomClass &other) {
+    int md = rep->m2_depth, od = other.rep->m2_depth;
+    int mb = rep->m2_breadth, ob = other.rep->m2_breadth;
+    QString ms = rep->m2_isomString, os = other.rep->m2_isomString;
+    if (md > od) return true;
+    if (md < od) return false;
+    if (mb > ob) return true;
+    if (mb < ob) return false;
+    return ms < os;
+}
+
+bool ExternalTree::TreeNode::operator <(TreeNode &other) {
+    return isomTupleString() < other.isomTupleString();
+}
+
+QList<ExternalTree*> ExternalTree::cTrees2(void) {
+    // TODO
+}
+
+QString ExternalTree::computeIsomString2(void) {
+    // Assign isomNumber 0 to all leaves.
+    foreach (TreeNode *tn, m2_leaves) {
+        tn->isomNumber = 0;
+    }
+    // Let L be a list of the leaves at the deepest level of the tree.
+    int d = m2_depth;
+    QList<TreeNode*> L = leavesOfRank(d-1);
+    // Now compute isomNums and isomTuples for all levels above the deepest.
+    QStringList levelIsomStrings;
+    for (int i = d-2; i >= 0; i--) {
+        // For nodes v in L, insert v's number into the tuple of its parent.
+        foreach (TreeNode *tn, L) {
+            tn->parent->isomTuple.append(tn->isomNumber);
+        }
+        // Sort nonleaves of level i by tuple.
+        QList<TreeNode*> nonleaves = nonleavesOfRank(i);
+        qSort(nonleaves);
+        // Record this level's isomString
+        QStringList tupleStrings;
+        foreach (TreeNode *tn, nonleaves) {
+            tupleStrings.append(tn->isomTupleString());
+        }
+        levelIsomStrings.append( tupleStrings.join(";") );
+        // Compute next L
+        L.clear();
+        QMap<QString,TreeNode*> nodesByTuple;
+        foreach (TreeNode *tn, nonleaves) {
+            nodesByTuple.insertMulti(tn->isomTupleString(),tn);
+        }
+        QList<QString> distinctTuples = nodesByTuple.uniqueKeys();
+        qSort(distinctTuples);
+        for (int k = 1; k <= distinctTuples.size(); k++) {
+            QString tuple = distinctTuples.at(k);
+            QList<TreeNode*> nodes = nodesByTuple.values(tuple);
+            foreach (TreeNode *tn, nodes) {
+                tn->isomNumber = k;
+                L.append(tn);
+            }
+        }
+        QList<TreeNode*> leaves = leavesOfRank(i);
+        foreach (TreeNode *tn, leaves) {
+            L.prepend(tn);
+        }
+    }
+    m2_isomString = levelIsomStrings.join(":");
+    return m2_isomString;
+}
+
+bool ExternalTree::symmetricLayout2(double g) {
+    // TODO
+}
+
+QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(QList<ExternalTree *> trees) {
+    QMap<QString,ExternalTree*> treesByIsomString;
+    foreach (ExternalTree *t, trees) {
+        QString s = t->computeIsomString2();
+        treesByIsomString.insertMulti(s,t);
+    }
+    QList<QString> keys = treesByIsomString.uniqueKeys();
+    QList<ExternalTree::TreeIsomClass*> isomClasses;
+    foreach (QString s, keys) {
+        QList<ExternalTree*> reps = treesByIsomString.values(s);
+        TreeIsomClass *cl = new TreeIsomClass(reps.first(),reps.size());
+        isomClasses.append(cl);
+    }
+    return isomClasses;
+}
+
+QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(void) {
+    return getIsomClasses2(cTrees2());
+}
+
 ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                            shapemap nodeShapes, connmap edgeConns) :
     m_rootInG(rootInG),
@@ -1333,7 +1425,7 @@ ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edg
             m2_root = tn;
         }
         nodemap.insert(n,m);
-        m2_nodesToTreeNodes(m,tn);
+        m2_nodesToTreeNodes.insert(m,tn);
         ShapeObj *sh = nodeShapes.value(n);
         m_dunnartShapes.insert(m,sh);
         // Initialize size and position from Dunnart shape.
