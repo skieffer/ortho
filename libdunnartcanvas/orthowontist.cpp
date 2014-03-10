@@ -1338,15 +1338,56 @@ bool compareTreeNodePtrs(ExternalTree::TreeNode *lhs, ExternalTree::TreeNode *rh
     return ans;
 }
 
-/*
-bool ExternalTree::TreeNode::operator <(TreeNode *other) {
-    bool ans = isomTupleString() < other->isomTupleString();
-    return ans;
-}
-*/
-
 QList<ExternalTree*> ExternalTree::cTrees2(void) {
+    QList<ExternalTree*> trees;
+    foreach (TreeNode *r, m2_root->kids) {
+        trees.append( new ExternalTree(r) );
+    }
+    return trees;
+}
+
+bool ExternalTree::symmetricLayout2(double g) {
     // TODO
+}
+
+ExternalTree::ExternalTree(TreeNode *r) :
+    m_rootInG(NULL),
+    m_orientation(ogdf::topToBottom),
+    m2_root(r)
+{
+    // For now we try initialising just the "m2" data. Maybe this is enough....
+    // Note that all TreeNodes will point back to the original ExternalTree object
+    // as their owner.
+
+    //m_graph = new Graph();
+    //m_ga = new GraphAttributes(*m_graph);
+
+    // Explore the tree below the given root.
+    QList<TreeNode*> queue;
+    m2_root->rank = 0;
+    m2_ranks.insertMulti(0,m2_root);
+    queue.push_back(m2_root);
+    while (!queue.empty()) {
+        TreeNode *tn = queue.takeFirst();
+        if (tn->kids.empty()) {
+            tn->isLeaf = true;
+            m2_leaves.append(tn);
+        } else {
+            foreach (TreeNode *tn1, tn->kids) {
+                tn1->rank = tn->rank + 1;
+                m2_ranks.insertMulti(tn->rank + 1,tn1);
+                queue.push_back(tn1);
+            }
+        }
+    }
+    // Compute depth and breadth.
+    m2_depth = m2_ranks.uniqueKeys().size();
+    int br = 0;
+    for (int i = 0; i < m2_depth; i++) {
+        int b = m2_ranks.values(i).size();
+        if (b > br) br = b;
+    }
+    m2_breadth = br;
 }
 
 QString ExternalTree::computeIsomString2(void) {
@@ -1399,10 +1440,6 @@ QString ExternalTree::computeIsomString2(void) {
     return m2_isomString;
 }
 
-bool ExternalTree::symmetricLayout2(double g) {
-    // TODO
-}
-
 QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(QList<ExternalTree *> trees) {
     QMap<QString,ExternalTree*> treesByIsomString;
     foreach (ExternalTree *t, trees) {
@@ -1426,7 +1463,7 @@ QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(void) {
 ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                            shapemap nodeShapes, connmap edgeConns) :
     m_rootInG(rootInG),
-    m_orientation(ogdf::leftToRight),
+    m_orientation(ogdf::topToBottom),
     m2_numNodes(nodes.size())
 {
     assert(m2_numNodes > 1);

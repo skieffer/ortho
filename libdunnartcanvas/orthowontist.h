@@ -146,8 +146,6 @@ public:
             }
             return L.join(",");
         }
-
-        //bool operator <(TreeNode *other);
         // --------------------------------------------------
         ExternalTree *owningTree;
         QList<TreeNode*> kids;
@@ -165,6 +163,7 @@ public:
     // public member functions
     ExternalTree(node root, node rootInG, QList<node> nodes, QList<edge> edges,
                  shapemap nodeShapes, connmap edgeConns);
+    ExternalTree(TreeNode *r);
     QString listNodes(void);
     void colourShapes(void);
     void numberShapes(void);
