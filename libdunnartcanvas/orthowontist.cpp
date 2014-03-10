@@ -1315,10 +1315,26 @@ double ACALayout::leafPenalty(int src, int tgt)
 // ------------------------------------------------------------------
 // ExternalTree -----------------------------------------------------
 
+/*
 bool ExternalTree::TreeIsomClass::operator <(const TreeIsomClass &other) {
     int md = rep->m2_depth, od = other.rep->m2_depth;
     int mb = rep->m2_breadth, ob = other.rep->m2_breadth;
     QString ms = rep->m2_isomString, os = other.rep->m2_isomString;
+    if (md > od) return true;
+    if (md < od) return false;
+    if (mb > ob) return true;
+    if (mb < ob) return false;
+    return ms < os;
+}
+*/
+
+bool compareTreeIsomClassPtrs(ExternalTree::TreeIsomClass *lhs, ExternalTree::TreeIsomClass *rhs) {
+    int mn = lhs->numMembers, on = rhs->numMembers;
+    int md = lhs->rep->m2_depth, od = rhs->rep->m2_depth;
+    int mb = lhs->rep->m2_breadth, ob = rhs->rep->m2_breadth;
+    QString ms = lhs->rep->m2_isomString, os = rhs->rep->m2_isomString;
+    if (mn%2==1 && on%2==0) return true;
+    if (mn%2==0 && on%2==1) return false;
     if (md > od) return true;
     if (md < od) return false;
     if (mb > ob) return true;
@@ -1347,7 +1363,35 @@ QList<ExternalTree*> ExternalTree::cTrees2(void) {
 }
 
 bool ExternalTree::symmetricLayout2(double g) {
-    // TODO
+    // Root node goes to (0,0).
+    m2_root->setCentre(QPointF(0,0));
+    // If just a root node, then done.
+    if (m2_depth == 1) {
+        m2_actuallySymmetric = true;
+        return true;
+    }
+    // Otherwise get the isomorphism classes of the c-trees.
+    QList<TreeIsomClass*> cls = getIsomClasses2();
+    // Recursive step: do symmetric layout on representative of each isom class.
+    foreach (TreeIsomClass *cl, cls) {
+        cl->rep->symmetricLayout2(g);
+    }
+    // Sort the classes.
+    qSort(cls.begin(), cls.end(), compareTreeIsomClassPtrs);
+    // Now if there were any classes of odd order then they come first.
+    // Test whether our layout is going to be actually symmetric.
+    TreeIsomClass *cl0 = cls.at(0);
+    if (cl0->even()) {
+        m2_actuallySymmetric = true;
+    } else if (!cl0->actuallySymmetric()) {
+        m2_actuallySymmetric = false;
+    } else if (cls.size() == 1) {
+        m2_actuallySymmetric = true;
+    } else if (cls.at(1)->even()) {
+        m2_actuallySymmetric = true;
+    } else {
+        m2_actuallySymmetric = false;
+    }
 }
 
 ExternalTree::ExternalTree(TreeNode *r) :

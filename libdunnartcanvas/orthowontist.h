@@ -149,7 +149,10 @@ public:
         // --------------------------------------------------
         ExternalTree *owningTree;
         QList<TreeNode*> kids;
-        void setCentre(QPointF p);
+        void setCentre(QPointF p) {
+            owningTree->m_ga->x(ogdfNode) = p.x();
+            owningTree->m_ga->y(ogdfNode) = p.y();
+        }
     };
 
     struct TreeIsomClass {
@@ -157,7 +160,9 @@ public:
             numMembers(num), rep(r) {}
         int numMembers;
         ExternalTree *rep;
-        bool operator <(const TreeIsomClass &other);
+        bool even(void) { return numMembers%2==0; }
+        bool actuallySymmetric(void) { return rep->m2_actuallySymmetric; }
+        //bool operator <(const TreeIsomClass &other);
     };
 
     // public member functions
