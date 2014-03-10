@@ -139,7 +139,7 @@ public:
         int isomNumber;
         QList<int> isomTuple;
 
-        QString isomTupleString(void) {
+        QString isomTupleString(void) const {
             QStringList L;
             foreach (int n, isomTuple) {
                 L.append(QString::number(n));
@@ -147,7 +147,7 @@ public:
             return L.join(",");
         }
 
-        bool operator <(TreeNode &other);
+        //bool operator <(TreeNode *other);
         // --------------------------------------------------
         ExternalTree *owningTree;
         QList<TreeNode*> kids;
@@ -214,9 +214,9 @@ private:
     QList<ExternalTree*> cTrees2(void);
     QList<TreeIsomClass*> getIsomClasses2(QList<ExternalTree*> trees);
     QList<TreeIsomClass*> getIsomClasses2(void);
+public:
     QString computeIsomString2(void);
     bool symmetricLayout2(double g);
-public:
     int m2_depth; // number of ranks
     int m2_breadth; // max num nodes in any single rank
     int m2_numNodes; // total number of nodes in tree

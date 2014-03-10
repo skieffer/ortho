@@ -1326,9 +1326,24 @@ bool ExternalTree::TreeIsomClass::operator <(const TreeIsomClass &other) {
     return ms < os;
 }
 
-bool ExternalTree::TreeNode::operator <(TreeNode &other) {
-    return isomTupleString() < other.isomTupleString();
+bool operator< (const ExternalTree::TreeNode& lhs, const ExternalTree::TreeNode& rhs) {
+    QString ls = lhs.isomTupleString(), rs = rhs.isomTupleString();
+    bool ans = ls < rs;
+    return ans;
 }
+
+bool compareTreeNodePtrs(ExternalTree::TreeNode *lhs, ExternalTree::TreeNode *rhs) {
+    QString ls = lhs->isomTupleString(), rs = rhs->isomTupleString();
+    bool ans = ls < rs;
+    return ans;
+}
+
+/*
+bool ExternalTree::TreeNode::operator <(TreeNode *other) {
+    bool ans = isomTupleString() < other->isomTupleString();
+    return ans;
+}
+*/
 
 QList<ExternalTree*> ExternalTree::cTrees2(void) {
     // TODO
@@ -1351,7 +1366,8 @@ QString ExternalTree::computeIsomString2(void) {
         }
         // Sort nonleaves of level i by tuple.
         QList<TreeNode*> nonleaves = nonleavesOfRank(i);
-        qSort(nonleaves);
+        // Must sort using explicit comparison function, since it is a list of pointers, not objects:
+        qSort(nonleaves.begin(), nonleaves.end(), compareTreeNodePtrs);
         // Record this level's isomString
         QStringList tupleStrings;
         foreach (TreeNode *tn, nonleaves) {
@@ -1367,7 +1383,7 @@ QString ExternalTree::computeIsomString2(void) {
         QList<QString> distinctTuples = nodesByTuple.uniqueKeys();
         qSort(distinctTuples);
         for (int k = 1; k <= distinctTuples.size(); k++) {
-            QString tuple = distinctTuples.at(k);
+            QString tuple = distinctTuples.at(k-1);
             QList<TreeNode*> nodes = nodesByTuple.values(tuple);
             foreach (TreeNode *tn, nodes) {
                 tn->isomNumber = k;
@@ -1472,6 +1488,14 @@ ExternalTree::ExternalTree(node root, node rootInG, QList<node> nodes, QList<edg
         if (b > br) br = b;
     }
     m2_breadth = br;
+    // Testing:
+    bool testing = true;
+    if (testing) {
+        ShapeObj *sh = m_dunnartShapes.value(m_root);
+        int id = sh->internalId();
+        qDebug() << QString("Root: %1").arg(id);
+        qDebug() << computeIsomString2();
+    }
 }
 
 QString ExternalTree::listNodes(void) {
@@ -1747,8 +1771,8 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
 void Orthowontist::run2(QList<CanvasItem*> items) {
     bool debug = true;
-    bool useColours = false;
-    bool showNumbers = false;
+    bool useColours = true;
+    bool showNumbers = true;
     bool drawStubnodes = false;
     bool drawDummynodes = false;
     shapemap nodeShapes;
