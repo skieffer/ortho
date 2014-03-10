@@ -1378,20 +1378,48 @@ bool ExternalTree::symmetricLayout2(double g) {
     }
     // Sort the classes.
     qSort(cls.begin(), cls.end(), compareTreeIsomClassPtrs);
-    // Now if there were any classes of odd order then they come first.
+    // In particular if there are any classes of odd order then they come first.
     // Test whether our layout is going to be actually symmetric.
     TreeIsomClass *cl0 = cls.at(0);
     if (cl0->even()) {
+        // If there are no odd-order classes, then layout will be symmetric.
         m2_actuallySymmetric = true;
     } else if (!cl0->actuallySymmetric()) {
+        // If there is an odd-order class and it is not symmetric, then neither will we be.
         m2_actuallySymmetric = false;
     } else if (cls.size() == 1) {
+        // So the first class was odd-order and symmetric.
+        // If in fact it is the only class, then we will be symmetric.
         m2_actuallySymmetric = true;
     } else if (cls.at(1)->even()) {
+        // There are at least two classes.
+        // If the second one (hence all remaining) is even-order, then we are symmetric.
         m2_actuallySymmetric = true;
     } else {
+        // Else there is at least a second odd-order class, and we will not be symmetric.
         m2_actuallySymmetric = false;
     }
+    // Order the trees alternating around the centre.
+    ExternalTree *C = NULL;
+    QList<ExternalTree*> L;
+    QList<ExternalTree*> R;
+    QList<ExternalTree*> trees;
+    // We build a list of trees to be assigned positions.
+    int i0 = 0;
+    // There is a centre tree only if the first class is odd-order and symmetric.
+    if (cl0->actuallySymmetric() && !cl0->even()) {
+        C = cl0->rep;
+        // Start loop from j = 1 so we get one fewer copies of this tree.
+        for (int j = 1; j < cl0->numMembers; j++) trees.append(cl0->rep);
+        // And skip class 0 in loop we're about to do.
+        i0 = 1;
+    }
+    for (int i = i0; i < cls.size(); i++) {
+        TreeIsomClass *cl = cls.at(i);
+        for (int j = 0; j < cl->numMembers; j++) trees.append(cl->rep);
+    }
+    // Now assign the trees to L and R, alternately.
+    //...
 }
 
 ExternalTree::ExternalTree(TreeNode *r) :
