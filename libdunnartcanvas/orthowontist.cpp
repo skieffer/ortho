@@ -1372,14 +1372,16 @@ bool ExternalTree::symmetricLayout2(double g) {
     }
     // Otherwise get the isomorphism classes of the c-trees.
     QList<TreeIsomClass*> cls = getIsomClasses2();
-    // Recursive step: do symmetric layout on representative of each isom class.
+    // Recursive step: do symmetric layout on the members of each isom class.
+    // (Since the individual members of the class represent different nodes in
+    //  the original tree, they actually do all need to be laid out!)
     foreach (TreeIsomClass *cl, cls) {
-        cl->rep->symmetricLayout2(g);
+        cl->symmetricLayout2(g);
     }
     // Sort the classes.
     qSort(cls.begin(), cls.end(), compareTreeIsomClassPtrs);
     // In particular if there are any classes of odd order then they come first.
-    // Test whether our layout is going to be actually symmetric.
+    // Determine whether our layout is going to be actually symmetric.
     TreeIsomClass *cl0 = cls.at(0);
     if (cl0->even()) {
         // If there are no odd-order classes, then layout will be symmetric.
@@ -1410,16 +1412,46 @@ bool ExternalTree::symmetricLayout2(double g) {
     if (cl0->actuallySymmetric() && !cl0->even()) {
         C = cl0->rep;
         // Start loop from j = 1 so we get one fewer copies of this tree.
-        for (int j = 1; j < cl0->numMembers; j++) trees.append(cl0->rep);
+        for (int j = 1; j < cl0->numMembers; j++) trees.append(cl0->member(j));
         // And skip class 0 in loop we're about to do.
         i0 = 1;
     }
+    // For each isomorphism class, add all members.
     for (int i = i0; i < cls.size(); i++) {
         TreeIsomClass *cl = cls.at(i);
-        for (int j = 0; j < cl->numMembers; j++) trees.append(cl->rep);
+        trees.append(cl->members);
     }
     // Now assign the trees to L and R, alternately.
-    //...
+    // Flip those in R, horizontally.
+    bool leftNext = true;
+    foreach (ExternalTree *t, trees) {
+        if (leftNext) {
+            L.push_front(t);
+            leftNext = false;
+        } else {
+            t->hFlip2();
+            R.push_back(t);
+            leftNext = true;
+        }
+    }
+    // Assemble the full left-to-right list of trees
+    trees.clear();
+    trees.append(L);
+    if (C!=NULL) trees.append(C);
+    trees.append(R);
+    // Now arrange them side-by-side.
+    // All trees will be placed so that the bottom of their root node is at height g,
+    // so it is purely a matter of assigning x-coords.
+    // We start with the first tree at x = 0, but
+    // afterward we will centre the whole row of trees above the root node.
+    ExternalTree *t0 = trees.takeFirst();
+    t0->translateByBottomCentrePoint2(QPointF(0,g));
+    // Initialize vector of rightmost occupied x-coords in each open rank.
+    QList<double> Rx = t0->rightExtremes2();
+    // Place the remaining trees.
+    foreach (ExternalTree *t, trees) {
+        //...
+    }
 }
 
 ExternalTree::ExternalTree(TreeNode *r) :
@@ -1522,7 +1554,7 @@ QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(QList<External
     QList<ExternalTree::TreeIsomClass*> isomClasses;
     foreach (QString s, keys) {
         QList<ExternalTree*> reps = treesByIsomString.values(s);
-        TreeIsomClass *cl = new TreeIsomClass(reps.first(),reps.size());
+        TreeIsomClass *cl = new TreeIsomClass(reps);
         isomClasses.append(cl);
     }
     return isomClasses;
@@ -1695,9 +1727,75 @@ void ExternalTree::translate(QPointF p) {
     }
 }
 
+/***
+  * Translate the whole tree rigidly so that the root ends up
+  * with its centre at p.
+  */
+void ExternalTree::translateByRoot(QPointF p) {
+    QPointF v(p.x() - m_ga->x(m_root), p.y() - m_ga->y(m_root));
+    translate(v);
+}
+
+/***
+  * Translate the whole tree rigidly so that the root ends up
+  * with its centre-bottom point at p.
+  */
+void ExternalTree::translateByBottomCentrePoint(QPointF p) {
+    double h = m_ga->height(m_root);
+    p += QPointF(0,h/2);
+    translateByRoot(p);
+}
+
+void ExternalTree::translateByBottomCentrePoint2(QPointF p) {
+    QPointF c = m2_root->getCentre();
+    double h = m2_root->height();
+    QPointF b = p + QPointF(0,h/2);
+    QPointF v = b - c;
+    m2_root->translate(v);
+}
+
 void ExternalTree::placeRootAt(QPointF p) {
     m_ga->x(m_root) = p.x();
     m_ga->y(m_root) = p.y();
+}
+
+void ExternalTree::hFlip(void) {
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        m_ga->x(n) *= -1;
+    }
+}
+
+void ExternalTree::hFlip2(void) {
+    m2_root->hFlip();
+}
+
+QList<double> ExternalTree::rightExtremes2(void) {
+    QList<double> X;
+    for (int i = 0; i < m2_depth; i++) {
+        QList<TreeNode*> rank = m2_ranks.values(i);
+        double x0 = DBL_MIN;
+        foreach (TreeNode *tn, rank) {
+            double x = tn->x() + tn->width()/2;
+            if (x > x0) x0 = x;
+        }
+        X.append(x0);
+    }
+    return X;
+}
+
+QList<double> ExternalTree::leftExtremes2(void) {
+    QList<double> X;
+    for (int i = 0; i < m2_depth; i++) {
+        QList<TreeNode*> rank = m2_ranks.values(i);
+        double x0 = DBL_MAX;
+        foreach (TreeNode *tn, rank) {
+            double x = tn->x() - tn->width()/2;
+            if (x < x0) x0 = x;
+        }
+        X.append(x0);
+    }
+    return X;
 }
 
 /** A tree might need an alignment offset only if its
