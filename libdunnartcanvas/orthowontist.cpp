@@ -528,6 +528,82 @@ void BiComp::layout2(void) {
 
 }
 
+void BiComp::layout3(void) {
+    bool debug = true;
+
+    // Build and run ACA Layout.
+    ACALayout *aca = new ACALayout(*m_graph, *m_ga);
+
+    QMap<node,int> nodeIndices = aca->nodeIndices();
+    std::vector<cola::Edge> colaEdges = aca->colaEdges();
+
+    aca->debugName("BC");
+    //aca->idealLength(m_idealLength);
+    //aca->nodePadding(m_nodePadding);
+    aca->idealLength(1);
+    aca->edgeLengths(edgeLengths(nodeIndices,colaEdges));
+    //aca->nodePadding(nodePadding(nodeIndices));
+    aca->run();
+    aca->readPositions(*m_graph, *m_ga);
+
+    // Give trees an initial layout, just so we know their sizes.
+    QMap<node,QSizeF> treeSizes;
+    double g = m_dummyNodeSize.width();
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        //E->treeLayout();
+        E->symmetricLayout2(g);
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
+    // Build planarization.
+    bool orthoDiagonals = true;
+    m_planarization = new Planarization(*m_graph, *m_ga,
+        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes,
+                                        orthoDiagonals);
+    m_planarization->filename = filename;
+    m_planarization->removeOverlaps();
+    m_planarization->setTreeSizes(treeSizes);
+    m_planarization->defineRootNodes(m2_rootsToTrees.keys());
+    m_planarization->assignTrees(m2_rootsToTrees);
+    m_planarization->idealLength(m_idealLength);
+    //m_planarization->chooseFDTreeFaces();
+    //m_planarization->chooseCombTreeFaces();
+    m_planarization->chooseGreedyTreeFaces();
+
+    // Now rotate the trees into the chosen orientations.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ogdf::Orientation ori = m_planarization->treeOrientation(root);
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        E->orientation(ori);
+        //E->treeLayout();
+        E->rotate(ori);
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
+    // Inform of the new sizes.
+    m_planarization->setTreeSizes(treeSizes);
+
+    // Expand to make room for trees.
+    m_planarization->expand(10);
+
+    // Lay out with "neighbour stress", in order to evenly
+    // distribute nodes.
+    m_planarization->distribWithNbrStress();
+
+    // Update node positions.
+    m_planarization->translateNodes(*m_graph, *m_ga);
+
+    // Translate trees.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        m_planarization->translateTree(E,root);
+    }
+
+}
+
 void BiComp::updateShapePositions(void) {
     node n;
     forall_nodes(n, *m_graph) {
@@ -1363,8 +1439,10 @@ QList<ExternalTree*> ExternalTree::cTrees2(void) {
 }
 
 bool ExternalTree::symmetricLayout2(double g) {
-    // Root node goes to (0,0).
-    m2_root->setCentre(QPointF(0,0));
+    bool debug = true;
+    // Place root with centre-top point at (0,0).
+    double hRoot = m2_root->height();
+    m2_root->setCentre(QPointF(0,-hRoot/2));
     // If just a root node, then done.
     if (m2_depth == 1) {
         m2_actuallySymmetric = true;
@@ -1376,7 +1454,7 @@ bool ExternalTree::symmetricLayout2(double g) {
     // (Since the individual members of the class represent different nodes in
     //  the original tree, they actually do all need to be laid out!)
     foreach (TreeIsomClass *cl, cls) {
-        cl->symmetricLayout2(g);
+        cl->symmetricLayout(g);
     }
     // Sort the classes.
     qSort(cls.begin(), cls.end(), compareTreeIsomClassPtrs);
@@ -1446,6 +1524,9 @@ bool ExternalTree::symmetricLayout2(double g) {
     // afterward we will centre the whole row of trees above the root node.
     ExternalTree *t0 = trees.takeFirst();
     t0->translateByBottomCentrePoint2(QPointF(0,g));
+
+//#define PACKINGMETHOD
+#ifdef PACKINGMETHOD
     // Initialize vector of rightmost occupied x-coords in each open rank.
     QList<double> Rx = t0->rightExtremes2();
     // Place the remaining trees.
@@ -1460,6 +1541,9 @@ bool ExternalTree::symmetricLayout2(double g) {
             double r = Rx.at(i), l = abs(Lx.at(i));
             x0 = max(x0, r + g + l);
         }
+
+        if (debug) qDebug() << QString("x0 = %1").arg(x0);
+
         // Place the tree at (x0,g).
         t->translateByBottomCentrePoint2(QPointF(x0,g));
         // Update the rightmost coords.
@@ -1472,10 +1556,27 @@ bool ExternalTree::symmetricLayout2(double g) {
             }
         }
     }
+#else
+    // Initialize rightmost occupied x-coord.
+    double rx = t0->rightExtreme2();
+    // Place the remaining trees.
+    foreach (ExternalTree *t, trees) {
+        // Get leftmost occupied x-coord of t.
+        double lx = t->leftExtreme2();
+        double x0 = rx + g + abs(lx);
+
+        if (debug) qDebug() << QString("x0 = %1").arg(x0);
+
+        // Place the tree at (x0,g).
+        t->translateByBottomCentrePoint2(QPointF(x0,g));
+        // Update the rightmost coord.
+        rx = t->rightExtreme2();
+    }
+#endif
+    trees.push_front(t0);
     // Finally, centre this row of trees over the root, i.e. around the line x = 0.
     double xMin = t0->leftExtreme2(), xMax = trees.last()->rightExtreme2();
     double xMid = (xMax+xMin)/2;
-    trees.push_front(t0);
     foreach (ExternalTree *t, trees) {
         t->m2_root->translate(QPointF(-xMid,0));
     }
@@ -1483,10 +1584,37 @@ bool ExternalTree::symmetricLayout2(double g) {
     return m2_actuallySymmetric;
 }
 
+/***
+  * This method assumes that the tree has already been laid out in the topToBottom
+  * orientation, i.e. with y-coords increasing from root node to nodes of higher
+  * rank (pos. y-axis extends downward).
+  * Coords will be rotated around the origin.
+  */
+void ExternalTree::rotate(Orientation ori) {
+    node n;
+    forall_nodes(n,*m_graph) {
+        double x = m_ga->x(n), y = m_ga->y(n);
+        double u = 0, v = 0;
+        switch (ori) {
+        case ogdf::topToBottom:
+            u = x; v = -y; break;
+        case ogdf::bottomToTop:
+            u = -x; v = y; break;
+        case ogdf::leftToRight:
+            u = y; v = -x; break;
+        case ogdf::rightToLeft:
+            u = -y; v = -x; break;
+        }
+        m_ga->x(n) = u;
+        m_ga->y(n) = v;
+    }
+}
+
 ExternalTree::ExternalTree(TreeNode *r) :
     m_rootInG(NULL),
     m_orientation(ogdf::topToBottom),
-    m2_root(r)
+    m2_root(r),
+    m2_numNodes(0)
 {
     // For now we try initialising just the "m2" data. Maybe this is enough....
     // Note that all TreeNodes will point back to the original ExternalTree object
@@ -1502,6 +1630,7 @@ ExternalTree::ExternalTree(TreeNode *r) :
     queue.push_back(m2_root);
     while (!queue.empty()) {
         TreeNode *tn = queue.takeFirst();
+        m2_numNodes++;
         if (tn->kids.empty()) {
             tn->isLeaf = true;
             m2_leaves.append(tn);
@@ -1534,12 +1663,14 @@ QString ExternalTree::computeIsomString2(void) {
     // Now compute isomNums and isomTuples for all levels above the deepest.
     QStringList levelIsomStrings;
     for (int i = d-2; i >= 0; i--) {
+        // Clear the tuples of the nonleaves on level i.
+        QList<TreeNode*> nonleaves = nonleavesOfRank(i);
+        foreach (TreeNode *tn, nonleaves) tn->isomTuple.clear();
         // For nodes v in L, insert v's number into the tuple of its parent.
         foreach (TreeNode *tn, L) {
             tn->parent->isomTuple.append(tn->isomNumber);
         }
         // Sort nonleaves of level i by tuple.
-        QList<TreeNode*> nonleaves = nonleavesOfRank(i);
         // Must sort using explicit comparison function, since it is a list of pointers, not objects:
         qSort(nonleaves.begin(), nonleaves.end(), compareTreeNodePtrs);
         // Record this level's isomString
@@ -2120,7 +2251,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         B->nodePadding(nodePadding);
         B->dummyNodeSize(QSizeF(avgDim,avgDim));
         B->filename = filename;
-        B->layout2();
+        B->layout3();
     }
 
     /*

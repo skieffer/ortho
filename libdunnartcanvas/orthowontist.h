@@ -217,13 +217,13 @@ public:
     void translateByRoot(QPointF p);
     void translateByBottomCentrePoint(QPointF p);
     void hFlip(void);
+    void rotate(ogdf::Orientation ori);
     void placeRootAt(QPointF p);
     bool needsAlignmentOffset(void);
     double alignmentOffset(void);
 
     void translateByBottomCentrePoint2(QPointF p);
     void hFlip2(void);
-    void rotate2(ogdf::Orientation ori);
     QList<double> rightExtremes2(void);
     QList<double> leftExtremes2(void);
     double rightExtreme2(void);
@@ -653,6 +653,7 @@ public:
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
     void layout(void);
     void layout2(void);
+    void layout3(void);
     void updateShapePositions(void);
     void orthogonalRouting(bool b);
     void addStubNodeShapesToCanvas(Canvas *canvas);
