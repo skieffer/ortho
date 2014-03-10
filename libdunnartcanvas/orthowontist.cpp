@@ -1450,8 +1450,37 @@ bool ExternalTree::symmetricLayout2(double g) {
     QList<double> Rx = t0->rightExtremes2();
     // Place the remaining trees.
     foreach (ExternalTree *t, trees) {
-        //...
+        // Get leftmost occupied x-coords in the ranks of t.
+        QList<double> Lx = t->leftExtremes2();
+        // Each rank demands a minimum separation. Take the max of these.
+        // We only need consider ranks belonging to /both/ Rx and Lx.
+        double x0 = 0;
+        int N = min(Rx.size(), Lx.size());
+        for (int i = 0; i < N; i++) {
+            double r = Rx.at(i), l = abs(Lx.at(i));
+            x0 = max(x0, r + g + l);
+        }
+        // Place the tree at (x0,g).
+        t->translateByBottomCentrePoint2(QPointF(x0,g));
+        // Update the rightmost coords.
+        QList<double> Tx = t->rightExtremes2();
+        for (int i = 0; i < Tx.size(); i++) {
+            if (i < N) {
+                Rx[i] = Tx[i];
+            } else {
+                Rx.append(Tx[i]);
+            }
+        }
     }
+    // Finally, centre this row of trees over the root, i.e. around the line x = 0.
+    double xMin = t0->leftExtreme2(), xMax = trees.last()->rightExtreme2();
+    double xMid = (xMax+xMin)/2;
+    trees.push_front(t0);
+    foreach (ExternalTree *t, trees) {
+        t->m2_root->translate(QPointF(-xMid,0));
+    }
+    // Say whether the result was symmetric or not.
+    return m2_actuallySymmetric;
 }
 
 ExternalTree::ExternalTree(TreeNode *r) :
@@ -1796,6 +1825,24 @@ QList<double> ExternalTree::leftExtremes2(void) {
         X.append(x0);
     }
     return X;
+}
+
+double ExternalTree::rightExtreme2(void) {
+    double x0 = DBL_MIN;
+    QList<double> X = rightExtremes2();
+    foreach (double x, X) {
+        x0 = max(x0,x);
+    }
+    return x0;
+}
+
+double ExternalTree::leftExtreme2(void) {
+    double x0 = DBL_MAX;
+    QList<double> X = leftExtremes2();
+    foreach (double x, X) {
+        x0 = min(x0,x);
+    }
+    return x0;
 }
 
 /** A tree might need an alignment offset only if its

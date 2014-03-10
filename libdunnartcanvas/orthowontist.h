@@ -226,6 +226,8 @@ public:
     void rotate2(ogdf::Orientation ori);
     QList<double> rightExtremes2(void);
     QList<double> leftExtremes2(void);
+    double rightExtreme2(void);
+    double leftExtreme2(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
