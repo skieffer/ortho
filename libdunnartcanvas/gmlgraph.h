@@ -110,6 +110,7 @@ public:
     void createConnector(ogdf::edge e);
     void drawConnectorGhosts(QPixmap *image, int offx, int offy);
     void drawOverviewOverlay();
+    void drawShapesAndConnectors(void);
     Canvas *canvas(void) const;
 protected:
     QColor getNodeColor(const ogdf::node v);

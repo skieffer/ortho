@@ -133,8 +133,8 @@ Graph::Graph(Canvas *canvas, string gmlFile, Page page, COff canvasOffset)
       UML(true),
       UseClusters(canvas->useGmlClusters())
 {
-    canvas->setOptIdealEdgeLengthModifier(scale);
-    canvas->setOptShapeNonoverlapPadding(4);
+    //canvas->setOptIdealEdgeLengthModifier(scale);
+    //canvas->setOptShapeNonoverlapPadding(4);
     GA.initAttributes(
             ogdf::GraphAttributes::nodeGraphics |
             ogdf::GraphAttributes::nodeLabel |
@@ -159,6 +159,16 @@ Graph::Graph(Canvas *canvas, string gmlFile, Page page, COff canvasOffset)
     edgeLengths.fill(1);
     timeStamps.fill(time);
     startNode=G.firstNode();
+
+    forall_nodes(v,G) {
+        createShape(v);
+    }
+    ogdf::edge e;
+    forall_edges(e,G) {
+        createConnector(e);
+    }
+
+    /*
     forall_nodes(v,G) {
         shapes[v] = NULL;
 
@@ -203,7 +213,27 @@ Graph::Graph(Canvas *canvas, string gmlFile, Page page, COff canvasOffset)
     }
     shortest_paths::johnsons(n,shortestPathsMatrix,es);
     canvas->setIdealConnectorLength(70);
+    */
 }
+
+void Graph::drawShapesAndConnectors(void) {
+    canvas_->stop_graph_layout();
+    ogdf::node v;
+    forall_nodes(v,G) {
+        ShapeObj *sh = shapes[v];
+
+        QSizeF s = sh->size();
+
+        canvas_->addItem(sh);
+    }
+    ogdf::edge e;
+    forall_edges(e,G) {
+        Connector *cn = connectors[e];
+        canvas_->addItem(cn);
+    }
+    canvas_->restart_graph_layout();
+}
+
 Draw::Draw(ogdf::Graph& G, ogdf::GraphAttributes& GA, QPixmap *pixmap,
             const Box& bounds)
     : surface_(pixmap), 
@@ -780,7 +810,9 @@ void Graph::drawOverview() {
 
 
 void Graph::createShape(ogdf::node v) {
-    createShape(v,Box(GA.x(v)-gbounds.x,GA.y(v)-gbounds.y,
+    //createShape(v,Box(GA.x(v)-gbounds.x,GA.y(v)-gbounds.y,
+    //                  Dim(GA.width(v),GA.height(v))));
+    createShape(v,Box(GA.x(v),GA.y(v),
                       Dim(GA.width(v),GA.height(v))));
 }
 
@@ -827,6 +859,16 @@ void setupUMLClass(ClassShape* c, string s) {
 void Graph::createShape(ogdf::node v, const Box b) {
     PluginShapeFactory *factory = sharedPluginShapeFactory();
     ShapeObj* sh=shapes[v];
+    // my code
+    sh = factory->createShape("org.dunnart.shapes.rect");
+    QPointF p(b.x,b.y);
+    QSizeF s(b.width(), b.height());
+    sh->setPosAndSize(p,s);
+    shapes[v] = sh;
+    nodes[sh] = v;
+    canvasShapes.push_back(sh);
+    return;
+    // -------
     if(sh==NULL) {
         string templ(GA.templateNode(v).cstr());
         if(GA.shapeNode(v)==ogdf::GraphAttributes::oval) {
@@ -844,7 +886,6 @@ void Graph::createShape(ogdf::node v, const Box b) {
             sh->setCentrePos(QPointF(b.x, b.y));
             sh->setLabel(GA.labelNode(v).cstr());
         }
-
         // we want shapes in the canvas list in the order that they are created
         string imageUrl(GA.imageUrlNode(v).cstr());
         if(!imageUrl.empty()) {

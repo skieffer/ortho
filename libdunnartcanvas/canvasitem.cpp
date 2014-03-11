@@ -330,10 +330,12 @@ Canvas *CanvasItem::canvas(void) const
 
 QRectF CanvasItem::boundingRect(void) const
 {
+
+    QPainterPath p = m_painter_path;
     // We expect the painter path to have a valid bounding rect if this
     // is called.  If it is invalid, it may be being called incorrectly
     // from within buildPainterPath().
-    assert(!m_painter_path.boundingRect().isNull());
+    //assert(!m_painter_path.boundingRect().isNull());
 
     // Return the boundingRect, with padding for drawing selection cue.
     return m_painter_path.boundingRect().adjusted(-BOUNDINGRECTPADDING,
