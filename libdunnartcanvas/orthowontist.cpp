@@ -2202,6 +2202,21 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         }
     }
 
+    // Was the graph in fact a tree?
+    // Due to the way removeExternalTrees works, G will now contain fewer than 3 nodes iff
+    // it was a tree to begin with.
+    if (G.numberOfNodes()<3) {
+        ExternalTree *E = EE.first();
+        E->symmetricLayout2(avgDim);
+
+        m_canvas->stop_graph_layout();
+        E->updateShapePositions();
+        E->orthogonalRouting(true);
+        m_canvas->restart_graph_layout();
+        return;
+
+    }
+
     // 2. Get nontrivial biconnected components (size >= 3), and get the
     // set of cutnodes in G.
     QList<BiComp*> BB;
@@ -2402,7 +2417,7 @@ void Orthowontist::removeExternalTrees(QList<ExternalTree *> &EE, Graph &G,
     // Will need to map leaves in G to the edges of G that attached them, before removed.
     QMap<node,edge> leafEdges;
 
-    while (nodesByDegree.value(1).size() > 0) {
+    while (nodesByDegree.value(1).size() > 0 && G.numberOfNodes() >= 3) {
         // Grab the degree-1 nodes, and replace with an empty set in the nodesByDegree map.
         QSet<node> degreeOneNodes = nodesByDegree.value(1);
         QSet<node> set;
@@ -2453,6 +2468,58 @@ void Orthowontist::removeExternalTrees(QList<ExternalTree *> &EE, Graph &G,
             degN.insert(t);
             nodesByDegree.insert(n,degN);
         }
+    }
+    // How did we exit the loop? Was it because the number of nodes in G dropped below 3?
+    // If it dropped to 1, then the normal code can handle it. (We will get one tree, which
+    // equals the whole original graph G, and G itself will be left with exactly 1 node in it.)
+    // Only if the number of nodes in G dropped to 2 do we need a special handler.
+    if (G.numberOfNodes()==2) {
+        // Again the whole graph G was just a single tree.
+        // It does not have a single centre (as defined by Manning and Atallah); instead the
+        // two remaining nodes are its two centres.
+        // We just pick one at random to be the root of the tree.
+        // G will be left with exactly 2 nodes in it.
+        node t1 = G.firstNode(), t2 = G.lastNode();
+        node t1H = H.newNode(), t2H = H.newNode();
+        edge e = G.firstEdge();
+        edge f = H.newEdge(t1H,t2H);
+        HNodesToDunnart.insert( t1H, nodeShapes.value(t1) );
+        HNodesToDunnart.insert( t2H, nodeShapes.value(t2) );
+        HEdgesToDunnart.insert( f, edgeConns.value(e) );
+        QMap<node,node> lastNodes;
+        lastNodes.insert(t1,t1H);
+        lastNodes.insert(t2,t2H);
+        foreach (node r, lastNodes.keys()) {
+            node rH = lastNodes.value(r);
+            QList<node> treeNodes;
+            QList<edge> treeEdges;
+            treeNodes.append(rH);
+            QList<node> children = rootsToTaproots.keys(r);
+            foreach (node c, children) {
+                edge f = H.newEdge(rH,c);
+                HEdgesToDunnart.insert( f, edgeConns.value( leafEdges.value(c) ) );
+                treeEdges.append(f);
+                treeNodes.append(rootsToNodes.value(c));
+                treeEdges.append(rootsToEdges.value(c));
+                rootsToTaproots.remove(c);
+                rootsToNodes.remove(c);
+                rootsToEdges.remove(c);
+            }
+            rootsToNodes.insert(rH,treeNodes);
+            rootsToEdges.insert(rH,treeEdges);
+        }
+        // Now make t1 the root to the whole tree.
+        QList<node> nodes = rootsToNodes.value(t1H);
+        QList<edge> edges = rootsToEdges.value(t1H);
+        nodes.append( rootsToNodes.value(t2H) );
+        edges.append( rootsToEdges.value(t2H) );
+        edges.append(f);
+        ExternalTree *E = new ExternalTree(
+                        t1H, t1, nodes, edges, HNodesToDunnart, HEdgesToDunnart
+                    );
+        EE.append(E);
+        // Quit.
+        return;
     }
     // Now combine trees T1,...,Tn sharing a common taproot t into a single tree T.
     // T will keep t as its taproot, and will get a copy of t in H as its root r.
