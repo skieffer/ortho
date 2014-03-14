@@ -122,6 +122,32 @@ struct EdgeNode {
     QRectF bbox;
 };
 
+struct DiagEdgeNodes {
+    DiagEdgeNodes(QRectF src, QRectF tgt)
+        : srcRect(src),
+          tgtRect(tgt)
+    {
+        bbox = srcRect.united(tgtRect);
+    }
+    void setIndices(int si, int ti) {
+        srcIndex = si;
+        tgtIndex = ti;
+    }
+    // If e.g. it is a vertical edge, then 'orientation' is VERTICAL,
+    // while 'constraintDimension' is HORIZONTAL.
+    vpsc::Dim orientation;
+    vpsc::Dim constraintDimension;
+    int srcIndex;
+    int tgtIndex;
+    QRectF srcRect;
+    QRectF tgtRect;
+    QRectF bbox;
+    int initIndex;
+    // TODO:
+    QRectF box(int j);
+    int size(void);
+};
+
 class ExternalTree {
 public:
     // inner structs
@@ -222,6 +248,7 @@ public:
     void placeRootAt(QPointF p);
     bool needsAlignmentOffset(void);
     double alignmentOffset(void);
+    Avoid::Polygon nodeAvoidPolygon(node n);
 
     void translateByBottomCentrePoint2(QPointF p);
     void hFlip2(void);
@@ -581,7 +608,12 @@ public:
     cola::SeparationConstraint *sepCoForNodes(vpsc::Dim dim, node s, node t, double gap);
     OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af, double offset = 0);
     cola::CompoundConstraints ordAlignsForEdges(void);
+    QList<DiagEdgeNodes*> genDiagEdgeNodesForFace(face f);
     QList<EdgeNode*> genEdgeNodesForFace(ACAFlags af0, face f);
+    cola::CompoundConstraints genNodeDiagEdgeSepCos(vpsc::Dim dim,
+                                                QList<node> ns,
+                                                QList<DiagEdgeNodes*> ens,
+                                                double gap);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
                                                 QList<node> ns,
                                                 QList<EdgeNode*> ens,

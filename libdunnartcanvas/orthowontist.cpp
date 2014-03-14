@@ -79,8 +79,10 @@
 
 #include "libogdf/ogdf/tree/TreeLayout.h"
 
-#include "libavoid/connend.h"
-#include "libavoid/connector.h"
+//#include "libavoid/connend.h"
+//#include "libavoid/connector.h"
+//#include "libavoid/router.h"
+#include "libavoid/libavoid.h"
 
 #include "libdunnartcanvas/orthowontist.h"
 
@@ -1616,8 +1618,8 @@ void ExternalTree::rotate(Orientation ori) {
 
 void ExternalTree::routeEdges(void) {
     using namespace Avoid;
-    ConnDirFlag entry = m_orientation == topToBottom ? ConnDirUp :
-                        m_orientation == bottomToTop ? ConnDirDown :
+    ConnDirFlag entry = m_orientation == topToBottom ? ConnDirDown :
+                        m_orientation == bottomToTop ? ConnDirUp :
                         m_orientation == leftToRight ? ConnDirLeft :
                                                        ConnDirRight;
     Router *router2 = new Router(OrthogonalRouting);
@@ -1643,11 +1645,19 @@ void ExternalTree::routeEdges(void) {
     }
     // Do the routing.
     router2->processTransaction();
+    bool debug = true;
+    if (debug) {
+        ShapeObj *sh = m_dunnartShapes.value(m_root);
+        QString fn = QString("ExternalTree-%1").arg(sh->internalId());
+        router2->outputDiagramSVG(fn.toStdString());
+    }
     // Apply the routes to the connectors.
     forall_edges(e,*m_graph) {
         ConnRef *cref = eToCR.value(e);
         Connector *conn = m_dunnartConns.value(e);
-        conn->applyNewRoute(cref->displayRoute(),true);
+        if (conn!=NULL) {
+            conn->applyNewRoute(cref->displayRoute(),true);
+        }
     }
 }
 
@@ -2047,6 +2057,20 @@ double ExternalTree::alignmentOffset(void) {
     return offset;
 }
 
+Avoid::Polygon ExternalTree::nodeAvoidPolygon(node n) {
+    using namespace Avoid;
+    Polygon P(4);
+    double cx = m_ga->x(n), cy = m_ga->y(n);
+    double w = m_ga->width(n), h = m_ga->height(n);
+    double x = cx - w/2, y = cy - h/2;
+    double X = x + w, Y = y + h;
+    P.setPoint(0,Point(x,y));
+    P.setPoint(1,Point(X,y));
+    P.setPoint(2,Point(X,Y));
+    P.setPoint(3,Point(x,Y));
+    return P;
+}
+
 // ------------------------------------------------------------------
 // Orthowontist -----------------------------------------------------
 
@@ -2361,6 +2385,12 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
             //B->orthogonalRouting(true);
         }
         m_canvas->restart_graph_layout();
+
+        m_canvas->stop_graph_layout();
+
+        foreach (ExternalTree *E, EE) {
+            E->routeEdges();
+        }
 
     }
 
