@@ -145,6 +145,8 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         }
     }
 
+    m_ga->writeGML("pre-planarization.gml");
+
     // Planarize by replacing each crossing with a dummy node.
     //
     // TODO: Should perturb graph if necessary so that no edge crosses over
@@ -2010,8 +2012,10 @@ void Planarization::addBendsForDiagonalEdges(void) {
             node b = m_graph->newNode();
             m_ga->x(b) = p.x;
             m_ga->y(b) = p.y;
-            m_ga->width(b) = m_dummyNodeSize.width();
-            m_ga->height(b) = m_dummyNodeSize.height();
+            //m_ga->width(b) = m_dummyNodeSize.width();
+            //m_ga->height(b) = m_dummyNodeSize.height();
+            m_ga->width(b) = 1;
+            m_ga->height(b) = 1;
             routeNodes.append(b);
             m_bendNodes.append(b);
         }

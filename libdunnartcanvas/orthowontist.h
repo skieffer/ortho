@@ -218,6 +218,7 @@ public:
     void translateByBottomCentrePoint(QPointF p);
     void hFlip(void);
     void rotate(ogdf::Orientation ori);
+    void routeEdges(void);
     void placeRootAt(QPointF p);
     bool needsAlignmentOffset(void);
     double alignmentOffset(void);

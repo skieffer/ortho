@@ -79,6 +79,9 @@
 
 #include "libogdf/ogdf/tree/TreeLayout.h"
 
+#include "libavoid/connend.h"
+#include "libavoid/connector.h"
+
 #include "libdunnartcanvas/orthowontist.h"
 
 //#define CGAL
@@ -558,7 +561,7 @@ void BiComp::layout3(void) {
     }
 
     // Build planarization.
-    bool orthoDiagonals = true;
+    bool orthoDiagonals = false;
     m_planarization = new Planarization(*m_graph, *m_ga,
         aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes,
                                         orthoDiagonals);
@@ -576,7 +579,7 @@ void BiComp::layout3(void) {
     foreach (node root, m2_rootsToTrees.keys()) {
         ogdf::Orientation ori = m_planarization->treeOrientation(root);
         ExternalTree *E = m2_rootsToTrees.value(root);
-        E->orientation(ori);
+        //E->orientation(ori);
         //E->treeLayout();
         E->rotate(ori);
         QSizeF size = E->rootlessBBox().size();
@@ -1591,6 +1594,7 @@ bool ExternalTree::symmetricLayout2(double g) {
   * Coords will be rotated around the origin.
   */
 void ExternalTree::rotate(Orientation ori) {
+    m_orientation = ori;
     node n;
     forall_nodes(n,*m_graph) {
         double x = m_ga->x(n), y = m_ga->y(n);
@@ -1607,6 +1611,43 @@ void ExternalTree::rotate(Orientation ori) {
         }
         m_ga->x(n) = u;
         m_ga->y(n) = v;
+    }
+}
+
+void ExternalTree::routeEdges(void) {
+    using namespace Avoid;
+    ConnDirFlag entry = m_orientation == topToBottom ? ConnDirUp :
+                        m_orientation == bottomToTop ? ConnDirDown :
+                        m_orientation == leftToRight ? ConnDirLeft :
+                                                       ConnDirRight;
+    Router *router2 = new Router(OrthogonalRouting);
+    // Add nodes to router
+    node n;
+    forall_nodes(n,*m_graph) {
+        Polygon poly = nodeAvoidPolygon(n);
+        new ShapeRef(router2, poly);
+    }
+    // Add edges to router
+    // Keep a mapping from edge objects to ConnRef objects.
+    QMap<edge,ConnRef*> eToCR;
+    edge e;
+    forall_edges(e,*m_graph) {
+        ConnRef *cref = new ConnRef(router2);
+        eToCR.insert(e,cref);
+        node s = e->source(), t = e->target();
+        double sx = m_ga->x(s), sy = m_ga->y(s);
+        double tx = m_ga->x(t), ty = m_ga->y(t);
+        ConnEnd srcPt(Point(sx, sy),ConnDirAll);
+        ConnEnd dstPt(Point(tx, ty),entry);
+        cref->setEndpoints(srcPt, dstPt);
+    }
+    // Do the routing.
+    router2->processTransaction();
+    // Apply the routes to the connectors.
+    forall_edges(e,*m_graph) {
+        ConnRef *cref = eToCR.value(e);
+        Connector *conn = m_dunnartConns.value(e);
+        conn->applyNewRoute(cref->displayRoute(),true);
     }
 }
 
@@ -2156,8 +2197,8 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
 void Orthowontist::run2(QList<CanvasItem*> items) {
     bool debug = true;
-    bool useColours = false;
-    bool showNumbers = false;
+    bool useColours = true;
+    bool showNumbers = true;
     bool drawStubnodes = false;
     bool drawDummynodes = false;
     shapemap nodeShapes;
@@ -2311,6 +2352,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         foreach (ExternalTree *E, EE) {
             E->updateShapePositions();
             E->orthogonalRouting(true);
+            E->routeEdges();
         }
 
 
