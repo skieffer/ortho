@@ -348,12 +348,13 @@ Canvas::~Canvas()
 
 bool Canvas::loadGmlDiagram(const QFileInfo& fileInfo)
 {
-    setOptFitWithinPage(true);
-    setOptAutomaticGraphLayout(true);
+    setOptFitWithinPage(false);
+    setOptAutomaticGraphLayout(false);
     setOptShapeNonoverlapPadding(10);
     int cxoff, cyoff;
-    m_gml_graph = new gml::Graph(this, fileInfo.absolutePath().toStdString(),
+    m_gml_graph = new gml::Graph(this, fileInfo.absoluteFilePath().toStdString(),
             gml::Page(this), gml::COff(cxoff, cyoff));
+    m_gml_graph->drawShapesAndConnectors();
     return true;
 }
 

@@ -79,6 +79,11 @@
 
 #include "libogdf/ogdf/tree/TreeLayout.h"
 
+//#include "libavoid/connend.h"
+//#include "libavoid/connector.h"
+//#include "libavoid/router.h"
+#include "libavoid/libavoid.h"
+
 #include "libdunnartcanvas/orthowontist.h"
 
 //#define CGAL
@@ -503,6 +508,82 @@ void BiComp::layout2(void) {
         ExternalTree *E = m2_rootsToTrees.value(root);
         E->orientation(ori);
         E->treeLayout();
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
+    // Inform of the new sizes.
+    m_planarization->setTreeSizes(treeSizes);
+
+    // Expand to make room for trees.
+    m_planarization->expand(10);
+
+    // Lay out with "neighbour stress", in order to evenly
+    // distribute nodes.
+    m_planarization->distribWithNbrStress();
+
+    // Update node positions.
+    m_planarization->translateNodes(*m_graph, *m_ga);
+
+    // Translate trees.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        m_planarization->translateTree(E,root);
+    }
+
+}
+
+void BiComp::layout3(void) {
+    bool debug = true;
+
+    // Build and run ACA Layout.
+    ACALayout *aca = new ACALayout(*m_graph, *m_ga);
+
+    QMap<node,int> nodeIndices = aca->nodeIndices();
+    std::vector<cola::Edge> colaEdges = aca->colaEdges();
+
+    aca->debugName("BC");
+    //aca->idealLength(m_idealLength);
+    //aca->nodePadding(m_nodePadding);
+    aca->idealLength(1);
+    aca->edgeLengths(edgeLengths(nodeIndices,colaEdges));
+    //aca->nodePadding(nodePadding(nodeIndices));
+    aca->run();
+    aca->readPositions(*m_graph, *m_ga);
+
+    // Give trees an initial layout, just so we know their sizes.
+    QMap<node,QSizeF> treeSizes;
+    double g = m_dummyNodeSize.width();
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        //E->treeLayout();
+        E->symmetricLayout2(g);
+        QSizeF size = E->rootlessBBox().size();
+        treeSizes.insert(root,size);
+    }
+
+    // Build planarization.
+    bool orthoDiagonals = false;
+    m_planarization = new Planarization(*m_graph, *m_ga,
+        aca->alignments(*m_graph), m_dummyNodeSize, m_dunnartShapes,
+                                        orthoDiagonals);
+    m_planarization->filename = filename;
+    m_planarization->removeOverlaps();
+    m_planarization->setTreeSizes(treeSizes);
+    m_planarization->defineRootNodes(m2_rootsToTrees.keys());
+    m_planarization->assignTrees(m2_rootsToTrees);
+    m_planarization->idealLength(m_idealLength);
+    //m_planarization->chooseFDTreeFaces();
+    //m_planarization->chooseCombTreeFaces();
+    m_planarization->chooseGreedyTreeFaces();
+
+    // Now rotate the trees into the chosen orientations.
+    foreach (node root, m2_rootsToTrees.keys()) {
+        ogdf::Orientation ori = m_planarization->treeOrientation(root);
+        ExternalTree *E = m2_rootsToTrees.value(root);
+        //E->orientation(ori);
+        //E->treeLayout();
+        E->rotate(ori);
         QSizeF size = E->rootlessBBox().size();
         treeSizes.insert(root,size);
     }
@@ -1363,8 +1444,10 @@ QList<ExternalTree*> ExternalTree::cTrees2(void) {
 }
 
 bool ExternalTree::symmetricLayout2(double g) {
-    // Root node goes to (0,0).
-    m2_root->setCentre(QPointF(0,0));
+    bool debug = true;
+    // Place root with centre-top point at (0,0).
+    double hRoot = m2_root->height();
+    m2_root->setCentre(QPointF(0,-hRoot/2));
     // If just a root node, then done.
     if (m2_depth == 1) {
         m2_actuallySymmetric = true;
@@ -1372,14 +1455,16 @@ bool ExternalTree::symmetricLayout2(double g) {
     }
     // Otherwise get the isomorphism classes of the c-trees.
     QList<TreeIsomClass*> cls = getIsomClasses2();
-    // Recursive step: do symmetric layout on representative of each isom class.
+    // Recursive step: do symmetric layout on the members of each isom class.
+    // (Since the individual members of the class represent different nodes in
+    //  the original tree, they actually do all need to be laid out!)
     foreach (TreeIsomClass *cl, cls) {
-        cl->rep->symmetricLayout2(g);
+        cl->symmetricLayout(g);
     }
     // Sort the classes.
     qSort(cls.begin(), cls.end(), compareTreeIsomClassPtrs);
     // In particular if there are any classes of odd order then they come first.
-    // Test whether our layout is going to be actually symmetric.
+    // Determine whether our layout is going to be actually symmetric.
     TreeIsomClass *cl0 = cls.at(0);
     if (cl0->even()) {
         // If there are no odd-order classes, then layout will be symmetric.
@@ -1410,22 +1495,177 @@ bool ExternalTree::symmetricLayout2(double g) {
     if (cl0->actuallySymmetric() && !cl0->even()) {
         C = cl0->rep;
         // Start loop from j = 1 so we get one fewer copies of this tree.
-        for (int j = 1; j < cl0->numMembers; j++) trees.append(cl0->rep);
+        for (int j = 1; j < cl0->numMembers; j++) trees.append(cl0->member(j));
         // And skip class 0 in loop we're about to do.
         i0 = 1;
     }
+    // For each isomorphism class, add all members.
     for (int i = i0; i < cls.size(); i++) {
         TreeIsomClass *cl = cls.at(i);
-        for (int j = 0; j < cl->numMembers; j++) trees.append(cl->rep);
+        trees.append(cl->members);
     }
     // Now assign the trees to L and R, alternately.
-    //...
+    // Flip those in R, horizontally.
+    bool leftNext = true;
+    foreach (ExternalTree *t, trees) {
+        if (leftNext) {
+            L.push_front(t);
+            leftNext = false;
+        } else {
+            t->hFlip2();
+            R.push_back(t);
+            leftNext = true;
+        }
+    }
+    // Assemble the full left-to-right list of trees
+    trees.clear();
+    trees.append(L);
+    if (C!=NULL) trees.append(C);
+    trees.append(R);
+    // Now arrange them side-by-side.
+    // All trees will be placed so that the bottom of their root node is at height g,
+    // so it is purely a matter of assigning x-coords.
+    // We start with the first tree at x = 0, but
+    // afterward we will centre the whole row of trees above the root node.
+    ExternalTree *t0 = trees.takeFirst();
+    t0->translateByBottomCentrePoint2(QPointF(0,g));
+
+//#define PACKINGMETHOD
+#ifdef PACKINGMETHOD
+    // Initialize vector of rightmost occupied x-coords in each open rank.
+    QList<double> Rx = t0->rightExtremes2();
+    // Place the remaining trees.
+    foreach (ExternalTree *t, trees) {
+        // Get leftmost occupied x-coords in the ranks of t.
+        QList<double> Lx = t->leftExtremes2();
+        // Each rank demands a minimum separation. Take the max of these.
+        // We only need consider ranks belonging to /both/ Rx and Lx.
+        double x0 = 0;
+        int N = min(Rx.size(), Lx.size());
+        for (int i = 0; i < N; i++) {
+            double r = Rx.at(i), l = abs(Lx.at(i));
+            x0 = max(x0, r + g + l);
+        }
+
+        if (debug) qDebug() << QString("x0 = %1").arg(x0);
+
+        // Place the tree at (x0,g).
+        t->translateByBottomCentrePoint2(QPointF(x0,g));
+        // Update the rightmost coords.
+        QList<double> Tx = t->rightExtremes2();
+        for (int i = 0; i < Tx.size(); i++) {
+            if (i < N) {
+                Rx[i] = Tx[i];
+            } else {
+                Rx.append(Tx[i]);
+            }
+        }
+    }
+#else
+    // Initialize rightmost occupied x-coord.
+    double rx = t0->rightExtreme2();
+    // Place the remaining trees.
+    foreach (ExternalTree *t, trees) {
+        // Get leftmost occupied x-coord of t.
+        double lx = t->leftExtreme2();
+        double x0 = rx + g + abs(lx);
+
+        if (debug) qDebug() << QString("x0 = %1").arg(x0);
+
+        // Place the tree at (x0,g).
+        t->translateByBottomCentrePoint2(QPointF(x0,g));
+        // Update the rightmost coord.
+        rx = t->rightExtreme2();
+    }
+#endif
+    trees.push_front(t0);
+    // Finally, centre this row of trees over the root, i.e. around the line x = 0.
+    double xMin = t0->leftExtreme2(), xMax = trees.last()->rightExtreme2();
+    double xMid = (xMax+xMin)/2;
+    foreach (ExternalTree *t, trees) {
+        t->m2_root->translate(QPointF(-xMid,0));
+    }
+    // Say whether the result was symmetric or not.
+    return m2_actuallySymmetric;
+}
+
+/***
+  * This method assumes that the tree has already been laid out in the topToBottom
+  * orientation, i.e. with y-coords increasing from root node to nodes of higher
+  * rank (pos. y-axis extends downward).
+  * Coords will be rotated around the origin.
+  */
+void ExternalTree::rotate(Orientation ori) {
+    m_orientation = ori;
+    node n;
+    forall_nodes(n,*m_graph) {
+        double x = m_ga->x(n), y = m_ga->y(n);
+        double u = 0, v = 0;
+        switch (ori) {
+        case ogdf::topToBottom:
+            u = x; v = -y; break;
+        case ogdf::bottomToTop:
+            u = -x; v = y; break;
+        case ogdf::leftToRight:
+            u = y; v = -x; break;
+        case ogdf::rightToLeft:
+            u = -y; v = -x; break;
+        }
+        m_ga->x(n) = u;
+        m_ga->y(n) = v;
+    }
+}
+
+void ExternalTree::routeEdges(void) {
+    using namespace Avoid;
+    ConnDirFlag entry = m_orientation == topToBottom ? ConnDirDown :
+                        m_orientation == bottomToTop ? ConnDirUp :
+                        m_orientation == leftToRight ? ConnDirLeft :
+                                                       ConnDirRight;
+    Router *router2 = new Router(OrthogonalRouting);
+    // Add nodes to router
+    node n;
+    forall_nodes(n,*m_graph) {
+        Polygon poly = nodeAvoidPolygon(n);
+        new ShapeRef(router2, poly);
+    }
+    // Add edges to router
+    // Keep a mapping from edge objects to ConnRef objects.
+    QMap<edge,ConnRef*> eToCR;
+    edge e;
+    forall_edges(e,*m_graph) {
+        ConnRef *cref = new ConnRef(router2);
+        eToCR.insert(e,cref);
+        node s = e->source(), t = e->target();
+        double sx = m_ga->x(s), sy = m_ga->y(s);
+        double tx = m_ga->x(t), ty = m_ga->y(t);
+        ConnEnd srcPt(Point(sx, sy),ConnDirAll);
+        ConnEnd dstPt(Point(tx, ty),entry);
+        cref->setEndpoints(srcPt, dstPt);
+    }
+    // Do the routing.
+    router2->processTransaction();
+    bool debug = true;
+    if (debug) {
+        ShapeObj *sh = m_dunnartShapes.value(m_root);
+        QString fn = QString("ExternalTree-%1").arg(sh->internalId());
+        router2->outputDiagramSVG(fn.toStdString());
+    }
+    // Apply the routes to the connectors.
+    forall_edges(e,*m_graph) {
+        ConnRef *cref = eToCR.value(e);
+        Connector *conn = m_dunnartConns.value(e);
+        if (conn!=NULL) {
+            conn->applyNewRoute(cref->displayRoute(),true);
+        }
+    }
 }
 
 ExternalTree::ExternalTree(TreeNode *r) :
     m_rootInG(NULL),
     m_orientation(ogdf::topToBottom),
-    m2_root(r)
+    m2_root(r),
+    m2_numNodes(0)
 {
     // For now we try initialising just the "m2" data. Maybe this is enough....
     // Note that all TreeNodes will point back to the original ExternalTree object
@@ -1441,6 +1681,7 @@ ExternalTree::ExternalTree(TreeNode *r) :
     queue.push_back(m2_root);
     while (!queue.empty()) {
         TreeNode *tn = queue.takeFirst();
+        m2_numNodes++;
         if (tn->kids.empty()) {
             tn->isLeaf = true;
             m2_leaves.append(tn);
@@ -1473,12 +1714,14 @@ QString ExternalTree::computeIsomString2(void) {
     // Now compute isomNums and isomTuples for all levels above the deepest.
     QStringList levelIsomStrings;
     for (int i = d-2; i >= 0; i--) {
+        // Clear the tuples of the nonleaves on level i.
+        QList<TreeNode*> nonleaves = nonleavesOfRank(i);
+        foreach (TreeNode *tn, nonleaves) tn->isomTuple.clear();
         // For nodes v in L, insert v's number into the tuple of its parent.
         foreach (TreeNode *tn, L) {
             tn->parent->isomTuple.append(tn->isomNumber);
         }
         // Sort nonleaves of level i by tuple.
-        QList<TreeNode*> nonleaves = nonleavesOfRank(i);
         // Must sort using explicit comparison function, since it is a list of pointers, not objects:
         qSort(nonleaves.begin(), nonleaves.end(), compareTreeNodePtrs);
         // Record this level's isomString
@@ -1522,7 +1765,7 @@ QList<ExternalTree::TreeIsomClass*> ExternalTree::getIsomClasses2(QList<External
     QList<ExternalTree::TreeIsomClass*> isomClasses;
     foreach (QString s, keys) {
         QList<ExternalTree*> reps = treesByIsomString.values(s);
-        TreeIsomClass *cl = new TreeIsomClass(reps.first(),reps.size());
+        TreeIsomClass *cl = new TreeIsomClass(reps);
         isomClasses.append(cl);
     }
     return isomClasses;
@@ -1695,9 +1938,93 @@ void ExternalTree::translate(QPointF p) {
     }
 }
 
+/***
+  * Translate the whole tree rigidly so that the root ends up
+  * with its centre at p.
+  */
+void ExternalTree::translateByRoot(QPointF p) {
+    QPointF v(p.x() - m_ga->x(m_root), p.y() - m_ga->y(m_root));
+    translate(v);
+}
+
+/***
+  * Translate the whole tree rigidly so that the root ends up
+  * with its centre-bottom point at p.
+  */
+void ExternalTree::translateByBottomCentrePoint(QPointF p) {
+    double h = m_ga->height(m_root);
+    p += QPointF(0,h/2);
+    translateByRoot(p);
+}
+
+void ExternalTree::translateByBottomCentrePoint2(QPointF p) {
+    QPointF c = m2_root->getCentre();
+    double h = m2_root->height();
+    QPointF b = p + QPointF(0,h/2);
+    QPointF v = b - c;
+    m2_root->translate(v);
+}
+
 void ExternalTree::placeRootAt(QPointF p) {
     m_ga->x(m_root) = p.x();
     m_ga->y(m_root) = p.y();
+}
+
+void ExternalTree::hFlip(void) {
+    node n = NULL;
+    forall_nodes(n,*m_graph) {
+        m_ga->x(n) *= -1;
+    }
+}
+
+void ExternalTree::hFlip2(void) {
+    m2_root->hFlip();
+}
+
+QList<double> ExternalTree::rightExtremes2(void) {
+    QList<double> X;
+    for (int i = 0; i < m2_depth; i++) {
+        QList<TreeNode*> rank = m2_ranks.values(i);
+        double x0 = DBL_MIN;
+        foreach (TreeNode *tn, rank) {
+            double x = tn->x() + tn->width()/2;
+            if (x > x0) x0 = x;
+        }
+        X.append(x0);
+    }
+    return X;
+}
+
+QList<double> ExternalTree::leftExtremes2(void) {
+    QList<double> X;
+    for (int i = 0; i < m2_depth; i++) {
+        QList<TreeNode*> rank = m2_ranks.values(i);
+        double x0 = DBL_MAX;
+        foreach (TreeNode *tn, rank) {
+            double x = tn->x() - tn->width()/2;
+            if (x < x0) x0 = x;
+        }
+        X.append(x0);
+    }
+    return X;
+}
+
+double ExternalTree::rightExtreme2(void) {
+    double x0 = DBL_MIN;
+    QList<double> X = rightExtremes2();
+    foreach (double x, X) {
+        x0 = max(x0,x);
+    }
+    return x0;
+}
+
+double ExternalTree::leftExtreme2(void) {
+    double x0 = DBL_MAX;
+    QList<double> X = leftExtremes2();
+    foreach (double x, X) {
+        x0 = min(x0,x);
+    }
+    return x0;
 }
 
 /** A tree might need an alignment offset only if its
@@ -1728,6 +2055,20 @@ double ExternalTree::alignmentOffset(void) {
         }
     }
     return offset;
+}
+
+Avoid::Polygon ExternalTree::nodeAvoidPolygon(node n) {
+    using namespace Avoid;
+    Polygon P(4);
+    double cx = m_ga->x(n), cy = m_ga->y(n);
+    double w = m_ga->width(n), h = m_ga->height(n);
+    double x = cx - w/2, y = cy - h/2;
+    double X = x + w, Y = y + h;
+    P.setPoint(0,Point(x,y));
+    P.setPoint(1,Point(X,y));
+    P.setPoint(2,Point(X,Y));
+    P.setPoint(3,Point(x,Y));
+    return P;
 }
 
 // ------------------------------------------------------------------
@@ -1926,6 +2267,21 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         }
     }
 
+    // Was the graph in fact a tree?
+    // Due to the way removeExternalTrees works, G will now contain fewer than 3 nodes iff
+    // it was a tree to begin with.
+    if (G.numberOfNodes()<3) {
+        ExternalTree *E = EE.first();
+        E->symmetricLayout2(avgDim);
+
+        m_canvas->stop_graph_layout();
+        E->updateShapePositions();
+        E->orthogonalRouting(true);
+        m_canvas->restart_graph_layout();
+        return;
+
+    }
+
     // 2. Get nontrivial biconnected components (size >= 3), and get the
     // set of cutnodes in G.
     QList<BiComp*> BB;
@@ -1975,7 +2331,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         B->nodePadding(nodePadding);
         B->dummyNodeSize(QSizeF(avgDim,avgDim));
         B->filename = filename;
-        B->layout2();
+        B->layout3();
     }
 
     /*
@@ -2020,6 +2376,7 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
         foreach (ExternalTree *E, EE) {
             E->updateShapePositions();
             E->orthogonalRouting(true);
+            E->routeEdges();
         }
 
 
@@ -2028,6 +2385,12 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
             //B->orthogonalRouting(true);
         }
         m_canvas->restart_graph_layout();
+
+        m_canvas->stop_graph_layout();
+
+        foreach (ExternalTree *E, EE) {
+            E->routeEdges();
+        }
 
     }
 
@@ -2126,7 +2489,7 @@ void Orthowontist::removeExternalTrees(QList<ExternalTree *> &EE, Graph &G,
     // Will need to map leaves in G to the edges of G that attached them, before removed.
     QMap<node,edge> leafEdges;
 
-    while (nodesByDegree.value(1).size() > 0) {
+    while (nodesByDegree.value(1).size() > 0 && G.numberOfNodes() >= 3) {
         // Grab the degree-1 nodes, and replace with an empty set in the nodesByDegree map.
         QSet<node> degreeOneNodes = nodesByDegree.value(1);
         QSet<node> set;
@@ -2177,6 +2540,58 @@ void Orthowontist::removeExternalTrees(QList<ExternalTree *> &EE, Graph &G,
             degN.insert(t);
             nodesByDegree.insert(n,degN);
         }
+    }
+    // How did we exit the loop? Was it because the number of nodes in G dropped below 3?
+    // If it dropped to 1, then the normal code can handle it. (We will get one tree, which
+    // equals the whole original graph G, and G itself will be left with exactly 1 node in it.)
+    // Only if the number of nodes in G dropped to 2 do we need a special handler.
+    if (G.numberOfNodes()==2) {
+        // Again the whole graph G was just a single tree.
+        // It does not have a single centre (as defined by Manning and Atallah); instead the
+        // two remaining nodes are its two centres.
+        // We just pick one at random to be the root of the tree.
+        // G will be left with exactly 2 nodes in it.
+        node t1 = G.firstNode(), t2 = G.lastNode();
+        node t1H = H.newNode(), t2H = H.newNode();
+        edge e = G.firstEdge();
+        edge f = H.newEdge(t1H,t2H);
+        HNodesToDunnart.insert( t1H, nodeShapes.value(t1) );
+        HNodesToDunnart.insert( t2H, nodeShapes.value(t2) );
+        HEdgesToDunnart.insert( f, edgeConns.value(e) );
+        QMap<node,node> lastNodes;
+        lastNodes.insert(t1,t1H);
+        lastNodes.insert(t2,t2H);
+        foreach (node r, lastNodes.keys()) {
+            node rH = lastNodes.value(r);
+            QList<node> treeNodes;
+            QList<edge> treeEdges;
+            treeNodes.append(rH);
+            QList<node> children = rootsToTaproots.keys(r);
+            foreach (node c, children) {
+                edge f = H.newEdge(rH,c);
+                HEdgesToDunnart.insert( f, edgeConns.value( leafEdges.value(c) ) );
+                treeEdges.append(f);
+                treeNodes.append(rootsToNodes.value(c));
+                treeEdges.append(rootsToEdges.value(c));
+                rootsToTaproots.remove(c);
+                rootsToNodes.remove(c);
+                rootsToEdges.remove(c);
+            }
+            rootsToNodes.insert(rH,treeNodes);
+            rootsToEdges.insert(rH,treeEdges);
+        }
+        // Now make t1 the root to the whole tree.
+        QList<node> nodes = rootsToNodes.value(t1H);
+        QList<edge> edges = rootsToEdges.value(t1H);
+        nodes.append( rootsToNodes.value(t2H) );
+        edges.append( rootsToEdges.value(t2H) );
+        edges.append(f);
+        ExternalTree *E = new ExternalTree(
+                        t1H, t1, nodes, edges, HNodesToDunnart, HEdgesToDunnart
+                    );
+        EE.append(E);
+        // Quit.
+        return;
     }
     // Now combine trees T1,...,Tn sharing a common taproot t into a single tree T.
     // T will keep t as its taproot, and will get a copy of t in H as its root r.

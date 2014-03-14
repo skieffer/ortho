@@ -145,6 +145,8 @@ Planarization::Planarization(Graph &G, GraphAttributes &GA,
         }
     }
 
+    m_ga->writeGML("pre-planarization.gml");
+
     // Planarize by replacing each crossing with a dummy node.
     //
     // TODO: Should perturb graph if necessary so that no edge crosses over
@@ -846,6 +848,25 @@ vpsc::Rectangle *Planarization::vpscNodeRect(node n, bool doubleSize) {
     return new vpsc::Rectangle(x,X,y,Y);
 }
 
+QList<DiagEdgeNodes*> Planarization::genDiagEdgeNodesForFace(face f) {
+    QList<DiagEdgeNodes*> ens;
+    adjEntry ae = f->firstAdj();
+    int J = f->size();
+    for (int j = 0; j < J; j++) {
+        if (j>0) ae = f->nextFaceEdge(ae);//put this at top in case of 'continue's below
+        edge e = ae->theEdge();
+        ACAFlags af = (ACAFlags) m_alignments.value(e);
+        if ( (af & ACAHORIZ) || (af & ACAVERT) ) continue;
+        node n = ae->theNode(), t = ae->twinNode();
+        QRectF Rn = nodeRect(n), Rt = nodeRect(t);
+        DiagEdgeNodes *E = new DiagEdgeNodes(Rn,Rt);
+        int ni = m_nodeIndices.value(n), ti = m_nodeIndices.value(t);
+        E->setIndices(ni,ti);
+        ens.append(E);
+    }
+    return ens;
+}
+
 QList<EdgeNode*> Planarization::genEdgeNodesForFace(ACAFlags af0, face f) {
     QList<EdgeNode*> ens;
     adjEntry ae = f->firstAdj();
@@ -868,6 +889,85 @@ QList<EdgeNode*> Planarization::genEdgeNodesForFace(ACAFlags af0, face f) {
         ens.append(E);
     }
     return ens;
+}
+
+/***
+  * Generate separation constraints to keep the nodes a distance of gap away from
+  * the DiagEdgeNodes, in the dimension requested.
+  */
+cola::CompoundConstraints Planarization::genNodeDiagEdgeSepCos(
+        vpsc::Dim dim, QList<node> ns, QList<DiagEdgeNodes*> ens, double gap) {
+    bool debug = true;
+    cola::CompoundConstraints ccs;
+    double pad = gap/2;
+    unsigned int priority = cola::PRIORITY_NONOVERLAP - 1; //copied from colafd.cpp. What does it do?
+    cola::NonOverlapConstraints *noc =
+            new cola::NonOverlapConstraints(priority);
+    // Total number of dummy nodes:
+    int Ne = 0;
+    foreach (DiagEdgeNodes *d, ens) {
+        Ne += d->size();
+    }
+    // Number of real nodes:
+    int Nn = ns.size();
+    // Variables and Rectangles.
+    vpsc::Variables vs;
+    vpsc::Rectangles rs;
+    // Add real nodes first.
+    for (int j = 0; j < Nn; j++) {
+        node s = ns.at(j);
+        double w=m_ga->width(s), h=m_ga->height(s);
+        double cx=m_ga->x(s), cy=m_ga->y(s);
+        double p = dim == vpsc::HORIZONTAL ? cx : cy;
+        noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
+        vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
+        vs.push_back(v);
+        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2,cx+w/2,cy-h/2,cy+h/2);
+        rs.push_back(r);
+    }
+    // Add edgenodes.
+    QMap<int,DiagEdgeNodes*> rectIndexToDEN;
+    int i = Nn;
+    foreach (DiagEdgeNodes *d, ens) {
+        for (int j = 0; j < d->size(); j++) {
+            // Record init index.
+            if (j==0) d->initIndex = i;
+            QRectF box = d->box(j);
+            // Create Variable and Rectangle.
+            noc->addShape(i, box.width()/2 + pad, box.height()/2 + pad);
+            double p = dim==vpsc::HORIZONTAL ? box.center().x() : box.center().y();
+            vpsc::Variable *v = new vpsc::Variable(i,p);
+            vs.push_back(v);
+            vpsc::Rectangle *r = new vpsc::Rectangle(box.left(),box.right(),box.top(),box.bottom());
+            rs.push_back(r);
+            // Note that this rectangle index points to this DiagEdgeNodes object.
+            rectIndexToDEN.insert(i,d);
+            i++;
+        }
+    }
+    // Generate vpsc constraints.
+    vpsc::Constraints cs;
+    noc->generateSeparationConstraints(dim,vs,cs,rs);
+    // Convert into cola constraints.
+    foreach (vpsc::Constraint *c, cs) {
+        int l = c->left->id, r = c->right->id;
+
+        // Reject constraints that hold between two edgenodes or two normal nodes.
+        if ( (l < Nn && r < Nn) || (l >= Nn && r >= Nn) ) continue;
+
+        // TODO ...
+
+        // Convert IDs to global indices.
+        l = l < Ne ? ens.at(l)->srcIndex : m_nodeIndices.value(ns.at(l-Ne));
+        r = r < Ne ? ens.at(r)->srcIndex : m_nodeIndices.value(ns.at(r-Ne));
+
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,c->gap);
+        ccs.push_back(s);
+    }
+    // Clean up
+    // FIXME: why does this cause segfaults?
+    //foreach (vpsc::Variable *v, vs) delete v;
+    return ccs;
 }
 
 /***
@@ -2010,8 +2110,10 @@ void Planarization::addBendsForDiagonalEdges(void) {
             node b = m_graph->newNode();
             m_ga->x(b) = p.x;
             m_ga->y(b) = p.y;
-            m_ga->width(b) = m_dummyNodeSize.width();
-            m_ga->height(b) = m_dummyNodeSize.height();
+            //m_ga->width(b) = m_dummyNodeSize.width();
+            //m_ga->height(b) = m_dummyNodeSize.height();
+            m_ga->width(b) = 1;
+            m_ga->height(b) = 1;
             routeNodes.append(b);
             m_bendNodes.append(b);
         }

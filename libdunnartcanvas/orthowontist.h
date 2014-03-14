@@ -122,6 +122,32 @@ struct EdgeNode {
     QRectF bbox;
 };
 
+struct DiagEdgeNodes {
+    DiagEdgeNodes(QRectF src, QRectF tgt)
+        : srcRect(src),
+          tgtRect(tgt)
+    {
+        bbox = srcRect.united(tgtRect);
+    }
+    void setIndices(int si, int ti) {
+        srcIndex = si;
+        tgtIndex = ti;
+    }
+    // If e.g. it is a vertical edge, then 'orientation' is VERTICAL,
+    // while 'constraintDimension' is HORIZONTAL.
+    vpsc::Dim orientation;
+    vpsc::Dim constraintDimension;
+    int srcIndex;
+    int tgtIndex;
+    QRectF srcRect;
+    QRectF tgtRect;
+    QRectF bbox;
+    int initIndex;
+    // TODO:
+    QRectF box(int j);
+    int size(void);
+};
+
 class ExternalTree {
 public:
     // inner structs
@@ -153,15 +179,50 @@ public:
             owningTree->m_ga->x(ogdfNode) = p.x();
             owningTree->m_ga->y(ogdfNode) = p.y();
         }
+        QPointF getCentre(void) {
+            return QPointF(owningTree->m_ga->x(ogdfNode),
+                           owningTree->m_ga->y(ogdfNode));
+        }
+        double x(void) {
+            return owningTree->m_ga->x(ogdfNode);
+        }
+        double y(void) {
+            return owningTree->m_ga->y(ogdfNode);
+        }
+        double width(void) {
+            return owningTree->m_ga->width(ogdfNode);
+        }
+        double height(void) {
+            return owningTree->m_ga->height(ogdfNode);
+        }
+        void hFlip(bool recursive = true) {
+            owningTree->m_ga->x(ogdfNode) *= -1;
+            if (recursive) {
+                foreach (TreeNode *t, kids) t->hFlip();
+            }
+        }
+        void translate(QPointF v, bool recursive = true) {
+            setCentre(getCentre() + v);
+            if (recursive) {
+                foreach (TreeNode *t, kids) t->translate(v);
+            }
+        }
     };
 
     struct TreeIsomClass {
-        TreeIsomClass(ExternalTree *r, int num) :
-            numMembers(num), rep(r) {}
+        TreeIsomClass(QList<ExternalTree*> m) :
+            numMembers(m.size()), members(m), rep(m.first()) {}
         int numMembers;
+        QList<ExternalTree*> members;
         ExternalTree *rep;
+        ExternalTree *member(int i) { return members.at(i); }
         bool even(void) { return numMembers%2==0; }
         bool actuallySymmetric(void) { return rep->m2_actuallySymmetric; }
+        void symmetricLayout(double g) {
+            foreach (ExternalTree *t, members) {
+                t->symmetricLayout2(g);
+            }
+        }
         //bool operator <(const TreeIsomClass &other);
     };
 
@@ -179,12 +240,22 @@ public:
     void orthogonalRouting(bool b);
     QRectF rootlessBBox(void);
     void translate(QPointF p);
+    void translateByRoot(QPointF p);
+    void translateByBottomCentrePoint(QPointF p);
+    void hFlip(void);
+    void rotate(ogdf::Orientation ori);
+    void routeEdges(void);
     void placeRootAt(QPointF p);
     bool needsAlignmentOffset(void);
     double alignmentOffset(void);
+    Avoid::Polygon nodeAvoidPolygon(node n);
 
-    void translate2(QPointF p);
-    void rotate2(ogdf::Orientation ori);
+    void translateByBottomCentrePoint2(QPointF p);
+    void hFlip2(void);
+    QList<double> rightExtremes2(void);
+    QList<double> leftExtremes2(void);
+    double rightExtreme2(void);
+    double leftExtreme2(void);
 private:
     Graph *m_graph;
     GraphAttributes *m_ga;
@@ -537,7 +608,12 @@ public:
     cola::SeparationConstraint *sepCoForNodes(vpsc::Dim dim, node s, node t, double gap);
     OrdAlign *ordAlignForNodes(node s, node t, ACAFlags af, double offset = 0);
     cola::CompoundConstraints ordAlignsForEdges(void);
+    QList<DiagEdgeNodes*> genDiagEdgeNodesForFace(face f);
     QList<EdgeNode*> genEdgeNodesForFace(ACAFlags af0, face f);
+    cola::CompoundConstraints genNodeDiagEdgeSepCos(vpsc::Dim dim,
+                                                QList<node> ns,
+                                                QList<DiagEdgeNodes*> ens,
+                                                double gap);
     cola::CompoundConstraints genNodeEdgeSepCos(vpsc::Dim dim,
                                                 QList<node> ns,
                                                 QList<EdgeNode*> ens,
@@ -610,6 +686,7 @@ public:
     void addStubNodeForTree(ExternalTree *E, QSizeF size);
     void layout(void);
     void layout2(void);
+    void layout3(void);
     void updateShapePositions(void);
     void orthogonalRouting(bool b);
     void addStubNodeShapesToCanvas(Canvas *canvas);
