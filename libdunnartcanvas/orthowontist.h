@@ -123,12 +123,7 @@ struct EdgeNode {
 };
 
 struct DiagEdgeNodes {
-    DiagEdgeNodes(QRectF src, QRectF tgt)
-        : srcRect(src),
-          tgtRect(tgt)
-    {
-        bbox = srcRect.united(tgtRect);
-    }
+    DiagEdgeNodes(QRectF src, QRectF tgt, double d);
     void setIndices(int si, int ti) {
         srcIndex = si;
         tgtIndex = ti;
@@ -141,11 +136,44 @@ struct DiagEdgeNodes {
     int tgtIndex;
     QRectF srcRect;
     QRectF tgtRect;
+    double m_avgDim;
     QRectF bbox;
     int initIndex;
-    // TODO:
-    QRectF box(int j);
-    int size(void);
+    int m_size;
+    double m_interval;
+    QPointF m_dirVect;
+    QRectF box(int j) {
+        QPointF s = srcRect.center();
+        QPointF c = s + j*m_interval*m_dirVect;
+        double d = m_avgDim;
+        QRectF R(c.x()-d/2, c.y()-d/2, d, d);
+        return R;
+    }
+    double x0, y0, x1, y1; // coords of endpts
+    double xmin, xmax, ymin, ymax; // intervals covered
+    bool coversY(double y) {return ymin <= y && y <= ymax;}
+    bool coversX(double x) {return xmin <= x && x <= xmax;}
+    double x(double y) { return y1 == y0 ? 0 : x0+(x1-x0)*(y-y0)/(y1-y0); }
+    double y(double x) { return x1 == x0 ? 0 : y0+(y1-y0)*(x-x0)/(x1-x0); }
+    int size(void) { return m_size; }
+    QMap<int,int> m_leftOtherToOwn;
+    QMap<int,int> m_rightOtherToOwn;
+    QMap<int,QRectF> m_otherToRect;
+    QMap<int,double> m_ownToGap;
+    void addLeftConstraint(int otherNodeIndex, QRectF R,
+                           int ownNodeIndex, double gap) {
+        m_leftOtherToOwn.insertMulti(otherNodeIndex,ownNodeIndex);
+        m_ownToGap.insert(ownNodeIndex,gap);
+        m_otherToRect.insert(otherNodeIndex,R);
+    }
+
+    void addRightConstraint(int otherNodeIndex, QRectF R,
+                            int ownNodeIndex, double gap) {
+        m_rightOtherToOwn.insertMulti(otherNodeIndex,ownNodeIndex);
+        m_ownToGap.insert(ownNodeIndex,gap);
+        m_otherToRect.insert(otherNodeIndex,R);
+    }
+    void genColaConstraints(vpsc::Dim dim, cola::CompoundConstraints& ccs);
 };
 
 class ExternalTree {

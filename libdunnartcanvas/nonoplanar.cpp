@@ -859,7 +859,7 @@ QList<DiagEdgeNodes*> Planarization::genDiagEdgeNodesForFace(face f) {
         if ( (af & ACAHORIZ) || (af & ACAVERT) ) continue;
         node n = ae->theNode(), t = ae->twinNode();
         QRectF Rn = nodeRect(n), Rt = nodeRect(t);
-        DiagEdgeNodes *E = new DiagEdgeNodes(Rn,Rt);
+        DiagEdgeNodes *E = new DiagEdgeNodes(Rn,Rt,m_avgNodeDim);
         int ni = m_nodeIndices.value(n), ti = m_nodeIndices.value(t);
         E->setIndices(ni,ti);
         ens.append(E);
@@ -904,25 +904,28 @@ cola::CompoundConstraints Planarization::genNodeDiagEdgeSepCos(
     cola::NonOverlapConstraints *noc =
             new cola::NonOverlapConstraints(priority);
     // Total number of dummy nodes:
-    int Ne = 0;
-    foreach (DiagEdgeNodes *d, ens) {
-        Ne += d->size();
-    }
+    //int Ne = 0;
+    //foreach (DiagEdgeNodes *d, ens) {
+    //    Ne += d->size();
+    //}
     // Number of real nodes:
     int Nn = ns.size();
     // Variables and Rectangles.
     vpsc::Variables vs;
     vpsc::Rectangles rs;
     // Add real nodes first.
+    QMap<int,QRectF> nodeRects;
     for (int j = 0; j < Nn; j++) {
         node s = ns.at(j);
         double w=m_ga->width(s), h=m_ga->height(s);
         double cx=m_ga->x(s), cy=m_ga->y(s);
+        QRectF R(cx-w/2,cy-h/2,w,h);
+        nodeRects.insert(j,R);
         double p = dim == vpsc::HORIZONTAL ? cx : cy;
-        noc->addShape(Ne + j, w/2 + pad, h/2 + pad);
-        vpsc::Variable *v = new vpsc::Variable(Ne + j,p);
+        noc->addShape(j, w/2 + pad, h/2 + pad);
+        vpsc::Variable *v = new vpsc::Variable(j,p);
         vs.push_back(v);
-        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2,cx+w/2,cy-h/2,cy+h/2);
+        vpsc::Rectangle *r = new vpsc::Rectangle(cx-w/2-pad,cx+w/2+pad,cy-h/2-pad,cy+h/2+pad);
         rs.push_back(r);
     }
     // Add edgenodes.
@@ -938,7 +941,7 @@ cola::CompoundConstraints Planarization::genNodeDiagEdgeSepCos(
             double p = dim==vpsc::HORIZONTAL ? box.center().x() : box.center().y();
             vpsc::Variable *v = new vpsc::Variable(i,p);
             vs.push_back(v);
-            vpsc::Rectangle *r = new vpsc::Rectangle(box.left(),box.right(),box.top(),box.bottom());
+            vpsc::Rectangle *r = new vpsc::Rectangle(box.left()-pad,box.right()+pad,box.top()-pad,box.bottom()+pad);
             rs.push_back(r);
             // Note that this rectangle index points to this DiagEdgeNodes object.
             rectIndexToDEN.insert(i,d);
@@ -955,20 +958,129 @@ cola::CompoundConstraints Planarization::genNodeDiagEdgeSepCos(
         // Reject constraints that hold between two edgenodes or two normal nodes.
         if ( (l < Nn && r < Nn) || (l >= Nn && r >= Nn) ) continue;
 
-        // TODO ...
-
-        // Convert IDs to global indices.
-        l = l < Ne ? ens.at(l)->srcIndex : m_nodeIndices.value(ns.at(l-Ne));
-        r = r < Ne ? ens.at(r)->srcIndex : m_nodeIndices.value(ns.at(r-Ne));
-
-        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,c->gap);
-        ccs.push_back(s);
+        // Record the constraint in the DiagEdgeNodes object.
+        if (l >= Nn) {
+            // The DEN object is on the left side of the constraint.
+            DiagEdgeNodes *d = rectIndexToDEN.value(l);
+            d->addLeftConstraint(m_nodeIndices.value(ns.at(r)),nodeRects.value(r),l,c->gap);
+        } else {
+            // The DEN object is on the right side of the constraint.
+            DiagEdgeNodes *d = rectIndexToDEN.value(r);
+            d->addLeftConstraint(m_nodeIndices.value(ns.at(l)),nodeRects.value(l),r,c->gap);
+        }
+    }
+    // Get the DEN objects to generate the cola constraints.
+    foreach (DiagEdgeNodes *d, ens) {
+        d->genColaConstraints(dim,ccs);
     }
     // Clean up
     // FIXME: why does this cause segfaults?
     //foreach (vpsc::Variable *v, vs) delete v;
     return ccs;
 }
+
+
+DiagEdgeNodes::DiagEdgeNodes(QRectF src, QRectF tgt, double d) :
+    srcRect(src), tgtRect(tgt), m_avgDim(d)
+{
+    bbox = srcRect.united(tgtRect);
+    QPointF s = srcRect.center(), t = tgtRect.center();
+    x0 = s.x();
+    y0 = s.y();
+    x1 = t.x();
+    y1 = t.y();
+    xmin = min(x0,x1);
+    xmax = max(x0,x1);
+    ymin = min(y0,y1);
+    ymax = max(y0,y1);
+    QLineF L(s,t);
+    double l = L.length();
+    m_size = (int)ceil(l/d) + 1;
+    m_interval = l/m_size;
+    m_dirVect = (t-s)/l;
+}
+
+void DiagEdgeNodes::genColaConstraints(vpsc::Dim dim, cola::CompoundConstraints &ccs) {
+    foreach (int i, m_otherToRect.keys()) {
+        // i is the index of the "other node" involved, i.e. the node in the centre
+        // of the face, for which we are generating face-lift constraints
+
+        // Check whether the centre of the node is opposite the edge at all.
+        // FIXME: It should really check whether /any part/ of the node is opposite
+        // the edge, not just the centre.
+        QRectF R = m_otherToRect.value(i);
+        QPointF C = R.center();
+        if ( (dim == vpsc::XDIM && !coversY(C.y())) ||
+             (dim == vpsc::YDIM && !coversX(C.x())) ) continue;
+
+        // Check whether the edge is on the lower or upper side of the node,
+        // in the dimension of interest.
+        bool lowerSide = ( dim==vpsc::XDIM && x(C.y()) < C.x() ) ||
+                         ( dim==vpsc::YDIM && y(C.x()) < C.y() );
+
+        // Get the list of own indices involved with this node, on
+        // the correct side (lower or upper).
+        QList<int> ownIndices = lowerSide ? m_leftOtherToOwn.values(i) :
+                                            m_rightOtherToOwn.values(i);
+        // Determine the index of the box that is closest to the node.
+        int j = -1;
+        double minDist = DBL_MAX;
+        foreach (int k, ownIndices) {
+            k -= initIndex;
+            QRectF B = box(k);
+            double bx = B.center().x(), by = B.center().y();
+            double d = dim==vpsc::XDIM ? abs(bx-C.x()) : abs(by-C.y());
+            if (j<0 || d < minDist) {
+                j = k;
+                d = minDist;
+            }
+        }
+        assert(j>=0);
+        // Retrieve the associated gap.
+        double g = m_ownToGap.value(j+initIndex);
+
+        // Now we need to translate it into a constraint between the node i
+        // and either the src or tgt node of this edge.
+        // Determine which end we want to use.
+        QRectF endRect;
+        int endIndex;
+        if (lowerSide) {
+            if (dim==vpsc::XDIM) {
+                endRect  = x0 < x1 ? srcRect : tgtRect;
+                endIndex = x0 < x1 ? srcIndex : tgtIndex;
+            } else {
+                endRect  = y0 < y1 ? srcRect : tgtRect;
+                endIndex = y0 < y1 ? srcIndex : tgtIndex;
+            }
+        } else {
+            if (dim==vpsc::XDIM) {
+                endRect  = x0 > x1 ? srcRect : tgtRect;
+                endIndex = x0 > x1 ? srcIndex : tgtIndex;
+            } else {
+                endRect  = y0 > y1 ? srcRect : tgtRect;
+                endIndex = y0 > y1 ? srcIndex : tgtIndex;
+            }
+        }
+
+        // Build the constraint.
+        QRectF B = box(j);
+        double zj = dim==vpsc::XDIM ? B.x() : B.y();
+        double ze = dim==vpsc::XDIM ? endRect.center().x() : endRect.center().y();
+        int l,r;
+        if (lowerSide) {
+            g += zj - ze;
+            l = endIndex;
+            r = i;
+        } else {
+            g += ze - zj;
+            l = i;
+            r = endIndex;
+        }
+        cola::SeparationConstraint *s = new cola::SeparationConstraint(dim,l,r,g);
+        ccs.push_back(s);
+    }
+}
+
 
 /***
   * Generate separation constraints to keep the nodes a distance of gap away from
