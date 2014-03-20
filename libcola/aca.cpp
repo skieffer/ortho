@@ -219,28 +219,6 @@ ACASepFlags negateSepFlag(ACASepFlags sf) {
     unsigned short b = c >> 2;
     ACASepFlags nf = (ACASepFlags) b;
     return nf;
-
-    // Instead we do it the dumb way.
-    switch(sf) {
-    case ACANOSEP:
-        return ACANOSEP;
-    case ACANORTH:
-        return ACASOUTH;
-    case ACAEAST:
-        return ACAWEST;
-    case ACASOUTH:
-        return ACANORTH;
-    case ACAWEST:
-        return ACAEAST;
-    case ACANORTHEAST:
-        return ACASOUTHWEST;
-    case ACASOUTHEAST:
-        return ACANORTHWEST;
-    case ACANORTHWEST:
-        return ACASOUTHEAST;
-    case ACASOUTHWEST:
-        return ACANORTHEAST;
-    }
 }
 
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
