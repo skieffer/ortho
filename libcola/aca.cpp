@@ -259,7 +259,6 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
                 m_separationState(*jt,*it) |= nf;
             }
         }
-        return;
     }
 }
 

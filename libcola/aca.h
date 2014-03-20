@@ -52,6 +52,26 @@ struct Matrix2d
         return data[i*cols+j];
     }
 
+    std::string toString() {
+        std::string s = "";
+        s += "\n  ";
+        char buffer [10];
+        for (int j=0; j<cols; j++) {
+            sprintf(buffer," %2d",j);
+            s += std::string(buffer);
+        }
+        for (int i=0; i<rows; i++) {
+            s += "\n";
+            sprintf(buffer,"%2d",i);
+            s += std::string(buffer);
+            for (int j=0; j<cols; j++) {
+                sprintf(buffer," %2d",data[i*cols+j]);
+                s += std::string(buffer);
+            }
+        }
+        return s;
+    }
+
 };
 
 enum ACAFlags {
