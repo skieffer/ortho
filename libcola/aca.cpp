@@ -242,7 +242,6 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
         // We drop down to this point only if sf is ACAEAST or ACASOUTH.
         // The code is the same for both cases.
         // For simplicity we express the comments for the case ACAEAST only.
-
         // Let L be the set of all indices west or equal to i;
         // let U be the set of all indices east or equal to j.
         std::set<int> L, U;
