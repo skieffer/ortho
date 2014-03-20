@@ -2221,8 +2221,8 @@ void Orthowontist::run1(QList<CanvasItem*> items) {
 
 void Orthowontist::run2(QList<CanvasItem*> items) {
     bool debug = true;
-    bool useColours = true;
-    bool showNumbers = true;
+    bool useColours = false;
+    bool showNumbers = false;
     bool drawStubnodes = false;
     bool drawDummynodes = false;
     shapemap nodeShapes;

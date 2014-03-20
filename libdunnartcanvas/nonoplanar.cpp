@@ -966,7 +966,7 @@ cola::CompoundConstraints Planarization::genNodeDiagEdgeSepCos(
         } else {
             // The DEN object is on the right side of the constraint.
             DiagEdgeNodes *d = rectIndexToDEN.value(r);
-            d->addLeftConstraint(m_nodeIndices.value(ns.at(l)),nodeRects.value(l),r,c->gap);
+            d->addRightConstraint(m_nodeIndices.value(ns.at(l)),nodeRects.value(l),r,c->gap);
         }
     }
     // Get the DEN objects to generate the cola constraints.
@@ -1034,6 +1034,9 @@ void DiagEdgeNodes::genColaConstraints(vpsc::Dim dim, cola::CompoundConstraints 
                 j = k;
                 d = minDist;
             }
+        }
+        if (j < 0) {
+            qDebug() << "foo";
         }
         assert(j>=0);
         // Retrieve the associated gap.
@@ -1190,6 +1193,14 @@ cola::CompoundConstraints Planarization::faceLiftForNode(face f0, node s0, doubl
     cola::CompoundConstraints ccy = genNodeEdgeSepCos(vpsc::VERTICAL,  ns,ensy,gap);
     foreach (cola::CompoundConstraint *cc, ccx) ccs.push_back(cc);
     foreach (cola::CompoundConstraint *cc, ccy) ccs.push_back(cc);
+
+    QList<DiagEdgeNodes*> densX = genDiagEdgeNodesForFace(f0);
+    cola::CompoundConstraints ccdx = genNodeDiagEdgeSepCos(vpsc::HORIZONTAL, ns, densX, gap);
+    QList<DiagEdgeNodes*> densY = genDiagEdgeNodesForFace(f0);
+    cola::CompoundConstraints ccdy = genNodeDiagEdgeSepCos(vpsc::VERTICAL, ns, densY, gap);
+    foreach (cola::CompoundConstraint *cc, ccdx) ccs.push_back(cc);
+    foreach (cola::CompoundConstraint *cc, ccdy) ccs.push_back(cc);
+
     return ccs;
 }
 
@@ -1483,7 +1494,7 @@ void Planarization::distribWithNbrStress(void) {
 
     // rs
     vpsc::Rectangles rs;
-    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u,true));
+    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u));
     foreach (node u, m_dummyNodes)  rs.push_back(vpscNodeRect(u));
     foreach (node s, m_stubNodes) rs.push_back(vpscNodeRect(s));
 
@@ -1543,7 +1554,26 @@ void Planarization::distribWithNbrStress(void) {
     fdlayout->run(true,true);
     delete fdlayout;
 
-    // 3. Update m_ga.
+    // 3. Double the node sizes and run again.
+    rs.clear();
+    foreach (node u, m_normalNodes) rs.push_back(vpscNodeRect(u,true));
+    foreach (node u, m_dummyNodes)  rs.push_back(vpscNodeRect(u));
+    foreach (node s, m_stubNodes) rs.push_back(vpscNodeRect(s));
+    fdlayout =
+        new cola::ConstrainedFDLayout(rs,es,iL,preventOverlaps,
+                                          false,10.0,eLengths);
+    fdlayout->setConstraints(ccs);
+    test = new ConvTest1(1e-4,50);
+    //test->minIterations = 10;
+    test->setLayout(fdlayout);
+    test->name = QString("NeighbourStress-DoubleNodesize");
+    fdlayout->setConvergenceTest(test);
+    // Neighbours only:
+    fdlayout->neighbours_only = true;
+    fdlayout->run(true,true);
+    delete fdlayout;
+
+    // 4. Update m_ga.
     node n;
     forall_nodes(n,*m_graph) {
         vpsc::Rectangle *r = rs.at(m_nodeIndices.value(n));
@@ -2213,9 +2243,12 @@ void Planarization::addBendsForDiagonalEdges(void) {
         int n = route.size();
         // Make list of nodes in the route.
         QList<node> routeNodes;
+
         // First one is the source node of the edge.
-        node src = e->source();
-        routeNodes.append(src);
+        //node src = e->source();
+        //routeNodes.append(src);
+
+
         // Now create a new node for each internal point of the polyline.
         for (int i = 1; i < n - 1; i++) {
             Point p = route.at(i);
@@ -2229,9 +2262,24 @@ void Planarization::addBendsForDiagonalEdges(void) {
             routeNodes.append(b);
             m_bendNodes.append(b);
         }
+
+
         // Last node is the target node of the edge.
-        node tgt = e->target();
-        routeNodes.append(tgt);
+        //node tgt = e->target();
+        //routeNodes.append(tgt);
+
+        // Place the src and tgt nodes of the edge where they belong in the list.
+        // (We check whether src should actually come first, or last.)
+        node src = e->source(), tgt = e->target();
+        Point p = route.at(0);
+        QLineF sp(m_ga->x(src),m_ga->y(src),p.x,p.y);
+        QLineF tp(m_ga->x(tgt),m_ga->y(tgt),p.x,p.y);
+        node first = sp.length() <= tp.length() ? src : tgt;
+        node last  = first == src ? tgt : src;
+        routeNodes.prepend(first);
+        routeNodes.append(last);
+
+
         // Delete the edge, but keep a record of its endpoints.
         m_graph->delEdge(e);
         m_deletedDiagonals.append( QPair<node,node>(src,tgt) );
