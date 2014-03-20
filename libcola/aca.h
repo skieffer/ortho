@@ -61,15 +61,15 @@ enum ACAFlags {
 };
 
 enum ACASepFlags {
-    NONE      =  0,
-    NORTH     =  1,
-    NORTHEAST =  2,
-    EAST      =  3,
-    SOUTHEAST =  4,
-    SOUTH     = -1,
-    SOUTHWEST = -2,
-    WEST      = -3,
-    NORTHWEST = -4
+    ACANOSEP     =  0,
+    ACANORTH     =  1,
+    ACANORTHEAST =  2,
+    ACAEAST      =  3,
+    ACASOUTHEAST =  4,
+    ACASOUTH     = -1,
+    ACASOUTHWEST = -2,
+    ACAWEST      = -3,
+    ACANORTHWEST = -4
 };
 
 struct OrderedAlignment {
@@ -138,8 +138,29 @@ public:
 
 private:
     void computeDegrees(void);
-    void initStateTables(void);
     void generateVPSCConstraints(void);
+    void initStateTables(void);
+    /**
+     * Record the specified alignment between rectangles i and j.
+     * Also record all additional alignments arising from the transitive
+     * closure.
+     */
+    void recordAlignmentWithClosure(int i, int j, ACAFlags af);
+    /**
+     * Record the specified separation between rectangles i and j.
+     * The ACASepFlag sf names a compass direction D, and the understanding
+     * is that the direction from rectangle i to rectangle j is D.
+     * For example, to note that the x-coord of j is >= that of i,
+     * the appropriate ACASepFlag is ACAEAST.
+     *
+     * If there is an existing separation in the same dimension as the one
+     * passed, it will be overwritten. If there is an existing one in the
+     * alternate dimension, the two will be combined.
+     *
+     * Also record all additional separations arising from the transitive
+     * closure.
+     */
+    void recordSeparationWithClosure(int i, int j, ACASepFlags sf);
 
 
     void initialPositions(void);

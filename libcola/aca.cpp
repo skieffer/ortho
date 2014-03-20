@@ -141,12 +141,61 @@ void ACALayout::initStateTables(void)
         m_alignmentState(src,tgt) = ACACONN;
         m_alignmentState(tgt,src) = ACACONN;
     }
-    // Note equality constraints in alignment state table.
-    // ...
-    // Note inequality constraints in separation state table.
-    // ...
+    // Consider equality constraints in the x-dimension.
+    for (int k = 0; k < m_xEqCs.size(); k++) {
+        vpsc::Constraint *c = m_xEqCs.at(k);
+        int l = c->left->id, r = c->right->id;
+        double gap = c->gap;
+        if (gap==0) {
+            // It is an alignment.
+            recordAlignmentWithClosure(l,r,ACAVERT);
+        } else {
+            // It is a disalignment, or separation.
+            ACASepFlags sf = gap > 0 ? ACAEAST : ACAWEST;
+            recordSeparationWithClosure(l,r,sf);
+        }
+    }
+    // Consider equality constraints in the y-dimension.
+    for (int k = 0; k < m_yEqCs.size(); k++) {
+        vpsc::Constraint *c = m_yEqCs.at(k);
+        int l = c->left->id, r = c->right->id;
+        double gap = c->gap;
+        if (gap==0) {
+            // It is an alignment.
+            recordAlignmentWithClosure(l,r,ACAHORIZ);
+        } else {
+            // It is a disalignment, or separation.
+            ACASepFlags sf = gap > 0 ? ACASOUTH : ACANORTH;
+            recordSeparationWithClosure(l,r,sf);
+        }
+    }
+    // Consider inequality constraints in the x-dimension.
+    for (int k = 0; k < m_xIneqCs.size(); k++) {
+        vpsc::Constraint *c = m_xIneqCs.at(k);
+        int l = c->left->id, r = c->right->id;
+        double gap = c->gap;
+        if (gap < 0) continue; // does not constrain r to be on one side of l
+        recordSeparationWithClosure(l,r,ACAEAST);
+    }
+    // Consider inequality constraints in the y-dimension.
+    for (int k = 0; k < m_yIneqCs.size(); k++) {
+        vpsc::Constraint *c = m_yIneqCs.at(k);
+        int l = c->left->id, r = c->right->id;
+        double gap = c->gap;
+        if (gap < 0) continue; // does not constrain r to be on one side of l
+        recordSeparationWithClosure(l,r,ACASOUTH);
+    }
 }
 
+void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af)
+{
+    // TODO
+}
+
+void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
+{
+    // TODO
+}
 
 
 } // namespace cola
