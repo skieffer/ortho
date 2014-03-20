@@ -93,13 +93,6 @@ enum ACASepFlags {
     ACASOUTHWEST = 12
 };
 
-ACASepFlags negateSepFlag(ACASepFlags sf) {
-    signed char c = sf + 16*sf;
-    c &= 60; // 00111100
-    c >> 2;
-    return (ACASepFlags) c;
-}
-
 struct OrderedAlignment {
     cola::SeparationConstraint* separation;
     cola::AlignmentConstraint* alignment;
@@ -163,6 +156,10 @@ public:
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ACALayout();
+
+    // For debugging:
+    std::string writeAlignmentTable(void) { return m_alignmentState.toString(); }
+    std::string writeSeparationTable(void) { return m_separationState.toString(); }
 
 private:
     void computeDegrees(void);

@@ -101,6 +101,8 @@ void ACALayout::generateVPSCConstraints(void)
     vpsc::Constraints xcs, ycs;
     for (int k = 0; k < m_ccs.size(); k++) {
         cola::CompoundConstraint *cc = m_ccs.at(k);
+        cc->generateVariables(vpsc::XDIM, m_xvs);
+        cc->generateVariables(vpsc::YDIM, m_yvs);
         cc->generateSeparationConstraints(vpsc::XDIM, m_xvs, xcs, m_rs);
         cc->generateSeparationConstraints(vpsc::YDIM, m_yvs, ycs, m_rs);
     }
@@ -189,6 +191,9 @@ void ACALayout::initStateTables(void)
 
 void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af)
 {
+    if (i >= m_n || j >= m_n) {
+        return;
+    }
     // Get the set of all indices already aligned with i, including i itself.
     // Do likewise for j.
     std::set<int> Ai, Aj;
@@ -207,8 +212,42 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af)
     }
 }
 
+ACASepFlags negateSepFlag(ACASepFlags sf) {
+    unsigned short c = (unsigned short) sf;
+    c += 16*c;
+    c &= 60; // 00111100
+    unsigned short b = c >> 2;
+    ACASepFlags nf = (ACASepFlags) b;
+    return nf;
+
+    // Instead we do it the dumb way.
+    switch(sf) {
+    case ACANOSEP:
+        return ACANOSEP;
+    case ACANORTH:
+        return ACASOUTH;
+    case ACAEAST:
+        return ACAWEST;
+    case ACASOUTH:
+        return ACANORTH;
+    case ACAWEST:
+        return ACAEAST;
+    case ACANORTHEAST:
+        return ACASOUTHWEST;
+    case ACASOUTHEAST:
+        return ACANORTHWEST;
+    case ACANORTHWEST:
+        return ACASOUTHEAST;
+    case ACASOUTHWEST:
+        return ACANORTHEAST;
+    }
+}
+
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
 {
+    if (i >= m_n || j >= m_n) {
+        return;
+    }
     // Reduce to the case where sf is either ACAEAST or ACASOUTH.
     switch (sf) {
     case ACANOSEP:

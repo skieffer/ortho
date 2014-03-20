@@ -5722,10 +5722,12 @@ void Canvas::orthowontist(void)
     QString fn = m_filename.split("/").last().split(".").first();
     ow.filename = fn;
     CanvasItemsList L = items();
-    ow.run2(L);
-    //router()->processActions();
-    //router()->rerouteAndCallbackConnectors();
-    //router()->processTransaction();
+    // Temporarily comment out the run2, so that we can istead
+    // hijack this menu command to test the ACA version in libcola.
+    //ow.run2(L);
+    // Hijack:
+    GraphData *graph = new GraphData(this, true, m_graphlayout->mode, false, 10000);
+    ow.testColaACA(graph);
 }
 
 }

@@ -44,6 +44,7 @@ using namespace dunnart;
 
 namespace dunnart {
 class Canvas;
+class GraphData;
 class ShapeObj;
 class Connector;
 }
@@ -850,6 +851,7 @@ public:
     Orthowontist(Canvas *canvas);
     void run1(QList<CanvasItem*> items);
     void run2(QList<CanvasItem*> items);
+    void testColaACA(GraphData *graph); // just for testing ACA version in libcola
     QString filename;
 private:
     void buildOGDFGraph(CanvasItemsList items,

@@ -86,6 +86,9 @@
 
 #include "libdunnartcanvas/orthowontist.h"
 
+#include "libcola/aca.h"
+#include "libdunnartcanvas/graphdata.h"
+
 //#define CGAL
 #ifdef CGAL
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
@@ -2401,6 +2404,84 @@ void Orthowontist::run2(QList<CanvasItem*> items) {
     // ...
 
 }
+
+void Orthowontist::testColaACA(GraphData *graph) {
+    vpsc::Rectangles rs;
+    std::vector<cola::Edge> es;
+    cola::CompoundConstraints ccs;
+
+    int test = 1;
+
+    switch(test) {
+    case 0:
+        rs = graph->rs; es = graph->edges; ccs = graph->ccs;
+        break;
+    case 1:
+        rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
+        rs.push_back(new vpsc::Rectangle(100,150,  0, 50));
+        rs.push_back(new vpsc::Rectangle(200,250,  0, 50));
+        rs.push_back(new vpsc::Rectangle(  0, 50,100,150));
+        rs.push_back(new vpsc::Rectangle(  0, 50,200,250));
+        es.push_back(cola::Edge(0,1));
+        es.push_back(cola::Edge(1,2));
+        es.push_back(cola::Edge(0,3));
+        es.push_back(cola::Edge(3,4));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,50));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,1,2,50));
+        cola::AlignmentConstraint *ac;
+        double off = 0;
+        ac = new cola::AlignmentConstraint(vpsc::XDIM);
+        ac->addShape(0,off);
+        ac->addShape(3,off);
+        ac->addShape(4,off);
+        ccs.push_back(ac);
+        break;
+    }
+    cola::ACALayout *aca = new cola::ACALayout(rs,es,ccs,100,false);
+    qDebug() << QString(aca->writeAlignmentTable().c_str());
+    qDebug() << QString(aca->writeSeparationTable().c_str());
+
+    /*
+    QMap<ShapeObj*,int> shapeIndices;
+    QList<Distribution*> distrolist;
+    QList<Separation*> separationlist;
+
+    // Just use all items
+    items = m_canvas->items();
+
+    foreach (CanvasItem *item, items)
+    {
+        if (ShapeObj *shape = isShapeForLayout(item))
+        {
+            QPointF pos = shape->centrePos();
+            QSizeF size = shape->size();
+            double x = pos.x() - size.width()/2, y = pos.y() - size.height()/2;
+            double X = x + size.width(), Y = y + size.height();
+            vpsc::Rectangle *r = new vpsc::Rectangle(x,X,y,Y);
+            rs.push_back(r);
+            shapeIndices.insert(shape,rs.size());
+            // Show IDs?
+            bool showIDs = true;
+            if (showIDs) {
+                QString label = QString("%1").arg(shape->internalId());
+                shape->setLabel(label);
+            }
+        }
+    }
+    foreach (CanvasItem *item, items)
+    {
+        if (Connector *conn = dynamic_cast<Connector*>(item))
+        {
+            QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
+            unsigned i = shapeIndices.value(endpts.first);
+            unsigned j = shapeIndices.value(endpts.second);
+            es.push_back(new cola::Edge(i,j));
+        }
+    }
+    */
+
+}
+
 
 void Orthowontist::buildOGDFGraph(CanvasItemsList items,
         Graph &G, GraphAttributes &GA, shapemap &nodeShapes, connmap &edgeConns) {
