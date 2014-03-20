@@ -57,6 +57,11 @@ class NonOverlapConstraints;
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
+//! EdgeLengths is a vector of ideal lengths for edges corresponding to
+//! edges in the edge list.
+typedef std::vector<double> EdgeLengths;
+#define StandardEdgeLengths EdgeLengths()
+
 /**
  * @brief A Lock specifies a required position for a node.
  */

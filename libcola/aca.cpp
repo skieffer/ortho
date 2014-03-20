@@ -30,7 +30,7 @@ namespace cola {
 
 ACALayout::ACALayout(
         const vpsc::Rectangles& rs,
-        const std::vector& es,
+        const std::vector<cola::Edge>& es,
         CompoundConstraints& ccs,
         const double idealLength,
         const bool preventOverlaps,
@@ -253,10 +253,11 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
             if (m_separationState(j,k) & sf) U.insert(k);
         }
         // Now record that everything in L is west of everything in U.
+        ACASepFlags nf = negateSepFlag(sf);
         for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
             for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
-                m_separationState(*it,*jt) = sf;
-                m_separationState(*jt,*it) = -sf;
+                m_separationState(*it,*jt) |= sf;
+                m_separationState(*jt,*it) |= nf;
             }
         }
         return;

@@ -64,14 +64,21 @@ enum ACAFlags {
 enum ACASepFlags {
     ACANOSEP     =  0,
     ACANORTH     =  1,
-    ACANORTHEAST =  2,
-    ACAEAST      =  3,
-    ACASOUTHEAST =  4,
-    ACASOUTH     = -1,
-    ACASOUTHWEST = -2,
-    ACAWEST      = -3,
-    ACANORTHWEST = -4
+    ACAEAST      =  2,
+    ACASOUTH     =  4,
+    ACAWEST      =  8,
+    ACANORTHEAST =  3,
+    ACASOUTHEAST =  6,
+    ACANORTHWEST =  9,
+    ACASOUTHWEST = 12
 };
+
+ACASepFlags negateSepFlag(ACASepFlags sf) {
+    signed char c = sf + 16*sf;
+    c &= 60; // 00111100
+    c >> 2;
+    return (ACASepFlags) c;
+}
 
 struct OrderedAlignment {
     cola::SeparationConstraint* separation;
@@ -132,7 +139,7 @@ public:
         CompoundConstraints& ccs,
         const double idealLength,
         const bool preventOverlaps,
-        const double* eLengths = StandardEdgeLengths,
+        const EdgeLengths& eLengths = StandardEdgeLengths,
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ACALayout();
@@ -151,20 +158,14 @@ private:
      * Record the specified separation between rectangles i and j.
      * The ACASepFlag sf names a compass direction D, and the understanding
      * is that the direction from rectangle i to rectangle j is D.
-     * For example, to note that the x-coord of j is >= that of i,
+     * For example, to record that the x-coord of j is >= that of i,
      * the appropriate ACASepFlag is ACAEAST.
      *
-     * If there is an existing separation in the same dimension as the one
-     * passed, it will be overwritten. If there is an existing one in the
-     * alternate dimension, the two will be combined.
+     * If there is an existing separation in the alternate dimension
+     * to the one passed, the two will be combined.
      *
      * Also record all additional separations arising from the transitive
      * closure.
-     *
-     * Note that if you reverse an existing separation this will NOT reverse
-     * all other separations that may have arisen from this one. The
-     * separation table is monotonic, and you are not meant to undo separations
-     * that have already been added.
      */
     void recordSeparationWithClosure(int i, int j, ACASepFlags sf);
 
@@ -200,7 +201,7 @@ private:
 
     double m_idealLength;
     bool m_preventOverlaps;
-    double *m_edgeLengths;
+    EdgeLengths m_edgeLengths;
     TestConvergence *m_doneTest;
     PreIteration *m_preIteration;
     double m_nodePadding;
