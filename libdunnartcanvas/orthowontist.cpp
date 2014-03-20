@@ -1237,6 +1237,9 @@ void ACALayout::updateAlignmentState(ACASeparatedAlignment *sa)
         alignmentState(i2,k) |= af;
         alignmentState(k,i2) |= af;
     }
+    // FIXME: Actually we're not computing the whole transitive
+    // closure here! In fact EVERYTHING in A1 is now aligned with
+    // EVERYTHING in A2.
 }
 
 ACASeparatedAlignment *ACALayout::chooseSA(void)

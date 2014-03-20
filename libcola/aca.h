@@ -30,6 +30,7 @@
 
 namespace cola {
 
+template<typename T>
 struct Matrix2d
 {
     int rows, cols;
@@ -40,14 +41,14 @@ struct Matrix2d
 
     T operator()(int i, int j) const
     {
-        Q_ASSERT(i < rows);
-        Q_ASSERT(j < cols);
+        assert(i < rows);
+        assert(j < cols);
         return data[i*cols+j];
     }
     T& operator()(int i, int j)
     {
-        Q_ASSERT(i < rows);
-        Q_ASSERT(j < cols);
+        assert(i < rows);
+        assert(j < cols);
         return data[i*cols+j];
     }
 
@@ -88,7 +89,7 @@ struct OrderedAlignment {
  * See
  * Kieffer, Steve, Tim Dwyer, Kim Marriott, and Michael Wybrow.
  * "Incremental grid-like layout using soft and hard constraints." In Graph
- * Drawing, pp. 448-459. Springer International Publishing, 2013.
+ * Drawing 2013, pp. 448-459. Springer International Publishing, 2013.
  */
 class ACALayout {
 public:
@@ -131,7 +132,7 @@ public:
         CompoundConstraints& ccs,
         const double idealLength,
         const bool preventOverlaps,
-        const EdgeLengths& eLengths = StandardEdgeLengths, 
+        const double* eLengths = StandardEdgeLengths,
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ACALayout();
@@ -159,10 +160,16 @@ private:
      *
      * Also record all additional separations arising from the transitive
      * closure.
+     *
+     * Note that if you reverse an existing separation this will NOT reverse
+     * all other separations that may have arisen from this one. The
+     * separation table is monotonic, and you are not meant to undo separations
+     * that have already been added.
      */
     void recordSeparationWithClosure(int i, int j, ACASepFlags sf);
 
 
+    // TODO ? ---------------------------------------------
     void initialPositions(void);
     void moveCoincidentNodes(void);
     void initialLayout(void);
@@ -175,6 +182,8 @@ private:
     double deflection(int src, int tgt, ACAFlags af);
     double bendPointPenalty(int src, int tgt, ACAFlags af);
     double leafPenalty(int src, int tgt);
+    // -----------------------------------------------------
+
 
     unsigned m_n; // number of nodes
     unsigned m_m; // number of edges

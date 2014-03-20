@@ -189,12 +189,78 @@ void ACALayout::initStateTables(void)
 
 void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af)
 {
-    // TODO
+    // Get the set of all indices already aligned with i, including i itself.
+    // Do likewise for j.
+    std::set<int> Ai, Aj;
+    Ai.insert(i);
+    Aj.insert(j);
+    for (int k = 0; k < m_n; k++) {
+        if (m_alignmentState(i,k) & af) Ai.insert(k);
+        if (m_alignmentState(j,k) & af) Aj.insert(k);
+    }
+    // Now record that everything in Ai is aligned with everything in Aj.
+    for (std::set<int>::iterator it=Ai.begin(); it!=Ai.end(); ++it) {
+        for (std::set<int>::iterator jt=Aj.begin(); jt!=Aj.end(); ++jt) {
+            m_alignmentState(*it,*jt) |= af;
+            m_alignmentState(*jt,*it) |= af;
+        }
+    }
 }
 
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf)
 {
-    // TODO
+    // Reduce to the case where sf is either ACAEAST or ACASOUTH.
+    switch (sf) {
+    case ACANOSEP:
+        // The separation table is monotonic; you cannot remove separations
+        // that already exist.
+        return;
+    case ACANORTH:
+        recordSeparationWithClosure(j,i,ACASOUTH);
+        return;
+    case ACAWEST:
+        recordSeparationWithClosure(j,i,ACAEAST);
+        return;
+    case ACANORTHEAST:
+        recordSeparationWithClosure(i,j,ACANORTH);
+        recordSeparationWithClosure(i,j,ACAEAST);
+        return;
+    case ACASOUTHEAST:
+        recordSeparationWithClosure(i,j,ACASOUTH);
+        recordSeparationWithClosure(i,j,ACAEAST);
+        return;
+    case ACASOUTHWEST:
+        recordSeparationWithClosure(i,j,ACASOUTH);
+        recordSeparationWithClosure(i,j,ACAWEST);
+        return;
+    case ACANORTHWEST:
+        recordSeparationWithClosure(i,j,ACANORTH);
+        recordSeparationWithClosure(i,j,ACAWEST);
+        return;
+    case ACAEAST:
+    case ACASOUTH:
+        // We drop down to this point only if sf is ACAEAST or ACASOUTH.
+        // The code is the same for both cases.
+        // For simplicity we express the comments for the case ACAEAST only.
+
+        // Let L be the set of all indices west or equal to i;
+        // let U be the set of all indices east or equal to j.
+        std::set<int> L, U;
+        L.insert(i);
+        U.insert(j);
+        for (int k = 0; k < m_n; k++) {
+            if (m_separationState(k,i) & sf) L.insert(k);
+            if (m_separationState(j,k) & sf) U.insert(k);
+        }
+        // Now record that everything in L is west of everything in U.
+        for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
+            for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
+                m_separationState(*it,*jt) = sf;
+                m_separationState(*jt,*it) = -sf;
+            }
+        }
+        return;
+    }
 }
 
 
