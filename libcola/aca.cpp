@@ -58,6 +58,12 @@ ACALayout::ACALayout(
     initStateTables();
 }
 
+ACALayout::~ACALayout(void)
+{
+    delete m_alignmentState;
+    delete m_separationState;
+}
+
 std::string ACALayout::writeAlignmentTable(void)
 {
     std::string s = m_alignmentState->toString();
