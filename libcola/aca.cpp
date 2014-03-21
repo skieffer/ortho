@@ -443,7 +443,45 @@ void ACALayout::updateStateTables(OrderedAlignment *oa)
 
 OrderedAlignment *ACALayout::chooseOA(void)
 {
-    // TODO
+    OrderedAlignment *oa = NULL;
+    // Initialise minPenalty to a value exceeding the maximum penalty
+    // any edge could actually be assigned (so effectively infinity).
+    double minPenalty = 10.0;
+    // Consider each edge for potential alignment.
+    foreach (cola::Edge e, es) {
+        int src = e.first, tgt = e.second;
+        // If already aligned, then skip this edge.
+        int astate = (*m_alignmentState)(src,tgt);
+        if (astate & (ACAHORIZ|ACAVERT)) continue;
+        // Otherwise...
+        // TODO
+    }
+    // Did we find an alignment?
+    if (oa) {
+        // If so, then complete the OrderedAlignment object.
+        int src = oa->rect1, tgt = oa->rect2;
+        vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
+        // Determine dimensions.
+        vpsc::Dim sepDim   = oa->af == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
+        vpsc::Dim alignDim = oa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
+        // Create the separation constraint.
+        double sep = oa->af == ACAHORIZ ?
+                    (rs->width()+rt->width())/2.0 : (rs->height()+rt->height())/2.0;
+        int l = oa->af == ACAHORIZ ?
+                    (rs->getCentreX() < rt->getCentreX() ? src : tgt) :
+                    (rs->getCentreY() < rt->getCentreY() ? src : tgt);
+        int r = l == src ? tgt : src;
+        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
+        // Record left, right, and sepflag.
+        oa->left = l;
+        oa->right = r;
+        oa->sf = oa->af == ACAHORIZ ? ACAEAST : ACASOUTH;
+        // Create the alignment constraint.
+        oa->alignment = new cola::AlignmentConstraint(alignDim);
+        oa->alignment->addShape(l,0);
+        oa->alignment->addShape(r,0);
+    }
+    return oa;
 }
 
 

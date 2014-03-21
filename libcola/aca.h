@@ -98,6 +98,8 @@ struct OrderedAlignment {
     cola::AlignmentConstraint* alignment;
     int rect1;
     int rect2;
+    int left;
+    int right;
     ACAFlags af;
     ACASepFlags sf;
 };
