@@ -58,6 +58,18 @@ ACALayout::ACALayout(
     initStateTables();
 }
 
+std::string ACALayout::writeAlignmentTable(void)
+{
+    std::string s = m_alignmentState->toString();
+    return s;
+}
+
+std::string ACALayout::writeSeparationTable(void)
+{
+    std::string s = m_separationState->toString();
+    return s;
+}
+
 void ACALayout::computeDegrees(void)
 {
     // Map node indices to indices of their neighbours.
@@ -153,21 +165,21 @@ void ACALayout::initStateTables(void)
     // Start by building tables large enough to handle each rectangle, as
     // well as each extra X-var, and each extra Y-var.
     int N = m_n + m_numExtraXVars + m_numExtraYVars;
-    m_alignmentState = Matrix2d<int>(N,N);
-    m_separationState = Matrix2d<int>(N,N);
+    m_alignmentState  = new Matrix2d<int>(N,N);
+    m_separationState = new Matrix2d<int>(N,N);
     // Initialise with zeroes.
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            m_alignmentState(i,j) = 0;
-            m_separationState(i,j) = 0;
+            (*m_alignmentState)(i,j) = 0;
+            (*m_separationState)(i,j) = 0;
         }
     }
     // Note connections in alignment state table.
     for (int j = 0; j < m_m; j++) {
         cola::Edge e = m_es.at(j);
         int src = e.first, tgt = e.second;
-        m_alignmentState(src,tgt) = ACACONN;
-        m_alignmentState(tgt,src) = ACACONN;
+        (*m_alignmentState)(src,tgt) = ACACONN;
+        (*m_alignmentState)(tgt,src) = ACACONN;
     }
     // Consider equality constraints in the x-dimension.
     for (int k = 0; k < m_xEqCs.size(); k++) {
@@ -226,8 +238,8 @@ void ACALayout::initStateTables(void)
         recordSeparationWithClosure(l,r,ACASOUTH,N);
     }
     // Record snapshot for debugging purposes.
-    aStateBeforeChop = m_alignmentState.toString();
-    sStateBeforeChop = m_separationState.toString();
+    aStateBeforeChop = m_alignmentState->toString();
+    sStateBeforeChop = m_separationState->toString();
     // Now that we have computed the transitive closure of all the passed
     // constraints, we will no longer need the rows and columns for the extra
     // variables, so we chop those off now.
@@ -235,12 +247,14 @@ void ACALayout::initStateTables(void)
     Matrix2d<int> *sState = new Matrix2d<int>(m_n,m_n);
     for (int i = 0; i < m_n; i++) {
         for (int j = 0; j < m_n; j++) {
-            (*aState)(i,j) = m_alignmentState(i,j);
-            (*sState)(i,j) = m_separationState(i,j);
+            (*aState)(i,j) = (*m_alignmentState)(i,j);
+            (*sState)(i,j) = (*m_separationState)(i,j);
         }
     }
-    m_alignmentState  = *aState;
-    m_separationState = *sState;
+    delete m_alignmentState;
+    delete m_separationState;
+    m_alignmentState  = aState;
+    m_separationState = sState;
 }
 
 void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCols)
@@ -257,14 +271,14 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     Ai.insert(i);
     Aj.insert(j);
     for (int k = 0; k < numCols; k++) {
-        if (m_alignmentState(i,k) & af) Ai.insert(k);
-        if (m_alignmentState(j,k) & af) Aj.insert(k);
+        if ((*m_alignmentState)(i,k) & af) Ai.insert(k);
+        if ((*m_alignmentState)(j,k) & af) Aj.insert(k);
     }
     // Now record that everything in Ai is aligned with everything in Aj.
     for (std::set<int>::iterator it=Ai.begin(); it!=Ai.end(); ++it) {
         for (std::set<int>::iterator jt=Aj.begin(); jt!=Aj.end(); ++jt) {
-            m_alignmentState(*it,*jt) |= af;
-            m_alignmentState(*jt,*it) |= af;
+            (*m_alignmentState)(*it,*jt) |= af;
+            (*m_alignmentState)(*jt,*it) |= af;
         }
     }
 }
@@ -325,15 +339,15 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
         L.insert(i);
         U.insert(j);
         for (int k = 0; k < numCols; k++) {
-            if (m_separationState(k,i) & sf) L.insert(k);
-            if (m_separationState(j,k) & sf) U.insert(k);
+            if ((*m_separationState)(k,i) & sf) L.insert(k);
+            if ((*m_separationState)(j,k) & sf) U.insert(k);
         }
         // Now record that everything in L is west of everything in U.
         ACASepFlags nf = negateSepFlag(sf);
         for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
             for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
-                m_separationState(*it,*jt) |= sf;
-                m_separationState(*jt,*it) |= nf;
+                (*m_separationState)(*it,*jt) |= sf;
+                (*m_separationState)(*jt,*it) |= nf;
             }
         }
     }

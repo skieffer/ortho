@@ -158,8 +158,8 @@ public:
     ~ACALayout();
 
     // For debugging:
-    std::string writeAlignmentTable(void) { return m_alignmentState.toString(); }
-    std::string writeSeparationTable(void) { return m_separationState.toString(); }
+    std::string writeAlignmentTable(void);
+    std::string writeSeparationTable(void);
     std::string aStateBeforeChop;
     std::string sStateBeforeChop;
 
@@ -248,8 +248,8 @@ private:
     std::set<int> m_deg2Nodes; // degree-2 nodes w.r.t. ordinary nbrs
     std::set<int> m_nldeg2Nodes; // same but only non-leaf neighbours
 
-    Matrix2d<int> m_alignmentState;
-    Matrix2d<int> m_separationState;
+    Matrix2d<int> *m_alignmentState;
+    Matrix2d<int> *m_separationState;
     std::vector<OrderedAlignment*> m_ordAligns;
 };
 

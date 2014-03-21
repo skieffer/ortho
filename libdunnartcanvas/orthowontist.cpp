@@ -2410,13 +2410,14 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 1;
+    int test = 2;
 
     switch(test) {
-    case 0:
+    case 0: {
         rs = graph->rs; es = graph->edges; ccs = graph->ccs;
         break;
-    case 1:
+    }
+    case 1: {
         rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
         rs.push_back(new vpsc::Rectangle(100,150,  0, 50));
         rs.push_back(new vpsc::Rectangle(200,250,  0, 50));
@@ -2437,8 +2438,48 @@ void Orthowontist::testColaACA(GraphData *graph) {
         ccs.push_back(ac);
         break;
     }
+    case 2: {
+        rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
+        rs.push_back(new vpsc::Rectangle(100,150,  0, 50));
+        rs.push_back(new vpsc::Rectangle(200,250,  0, 50));
+        rs.push_back(new vpsc::Rectangle(  0, 50,100,150));
+        rs.push_back(new vpsc::Rectangle(  0, 50,200,250));
+        rs.push_back(new vpsc::Rectangle(100,150,100,150));
+        es.push_back(cola::Edge(0,1));
+        es.push_back(cola::Edge(1,2));
+        es.push_back(cola::Edge(0,3));
+        es.push_back(cola::Edge(3,4));
+        es.push_back(cola::Edge(1,5));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,50));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,1,2,50));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,3,5,50));
+        cola::AlignmentConstraint *ac;
+        double off = 0;
+        ac = new cola::AlignmentConstraint(vpsc::XDIM);
+        ac->addShape(0,off);
+        ac->addShape(3,off);
+        ac->addShape(4,off);
+        ccs.push_back(ac);
+        ac = new cola::AlignmentConstraint(vpsc::XDIM);
+        ac->addShape(1,off);
+        ac->addShape(5,off);
+        ccs.push_back(ac);
+        ac = new cola::AlignmentConstraint(vpsc::YDIM);
+        ac->addShape(3,off);
+        ac->addShape(5,off);
+        ccs.push_back(ac);
+        break;
+    }
+    }
+    // Build the ACA object, and write its tables.
     cola::ACALayout *aca = new cola::ACALayout(rs,es,ccs,100,false);
+    qDebug() << "Alignment table before chop:";
+    qDebug() << QString(aca->aStateBeforeChop.c_str());
+    qDebug() << "Alignment table:";
     qDebug() << QString(aca->writeAlignmentTable().c_str());
+    qDebug() << "Separation table before chop:";
+    qDebug() << QString(aca->sStateBeforeChop.c_str());
+    qDebug() << "Separation table:";
     qDebug() << QString(aca->writeSeparationTable().c_str());
 
     /*
