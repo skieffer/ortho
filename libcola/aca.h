@@ -156,6 +156,24 @@ public:
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ACALayout();
+    /**
+     * @brief Creates alignments.
+     *
+     * This is the main functionality of ACA. This function should be called
+     * on an existing layout in order to greedily align edges until any further
+     * alignments would create edge overlaps.
+     *
+     * If the graph does not have an initial layout already, then the 'layout'
+     * function may be called instead.
+     */
+    void createAlignments(void);
+    /**
+     * @brief Do an initial layout, and then create alignments.
+     *
+     * This is a convenience function which first does a constrained force-directed
+     * layout of the given graph, and then calls the 'createAlignments' function.
+     */
+    void layout(void);
 
     // For debugging:
     std::string writeAlignmentTable(void);

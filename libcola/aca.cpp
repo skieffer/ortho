@@ -117,7 +117,7 @@ void ACALayout::generateVPSCConstraints(void)
     }
     // Generate all VPSC constraints.
     vpsc::Constraints xcs, ycs;
-    for (int k = 0; k < m_ccs.size(); k++) {
+    for (unsigned k = 0; k < m_ccs.size(); k++) {
         cola::CompoundConstraint *cc = m_ccs.at(k);
         cc->generateVariables(vpsc::XDIM, m_xvs);
         cc->generateVariables(vpsc::YDIM, m_yvs);
@@ -129,7 +129,7 @@ void ACALayout::generateVPSCConstraints(void)
     m_numExtraXVars = m_xvs.size() - m_n;
     m_numExtraYVars = m_yvs.size() - m_n;
     // Store constraints by dimension and by equality vs. inequality constraints.
-    for (int k = 0; k < xcs.size(); k++) {
+    for (unsigned k = 0; k < xcs.size(); k++) {
         vpsc::Constraint *c = xcs.at(k);
         if (c->equality) {
             m_xEqCs.push_back(c);
@@ -137,7 +137,7 @@ void ACALayout::generateVPSCConstraints(void)
             m_xIneqCs.push_back(c);
         }
     }
-    for (int k = 0; k < ycs.size(); k++) {
+    for (unsigned k = 0; k < ycs.size(); k++) {
         vpsc::Constraint *c = ycs.at(k);
         if (c->equality) {
             m_yEqCs.push_back(c);
@@ -188,7 +188,7 @@ void ACALayout::initStateTables(void)
         (*m_alignmentState)(tgt,src) = ACACONN;
     }
     // Consider equality constraints in the x-dimension.
-    for (int k = 0; k < m_xEqCs.size(); k++) {
+    for (unsigned k = 0; k < m_xEqCs.size(); k++) {
         vpsc::Constraint *c = m_xEqCs.at(k);
         int l = c->left->id, r = c->right->id;
         double gap = c->gap;
@@ -205,7 +205,7 @@ void ACALayout::initStateTables(void)
         }
     }
     // Consider equality constraints in the y-dimension.
-    for (int k = 0; k < m_yEqCs.size(); k++) {
+    for (unsigned k = 0; k < m_yEqCs.size(); k++) {
         vpsc::Constraint *c = m_yEqCs.at(k);
         int l = c->left->id, r = c->right->id;
         double gap = c->gap;
@@ -222,7 +222,7 @@ void ACALayout::initStateTables(void)
         }
     }
     // Consider inequality constraints in the x-dimension.
-    for (int k = 0; k < m_xIneqCs.size(); k++) {
+    for (unsigned k = 0; k < m_xIneqCs.size(); k++) {
         vpsc::Constraint *c = m_xIneqCs.at(k);
         int l = c->left->id, r = c->right->id;
         double gap = c->gap;
@@ -233,7 +233,7 @@ void ACALayout::initStateTables(void)
         recordSeparationWithClosure(l,r,ACAEAST,N);
     }
     // Consider inequality constraints in the y-dimension.
-    for (int k = 0; k < m_yIneqCs.size(); k++) {
+    for (unsigned k = 0; k < m_yIneqCs.size(); k++) {
         vpsc::Constraint *c = m_yIneqCs.at(k);
         int l = c->left->id, r = c->right->id;
         double gap = c->gap;
