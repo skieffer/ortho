@@ -64,6 +64,41 @@ ACALayout::~ACALayout(void)
     delete m_separationState;
 }
 
+void ACALayout::createAlignments(void)
+{
+    if (m_allAtOnce) {
+        acaLoopAllAtOnce();
+    } else {
+        acaLoopOneByOne();
+    }
+}
+
+void ACALayout::layout(void)
+{
+    layoutWithCurrentConstraints();
+    createAlignments();
+}
+
+void ACALayout::addBendPointPenalty(bool b)
+{
+    m_addBendPointPenalty = b;
+}
+
+void ACALayout::postponeLeaves(bool b)
+{
+    m_postponeLeaves = b;
+}
+
+void ACALayout::useNonLeafDegree(bool b)
+{
+    m_useNonLeafDegree = b;
+}
+
+void ACALayout::allAtOnce(bool b)
+{
+    m_allAtOnce = b;
+}
+
 std::string ACALayout::writeAlignmentTable(void)
 {
     std::string s = m_alignmentState->toString();
@@ -265,11 +300,6 @@ void ACALayout::initStateTables(void)
 
 void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCols)
 {
-    /*
-    if (i >= m_n || j >= m_n) {
-        return;
-    }
-    */
     if (numCols == 0) numCols = m_n;
     // Get the set of all indices already aligned with i, including i itself.
     // Do likewise for j.
@@ -300,11 +330,6 @@ ACASepFlags negateSepFlag(ACASepFlags sf) {
 
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols)
 {
-    /*
-    if (i >= m_n || j >= m_n) {
-        return;
-    }
-    */
     if (numCols == 0) numCols = m_n;
     // Reduce to the case where sf is either ACAEAST or ACASOUTH.
     switch (sf) {
@@ -357,6 +382,68 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
             }
         }
     }
+}
+
+void ACALayout::layoutWithCurrentConstraints(void)
+{
+    cola::ConstrainedFDLayout *fdlayout =
+#define OLDCOLA
+#ifdef OLDCOLA
+            new cola::ConstrainedFDLayout(m_rs,m_es,m_idealLength,
+                                          m_preventOverlaps);
+#else
+            new cola::ConstrainedFDLayout(m_rs,m_es,m_idealLength,
+                                          m_preventOverlaps,m_edgeLengths,
+                                          m_doneTest,m_preIteration);
+#endif
+    fdlayout->setConstraints(m_ccs);
+    fdlayout->run(true,true);
+    delete fdlayout;
+}
+
+void ACALayout::acaLoopOneByOne(void)
+{
+    // Choose a first alignment.
+    OrderedAlignment *oa = chooseOA();
+    while (oa) {
+        // Add the new separated alignment constraints.
+        m_ccs.push_back(oa->separation);
+        m_ccs.push_back(oa->alignment);
+        // Redo the layout, with the new constraints.
+        layoutWithCurrentConstraints();
+        // Update state tables.
+        updateStateTables(oa);
+        // Choose next ordered alignment.
+        oa - chooseOA();
+    }
+}
+
+void ACALayout::acaLoopAllAtOnce(void)
+{
+    // Choose a first alignment.
+    OrderedAlignment *oa = chooseOA();
+    while (oa) {
+        // Add the new separated alignment constraints.
+        m_ccs.push_back(oa->separation);
+        m_ccs.push_back(oa->alignment);
+        // Update state tables.
+        updateStateTables(oa);
+        // Choose next ordered alignment.
+        oa - chooseOA();
+    }
+    // Redo the layout, with the new constraints.
+    layoutWithCurrentConstraints();
+}
+
+void ACALayout::updateStateTables(OrderedAlignment *oa)
+{
+    recordAlignmentWithClosure(oa->rect1,oa->rect2,oa->af);
+    recordSeparationWithClosure(oa->rect1,oa->rect2,oa->sf);
+}
+
+OrderedAlignment *ACALayout::chooseOA(void)
+{
+    // TODO
 }
 
 

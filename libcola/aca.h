@@ -175,6 +175,50 @@ public:
      */
     void layout(void);
 
+    // Configuration methods:
+
+    /**
+     * @brief Control whether we avoid making bend points.
+     *
+     * We refer to a node of degree 2 as a "bend point" when one of its
+     * edges has been aligned horizontally and the other vertically.
+     *
+     * The default value of addBendPointPenalty is true. In this case a penalty
+     * score is added when choosing the next alignment in order to postpone
+     * creating bend points until no other choices remain.
+     *
+     * If set to false then there is no penalty score to postpone the creation
+     * of bend points.
+     */
+    void addBendPointPenalty(bool b);
+    /**
+     * @brief Say whether alignment of leaf edges should be saved for last.
+     *
+     * The default value is true.
+     */
+    void postponeLeaves(bool b);
+    /**
+     * @brief Say whether leaves should be counted when computing node degrees.
+     *
+     * The default value is true.
+     *
+     * This setting matters only if addBendPointPenalty is set to true.
+     * In that case, if useNonLeafDegree is also true then the nodes identified
+     * as potential bend points will be those having exactly 2 /non-leaf/ neighbours.
+     */
+    void useNonLeafDegree(bool b);
+    /**
+     * @brief Say whether alignment choices should alternate with layout steps.
+     *
+     * The default value of allAtOnce is false. In this case, after each new
+     * alignment is chosen, the graph is again laid out before choosing the
+     * next one.
+     *
+     * If you set allAtOnce to true, then all the alignments will be chosen based
+     * on the initial layout, and then they will all be applied at once.
+     */
+    void allAtOnce(bool b);
+
     // For debugging:
     std::string writeAlignmentTable(void);
     std::string writeSeparationTable(void);
@@ -234,16 +278,18 @@ private:
      */
     void recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols = 0);
 
+    void layoutWithCurrentConstraints(void);
+    void acaLoopOneByOne(void);
+    void acaLoopAllAtOnce(void);
+
+    void updateStateTables(OrderedAlignment *oa);
+    OrderedAlignment *chooseOA(void);
 
     // TODO ? ---------------------------------------------
     void initialPositions(void);
     void moveCoincidentNodes(void);
-    void initialLayout(void);
-    void acaLoopOneByOne(void);
-    void acaLoopAllAtOnce(void);
     void finalLayout(void);
-    void updateAlignmentState(OrderedAlignment *oa);
-    OrderedAlignment *chooseOA(void);
+
     bool createsCoincidence(int src, int tgt, ACAFlags af);
     double deflection(int src, int tgt, ACAFlags af);
     double bendPointPenalty(int src, int tgt, ACAFlags af);
