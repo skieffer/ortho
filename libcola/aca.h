@@ -188,6 +188,10 @@ public:
      *
      * If set to false then there is no penalty score to postpone the creation
      * of bend points.
+     *
+     * When there is both bend point penalty and leaf penalty (see below), then
+     * bend points will be created before leaf edges are aligned. This can be
+     * reversed by altering the BP_PENALTY and LEAF_PENALTY constants.
      */
     void addBendPointPenalty(bool b);
     /**
@@ -204,6 +208,10 @@ public:
      * This setting matters only if addBendPointPenalty is set to true.
      * In that case, if useNonLeafDegree is also true then the nodes identified
      * as potential bend points will be those having exactly 2 /non-leaf/ neighbours.
+     *
+     * When there is both leaf penalty and bend point penalty (see above), then
+     * bend points will be created before leaf edges are aligned. This can be
+     * reversed by altering the BP_PENALTY and LEAF_PENALTY constants.
      */
     void useNonLeafDegree(bool b);
     /**
@@ -309,11 +317,13 @@ private:
     double bendPointPenalty(int src, int tgt, ACASepFlags sf);
     double leafPenalty(int src, int tgt);
 
-    // TODO ? ---------------------------------------------
-    void initialPositions(void);
-    void moveCoincidentNodes(void);
-    void finalLayout(void);
-    // -----------------------------------------------------
+    // The penalty values determine the order in which certain types of
+    // alignments will be created. (See above.)
+    // The PENALTY_BOUND must be greater than the sum of the other penalty
+    // values plus 1.
+    static const double BP_PENALTY = 2;
+    static const double LEAF_PENALTY = 3;
+    static const double PENALTY_BOUND = 10;
 
     int m_n; // number of nodes
     int m_m; // number of edges

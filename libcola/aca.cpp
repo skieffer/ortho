@@ -476,7 +476,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
     OrderedAlignment *oa = NULL;
     // Initialise minPenalty to a value exceeding the maximum penalty
     // any edge can actually be assigned (so effectively infinity).
-    double minPenalty = 10.0;
+    double minPenalty = PENALTY_BOUND;
     // Consider each edge for potential alignment.
     for (int j = 0; j < m_m; j++) {
         cola::Edge e = m_es.at(j);
@@ -605,7 +605,7 @@ double ACALayout::deflection(int src, int tgt, ACASepFlags sf)
 
 double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
 {
-    double penalty = 2;
+    double penalty = BP_PENALTY;
     ACAFlags af = sepToAlignFlag(sf);
     ACAFlags op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
     std::set<int> deg2Nodes = m_useNonLeafDegree ? m_nldeg2Nodes : m_deg2Nodes;
@@ -643,7 +643,7 @@ double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
 
 double ACALayout::leafPenalty(int src, int tgt)
 {
-    double penalty = 3;
+    double penalty = LEAF_PENALTY;
     return m_leaves.count(src)!=0 || m_leaves.count(tgt)!=0 ? penalty : 0;
 }
 
