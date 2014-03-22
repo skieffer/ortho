@@ -691,35 +691,3 @@ EdgeOffset ACALayout::getEdgeOffsetForCompassDirection(int j, ACASepFlags sf)
 }
 
 } // namespace cola
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
