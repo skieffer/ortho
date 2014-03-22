@@ -292,7 +292,9 @@ private:
      * the appropriate ACASepFlag is ACAEAST.
      *
      * If there is an existing separation in the alternate dimension
-     * to the one passed, the two will be combined.
+     * to the one passed, the two will be combined. For example, if i and j
+     * already have the separation ACANORTH and you pass ACAWEST, the
+     * result will be ACANORTHWEST.
      *
      * Also record all additional separations arising from the transitive
      * closure.

@@ -307,7 +307,7 @@ void ACALayout::initStateTables(void)
 void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCols)
 {
     if (numCols == 0) numCols = m_n;
-    // Get the set of all indices already aligned with i, including i itself.
+    // Get the set Ai of all indices already aligned with i, including i itself.
     // Do likewise for j.
     std::set<int> Ai, Aj;
     Ai.insert(i);
@@ -317,6 +317,7 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
         if ((*m_alignmentState)(j,k) & af) Aj.insert(k);
     }
     // Now record that everything in Ai is aligned with everything in Aj.
+    // This is the transitive closure of the new alignment.
     for (std::set<int>::iterator it=Ai.begin(); it!=Ai.end(); ++it) {
         for (std::set<int>::iterator jt=Aj.begin(); jt!=Aj.end(); ++jt) {
             (*m_alignmentState)(*it,*jt) |= af;
@@ -403,6 +404,7 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
             if ((*m_separationState)(j,k) & sf) U.insert(k);
         }
         // Now record that everything in L is west of everything in U.
+        // This is the transitive closure of the new separation.
         ACASepFlags nf = negateSepFlag(sf);
         for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
             for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
