@@ -111,6 +111,12 @@ void ACALayout::setAlignmentOffsetsForCompassDirection(ACASepFlags sf, EdgeOffse
     m_edgeOffsets.insert( std::pair<ACASepFlags,EdgeOffsets>(sf,offsets) );
 }
 
+void ACALayout::setAllowedSeparations(std::vector<ACASepFlags> seps)
+{
+    assert(seps.size()==(size_t)m_m); // There should be one flag for each edge.
+    m_allowedSeps = seps;
+}
+
 std::string ACALayout::writeAlignmentTable(void)
 {
     std::string s = m_alignmentState->toString();
@@ -502,7 +508,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
         while (sn < 16) {
             sf = (ACASepFlags) sn;
             // Check feasibility.
-            if (badSeparation(src,tgt,sf)) continue;
+            if (badSeparation(j,sf)) continue;
             if (createsOverlap(src,tgt,sf)) continue;
             // Passed feasibility tests.
             // Now compute penalty.
@@ -546,16 +552,25 @@ OrderedAlignment *ACALayout::chooseOA(void)
 }
 
 // Say whether the proposed separation is a bad one.
-bool ACALayout::badSeparation(int src, int tgt, ACASepFlags sf)
+bool ACALayout::badSeparation(int j, ACASepFlags sf)
 {
-    vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
-    double dx = rt->getCentreX() - rs->getCentreX();
-    double dy = rt->getCentreY() - rs->getCentreY();
-    ACASepFlags currPos = vectorToSepFlag(dx,dy);
+    // If allowed separations have been set, then check whether sf is allowed.
+    if (m_allowedSeps.size()>0) {
+        ACASepFlags allowed = m_allowedSeps.at(j);
+        if ( (sf&allowed) != sf ) return true; // it is a bad separation
+    }
     // If we are /not/ doing aggressive ordering, then
     // first check if sf is ruled out for reversing existing order.
-    if (!m_aggressiveOrdering && sepFlagsConflict(currPos,sf)) return true;
-    // Now check if sf conflicts with the separation state table.
+    cola::Edge e = m_es.at(j);
+    int src = e.first, tgt = e.second;
+    if (!m_aggressiveOrdering) {
+        vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
+        double dx = rt->getCentreX() - rs->getCentreX();
+        double dy = rt->getCentreY() - rs->getCentreY();
+        ACASepFlags currPos = vectorToSepFlag(dx,dy);
+        if (sepFlagsConflict(currPos,sf)) return true; // it is a bad separation
+    }
+    // Finally check if sf conflicts with the separation state table.
     ACASepFlags currConstraint = (ACASepFlags)(*m_separationState)(src,tgt);
     return sepFlagsConflict(currConstraint,sf);
 }

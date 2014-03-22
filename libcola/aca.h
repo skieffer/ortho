@@ -270,6 +270,16 @@ public:
      * If you do not set any offsets then offsets of zero will be used.
      */
     void setAlignmentOffsetsForCompassDirection(ACASepFlags sf, EdgeOffsets offsets);
+    /**
+     * @brief Say which separations are allowed for the source and target of each edge.
+     *
+     * The number of separation flags must equal the number of edges in the graph.
+     * For any edge e=(s,t), let f be the corresponding flag. Then when ACA considers
+     * aligning edge e it will only consider the directions whose bits are set in f.
+     *
+     * If you do not set allowed separations then all are considered to be allowed.
+     */
+    void setAllowedSeparations(std::vector<ACASepFlags> seps);
 
     // For debugging:
     std::string writeAlignmentTable(void);
@@ -338,9 +348,8 @@ private:
 
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
-    // In the following methods with signature src, tgt, sf,
-    // the separation flag always means the direction from src to tgt.
-    bool badSeparation(int src, int tgt, ACASepFlags sf);
+    // In the following four methods, the separation flag always means the direction from src to tgt.
+    bool badSeparation(int j, ACASepFlags sf);
     bool createsOverlap(int src, int tgt, ACASepFlags sf);
     double deflection(int src, int tgt, ACASepFlags sf);
     double bendPointPenalty(int src, int tgt, ACASepFlags sf);
@@ -365,6 +374,7 @@ private:
     cola::CompoundConstraints m_ccs;
 
     std::map<ACASepFlags,EdgeOffsets> m_edgeOffsets;
+    std::vector<ACASepFlags> m_allowedSeps;
 
     vpsc::Variables m_xvs;
     vpsc::Variables m_yvs;
