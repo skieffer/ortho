@@ -301,6 +301,8 @@ private:
 
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
+    // In the following methods with signature src, tgt, sf,
+    // the separation flag always means the direction from src to tgt.
     bool badSeparation(int src, int tgt, ACASepFlags sf);
     bool createsOverlap(int src, int tgt, ACASepFlags sf);
     double deflection(int src, int tgt, ACASepFlags sf);
@@ -312,7 +314,6 @@ private:
     void moveCoincidentNodes(void);
     void finalLayout(void);
     // -----------------------------------------------------
-
 
     int m_n; // number of nodes
     int m_m; // number of edges

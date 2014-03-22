@@ -325,7 +325,8 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     }
 }
 
-ACASepFlags negateSepFlag(ACASepFlags sf) {
+ACASepFlags negateSepFlag(ACASepFlags sf)
+{
     unsigned short c = (unsigned short) sf;
     c += 16*c;
     c &= 60; // 00111100
@@ -334,8 +335,26 @@ ACASepFlags negateSepFlag(ACASepFlags sf) {
     return nf;
 }
 
-ACAFlags sepToAlignFlag(ACASepFlags sf) {
+ACAFlags sepToAlignFlag(ACASepFlags sf)
+{
     return sf==ACANORTH || sf==ACASOUTH ? ACAVERT : ACAHORIZ;
+}
+
+ACASepFlags vectorToSepFlag(double dx, double dy)
+{
+    int f = 0;
+    f |= dx > 0 ? ACAEAST : dx < 0 ? ACAWEST : 0;
+    f |= dy > 0 ? ACASOUTH : dy < 0 ? ACANORTH : 0;
+    return (ACASepFlags) f;
+}
+
+bool sepFlagsConflict(ACASepFlags sf1, ACASepFlags sf2)
+{
+    // Combine all the flags.
+    int c = sf1 | sf2;
+    // There is a conflict iff both east and west bits (2 and 8) are set,
+    // or both north and south bits (1 and 4) are set.
+    return ( ( (c&5) == 5) || ( (c&10) == 10) );
 }
 
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols)
@@ -424,7 +443,7 @@ void ACALayout::acaLoopOneByOne(void)
         // Update state tables.
         updateStateTables(oa);
         // Choose next ordered alignment.
-        oa - chooseOA();
+        oa = chooseOA();
     }
 }
 
@@ -439,7 +458,7 @@ void ACALayout::acaLoopAllAtOnce(void)
         // Update state tables.
         updateStateTables(oa);
         // Choose next ordered alignment.
-        oa - chooseOA();
+        oa = chooseOA();
     }
     // Redo the layout, with the new constraints.
     layoutWithCurrentConstraints();
@@ -447,8 +466,9 @@ void ACALayout::acaLoopAllAtOnce(void)
 
 void ACALayout::updateStateTables(OrderedAlignment *oa)
 {
-    recordAlignmentWithClosure(oa->rect1,oa->rect2,oa->af);
-    recordSeparationWithClosure(oa->rect1,oa->rect2,oa->sf);
+    ACASepFlags sf = oa->af==ACAHORIZ ? ACAEAST : ACASOUTH;
+    recordAlignmentWithClosure(oa->left,oa->right,oa->af);
+    recordSeparationWithClosure(oa->left,oa->right,sf);
 }
 
 OrderedAlignment *ACALayout::chooseOA(void)
@@ -458,14 +478,17 @@ OrderedAlignment *ACALayout::chooseOA(void)
     // any edge can actually be assigned (so effectively infinity).
     double minPenalty = 10.0;
     // Consider each edge for potential alignment.
-    foreach (cola::Edge e, es) {
+    for (int j = 0; j < m_m; j++) {
+        cola::Edge e = m_es.at(j);
         int src = e.first, tgt = e.second;
         // If already aligned, then skip this edge.
         int astate = (*m_alignmentState)(src,tgt);
         if (astate & (ACAHORIZ|ACAVERT)) continue;
         // Otherwise consider placing tgt in each of the compass directions from src.
-        ACASepFlags sf = ACANORTH;
-        while (sf < 16) {
+        ACASepFlags sf;
+        int sn = 1;
+        while (sn < 16) {
+            sf = (ACASepFlags) sn;
             // Check feasibility.
             if (badSeparation(src,tgt,sf)) continue;
             if (createsOverlap(src,tgt,sf)) continue;
@@ -484,7 +507,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
                 oa->right = (oa->left == tgt ? src : tgt);
             }
             // shift left to next cardinal direction
-            sf = sf << 1;
+            sn = sn << 1;
         }
     }
     // Did we find an alignment?
@@ -498,7 +521,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
         // Create the separation constraint.
         double sep = oa->af == ACAHORIZ ?
                     (rl->width()+rr->width())/2.0 : (rl->height()+rr->height())/2.0;
-        sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
+        oa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
         // Create the alignment constraint.
         oa->alignment = new cola::AlignmentConstraint(alignDim);
         oa->alignment->addShape(l,0);
@@ -507,29 +530,121 @@ OrderedAlignment *ACALayout::chooseOA(void)
     return oa;
 }
 
+// Say whether the proposed separation is a bad one.
 bool ACALayout::badSeparation(int src, int tgt, ACASepFlags sf)
 {
-    // TODO
+    vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
+    double dx = rt->getCentreX() - rs->getCentreX();
+    double dy = rt->getCentreY() - rs->getCentreY();
+    ACASepFlags currPos = vectorToSepFlag(dx,dy);
+    // If we are /not/ doing aggressive ordering, then
+    // first check if sf is ruled out for reversing existing order.
+    if (!m_aggressiveOrdering && sepFlagsConflict(currPos,sf)) return true;
+    // Now check if sf conflicts with the separation state table.
+    ACASepFlags currConstraint = (ACASepFlags)(*m_separationState)(src,tgt);
+    return sepFlagsConflict(currConstraint,sf);
 }
 
 bool ACALayout::createsOverlap(int src, int tgt, ACASepFlags sf)
 {
-    // TODO
+    // Determine which shape is low and which is high in the dimension of interest.
+    int lowIndex = sf==ACANORTH || sf==ACAWEST ? tgt : src;
+    int highIndex = (lowIndex==tgt ? src : tgt);
+    ACAFlags af = sepToAlignFlag(sf);
+    // Determine the coordinates in the dimension of interest.
+    vpsc::Rectangle *rLow = m_rs.at(lowIndex), *rHigh = m_rs.at(highIndex);
+    double lowCoord = af==ACAHORIZ ? rLow->getCentreX() : rLow->getCentreY();
+    double highCoord = af==ACAHORIZ ? rHigh->getCentreX() : rHigh->getCentreY();
+    // Let L and H be the low and high shapes respectively.
+    // We consider each node U which is already aligned with either L or H.
+    // Any such node must have lower coord than L if it is connected to L, and
+    // higher coord than H if it is connected to H. If either of those conditions
+    // fails, then we predict overlap.
+    bool overlap = false;
+    for (int j = 0; j < m_n; j++) {
+        if (j==lowIndex || j==highIndex) continue;
+        vpsc::Rectangle *r = m_rs.at(j);
+        int lj = (*m_alignmentState)(lowIndex, j);
+        int hj = (*m_alignmentState)(highIndex, j);
+        if (lj&af || hj&af) {
+            double z = af==ACAHORIZ ? r->getCentreX() : r->getCentreY();
+            // low shape
+            if ( lj&ACACONN && lowCoord < z ) {
+                overlap = true; break;
+            }
+            // high shape
+            if ( hj&ACACONN && z < highCoord ) {
+                overlap = true; break;
+            }
+        }
+    }
+    return overlap;
 }
 
+/* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
+ * deflected from horizontal or vertical, depending on the passed alignment flag.
+ * The "edge" E is the straight line from the centre of the src rectangle to that
+ * of the tgt rectangle, as given by the src and tgt indices, and the vector of
+ * Rectangles.
+ *
+ * If t is the angle that E makes with the positive x-axis, then the score we return
+ * is sin^2(t) for horizontal alignments, and cos^2(t) for vertical.
+ *
+ * So smaller deflection scores mean edges that are closer to axis-aligned.
+ */
 double ACALayout::deflection(int src, int tgt, ACASepFlags sf)
 {
-    // TODO
+    vpsc::Rectangle *s = m_rs.at(src), *t = m_rs.at(tgt);
+    double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
+    double dx = tx-sx, dy = ty-sy;
+    double dx2 = dx*dx, dy2 = dy*dy;
+    double l = dx2 + dy2;
+    double dfl = sf==ACAWEST || sf==ACAEAST ? dy2/l : dx2/l;
+    return dfl;
 }
 
 double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
 {
-    // TODO
+    double penalty = 2;
+    ACAFlags af = sepToAlignFlag(sf);
+    ACAFlags op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
+    std::set<int> deg2Nodes = m_useNonLeafDegree ? m_nldeg2Nodes : m_deg2Nodes;
+    std::multimap<int,int> nbrs = m_useNonLeafDegree ? m_nlnbrs : m_nbrs;
+    // First check whether src would be made into a bendpoint.
+    if (deg2Nodes.count(src)!=0) {
+        // Find neighbour j of src which is different from tgt, by iterating over nbrs of src.
+        int j;
+        std::pair< std::multimap<int,int>::iterator, std::multimap<int,int>::iterator > range;
+        range = nbrs.equal_range(src);
+        for (std::multimap<int,int>::iterator it=range.first; it!=range.second; ++it) {
+            j = it->second;
+            if (j != tgt) break;
+        }
+        // Now check if they are aligned in the opposite dimension.
+        int as = (*m_alignmentState)(src,j);
+        if (as & op) return penalty;
+    }
+    // Now check whether tgt would be made into a bendpoint.
+    if (deg2Nodes.count(tgt)!=0) {
+        // Find neighbour j of tgt which is different from src, by iterating over nbrs of tgt.
+        int j;
+        std::pair< std::multimap<int,int>::iterator, std::multimap<int,int>::iterator > range;
+        range = nbrs.equal_range(tgt);
+        for (std::multimap<int,int>::iterator it=range.first; it!=range.second; ++it) {
+            j = it->second;
+            if (j != src) break;
+        }
+        // Now check if they are aligned in the opposite dimension.
+        int as = (*m_alignmentState)(tgt,j);
+        if (as & op) return penalty;
+    }
+    return 0;
 }
 
 double ACALayout::leafPenalty(int src, int tgt)
 {
-    // TODO
+    double penalty = 3;
+    return m_leaves.count(src)!=0 || m_leaves.count(tgt)!=0 ? penalty : 0;
 }
 
 } // namespace cola
