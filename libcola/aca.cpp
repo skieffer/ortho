@@ -51,7 +51,8 @@ ACALayout::ACALayout(
       m_addBendPointPenalty(true),
       m_postponeLeaves(true),
       m_useNonLeafDegree(true),
-      m_allAtOnce(false)
+      m_allAtOnce(false),
+      m_aggressiveOrdering(false)
 {
     computeDegrees();
     generateVPSCConstraints();
@@ -97,6 +98,11 @@ void ACALayout::useNonLeafDegree(bool b)
 void ACALayout::allAtOnce(bool b)
 {
     m_allAtOnce = b;
+}
+
+void ACALayout::aggressiveOrdering(bool b)
+{
+    m_aggressiveOrdering = b;
 }
 
 std::string ACALayout::writeAlignmentTable(void)
@@ -328,6 +334,10 @@ ACASepFlags negateSepFlag(ACASepFlags sf) {
     return nf;
 }
 
+ACAFlags sepToAlignFlag(ACASepFlags sf) {
+    return sf==ACANORTH || sf==ACASOUTH ? ACAVERT : ACAHORIZ;
+}
+
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols)
 {
     if (numCols == 0) numCols = m_n;
@@ -445,7 +455,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
 {
     OrderedAlignment *oa = NULL;
     // Initialise minPenalty to a value exceeding the maximum penalty
-    // any edge could actually be assigned (so effectively infinity).
+    // any edge can actually be assigned (so effectively infinity).
     double minPenalty = 10.0;
     // Consider each edge for potential alignment.
     foreach (cola::Edge e, es) {
@@ -453,29 +463,42 @@ OrderedAlignment *ACALayout::chooseOA(void)
         // If already aligned, then skip this edge.
         int astate = (*m_alignmentState)(src,tgt);
         if (astate & (ACAHORIZ|ACAVERT)) continue;
-        // Otherwise...
-        // TODO
+        // Otherwise consider placing tgt in each of the compass directions from src.
+        ACASepFlags sf = ACANORTH;
+        while (sf < 16) {
+            // Check feasibility.
+            if (badSeparation(src,tgt,sf)) continue;
+            if (createsOverlap(src,tgt,sf)) continue;
+            // Passed feasibility tests.
+            // Now compute penalty.
+            double p = 0;
+            p += deflection(src,tgt,sf);
+            if (m_addBendPointPenalty) p += bendPointPenalty(src,tgt,sf);
+            if (m_postponeLeaves) p += leafPenalty(src,tgt);
+            // Replace current ordered alignment if penalty is lower.
+            if (p < minPenalty) {
+                minPenalty = p;
+                if (!oa) oa = new OrderedAlignment;
+                oa->af = sepToAlignFlag(sf);
+                oa->left  = sf==ACANORTH || sf==ACAWEST ? tgt : src;
+                oa->right = (oa->left == tgt ? src : tgt);
+            }
+            // shift left to next cardinal direction
+            sf = sf << 1;
+        }
     }
     // Did we find an alignment?
     if (oa) {
         // If so, then complete the OrderedAlignment object.
-        int src = oa->rect1, tgt = oa->rect2;
-        vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
+        int l = oa->left, r = oa->right;
+        vpsc::Rectangle *rl = m_rs.at(l), *rr = m_rs.at(r);
         // Determine dimensions.
         vpsc::Dim sepDim   = oa->af == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
         vpsc::Dim alignDim = oa->af == ACAHORIZ ? vpsc::YDIM : vpsc::XDIM;
         // Create the separation constraint.
         double sep = oa->af == ACAHORIZ ?
-                    (rs->width()+rt->width())/2.0 : (rs->height()+rt->height())/2.0;
-        int l = oa->af == ACAHORIZ ?
-                    (rs->getCentreX() < rt->getCentreX() ? src : tgt) :
-                    (rs->getCentreY() < rt->getCentreY() ? src : tgt);
-        int r = l == src ? tgt : src;
+                    (rl->width()+rr->width())/2.0 : (rl->height()+rr->height())/2.0;
         sa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
-        // Record left, right, and sepflag.
-        oa->left = l;
-        oa->right = r;
-        oa->sf = oa->af == ACAHORIZ ? ACAEAST : ACASOUTH;
         // Create the alignment constraint.
         oa->alignment = new cola::AlignmentConstraint(alignDim);
         oa->alignment->addShape(l,0);
@@ -484,6 +507,30 @@ OrderedAlignment *ACALayout::chooseOA(void)
     return oa;
 }
 
+bool ACALayout::badSeparation(int src, int tgt, ACASepFlags sf)
+{
+    // TODO
+}
+
+bool ACALayout::createsOverlap(int src, int tgt, ACASepFlags sf)
+{
+    // TODO
+}
+
+double ACALayout::deflection(int src, int tgt, ACASepFlags sf)
+{
+    // TODO
+}
+
+double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
+{
+    // TODO
+}
+
+double ACALayout::leafPenalty(int src, int tgt)
+{
+    // TODO
+}
 
 } // namespace cola
 

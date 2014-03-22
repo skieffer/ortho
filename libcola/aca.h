@@ -94,14 +94,11 @@ enum ACASepFlags {
 };
 
 struct OrderedAlignment {
-    cola::SeparationConstraint* separation;
-    cola::AlignmentConstraint* alignment;
-    int rect1;
-    int rect2;
+    ACAFlags af;
     int left;
     int right;
-    ACAFlags af;
-    ACASepFlags sf;
+    cola::SeparationConstraint* separation;
+    cola::AlignmentConstraint* alignment;
 };
 
 
@@ -220,6 +217,24 @@ public:
      * on the initial layout, and then they will all be applied at once.
      */
     void allAtOnce(bool b);
+    /**
+     * @brief Say whether to consider changing orthogonal ordering of nodes.
+     *
+     * The default value is false. In that case, consider a pair of nodes
+     * u, v where v currently lies to the southeast of u. Then when ACA
+     * considers aligning u and v it will consider /only/ putting v east of
+     * u, and putting v south of u. In other words, it will /not/ consider
+     * reversing their current ordering in either dimension.
+     *
+     * In the same example, if you set aggressiveOrdering to true, then ACA
+     * will also consider putting v north and west of u.
+     *
+     * In the exceptional case of a node v lying, say, precisely east of a node
+     * u despite not being constrained to that alignment, then ACA will consider
+     * placing v east, north, and south of u even with aggressiveOrdering set
+     * to false. (But it will consider west only with it set to true.)
+     */
+    void aggressiveOrdering(bool b);
 
     // For debugging:
     std::string writeAlignmentTable(void);
@@ -286,16 +301,16 @@ private:
 
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
+    bool badSeparation(int src, int tgt, ACASepFlags sf);
+    bool createsOverlap(int src, int tgt, ACASepFlags sf);
+    double deflection(int src, int tgt, ACASepFlags sf);
+    double bendPointPenalty(int src, int tgt, ACASepFlags sf);
+    double leafPenalty(int src, int tgt);
 
     // TODO ? ---------------------------------------------
     void initialPositions(void);
     void moveCoincidentNodes(void);
     void finalLayout(void);
-
-    bool createsCoincidence(int src, int tgt, ACAFlags af);
-    double deflection(int src, int tgt, ACAFlags af);
-    double bendPointPenalty(int src, int tgt, ACAFlags af);
-    double leafPenalty(int src, int tgt);
     // -----------------------------------------------------
 
 
@@ -326,6 +341,7 @@ private:
     bool m_postponeLeaves;
     bool m_useNonLeafDegree;
     bool m_allAtOnce;
+    bool m_aggressiveOrdering;
 
     std::multimap<int,int> m_nbrs; // neighbours
     std::multimap<int,int> m_nlnbrs; // non-leaf neighbours
