@@ -82,25 +82,41 @@ enum ACAFlags {
 };
 
 enum ACASepFlags {
-    ACANOSEP     =  0,
-    ACANORTH     =  1,
-    ACAEAST      =  2,
-    ACASOUTH     =  4,
-    ACAWEST      =  8,
-    ACANORTHEAST =  3,
-    ACASOUTHEAST =  6,
-    ACANORTHWEST =  9,
-    ACASOUTHWEST = 12
+    ACANOSEP      =  0,
+
+    ACANORTH      =  1,
+    ACAEAST       =  2,
+    ACASOUTH      =  4,
+    ACAWEST       =  8,
+
+    ACANORTHEAST  =  3,
+    ACASOUTHEAST  =  6,
+    ACANORTHWEST  =  9,
+    ACASOUTHWEST  = 12,
+
+    ACANORTHSOUTH =  5,
+    ACAEASTWEST   = 10,
+
+    ACANOTNORTH   = 14,
+    ACANOTEAST    = 13,
+    ACANOTSOUTH   = 11,
+    ACANOTWEST    =  7,
+
+    ACAALLSEP     = 15
 };
 
 struct OrderedAlignment {
     ACAFlags af;
     int left;
     int right;
+    double offsetLeft;
+    double offsetRight;
     cola::SeparationConstraint* separation;
     cola::AlignmentConstraint* alignment;
 };
 
+typedef std::pair<double,double> EdgeOffset;
+typedef std::vector<EdgeOffset> EdgeOffsets;
 
 /**
  * @brief Implements the Adaptive Constrained Alignment (ACA) algorithm.
@@ -243,6 +259,17 @@ public:
      * to false. (But it will consider west only with it set to true.)
      */
     void aggressiveOrdering(bool b);
+    /**
+     * @brief Say how to offset nodes when edges are aligned in a certain direction.
+     *
+     * The number of offsets must equal the number of edges in the graph.
+     * For any edge e=(s,t), let o=(ds,dt) be the corresponding offset. Then if ACA aligns edge e
+     * so that sf is the separation from s to t, then s will be offset from the alignment
+     * guideline by ds, and t by dt.
+     *
+     * If you do not set any offsets then offsets of zero will be used.
+     */
+    void setAlignmentOffsetsForCompassDirection(ACASepFlags sf, EdgeOffsets offsets);
 
     // For debugging:
     std::string writeAlignmentTable(void);
@@ -319,6 +346,8 @@ private:
     double bendPointPenalty(int src, int tgt, ACASepFlags sf);
     double leafPenalty(int src, int tgt);
 
+    EdgeOffset getEdgeOffsetForCompassDirection(int j, ACASepFlags sf);
+
     // The penalty values determine the order in which certain types of
     // alignments will be created. (See above.)
     // The PENALTY_BOUND must be greater than the sum of the other penalty
@@ -334,6 +363,8 @@ private:
     vpsc::Rectangles m_rs;
     std::vector<cola::Edge> m_es;
     cola::CompoundConstraints m_ccs;
+
+    std::map<ACASepFlags,EdgeOffsets> m_edgeOffsets;
 
     vpsc::Variables m_xvs;
     vpsc::Variables m_yvs;

@@ -105,6 +105,12 @@ void ACALayout::aggressiveOrdering(bool b)
     m_aggressiveOrdering = b;
 }
 
+void ACALayout::setAlignmentOffsetsForCompassDirection(ACASepFlags sf, EdgeOffsets offsets)
+{
+    assert(offsets.size()==(size_t)m_m); // There should be one offset for each edge.
+    m_edgeOffsets.insert( std::pair<ACASepFlags,EdgeOffsets>(sf,offsets) );
+}
+
 std::string ACALayout::writeAlignmentTable(void)
 {
     std::string s = m_alignmentState->toString();
@@ -389,8 +395,8 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
         recordSeparationWithClosure(i,j,ACANORTH);
         recordSeparationWithClosure(i,j,ACAWEST);
         return;
-    case ACAEAST:
-    case ACASOUTH:
+    case ACAEAST: // Drop to next case.
+    case ACASOUTH: {
         // We drop down to this point only if sf is ACAEAST or ACASOUTH.
         // The code is the same for both cases.
         // For simplicity we express the comments for the case ACAEAST only.
@@ -412,6 +418,10 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
                 (*m_separationState)(*jt,*it) |= nf;
             }
         }
+        return;
+    }
+    default:
+        return;
     }
 }
 
@@ -506,7 +516,10 @@ OrderedAlignment *ACALayout::chooseOA(void)
                 if (!oa) oa = new OrderedAlignment;
                 oa->af = sepToAlignFlag(sf);
                 oa->left  = sf==ACANORTH || sf==ACAWEST ? tgt : src;
-                oa->right = (oa->left == tgt ? src : tgt);
+                oa->right = oa->left == tgt ? src : tgt;
+                EdgeOffset offset = getEdgeOffsetForCompassDirection(j,sf);
+                oa->offsetLeft  = oa->left == src ? offset.first : offset.second;
+                oa->offsetRight = oa->left == src ? offset.second : offset.first;
             }
             // shift left to next cardinal direction
             sn = sn << 1;
@@ -526,8 +539,8 @@ OrderedAlignment *ACALayout::chooseOA(void)
         oa->separation = new cola::SeparationConstraint(sepDim,l,r,sep);
         // Create the alignment constraint.
         oa->alignment = new cola::AlignmentConstraint(alignDim);
-        oa->alignment->addShape(l,0);
-        oa->alignment->addShape(r,0);
+        oa->alignment->addShape(l,oa->offsetLeft);
+        oa->alignment->addShape(r,oa->offsetRight);
     }
     return oa;
 }
@@ -647,6 +660,19 @@ double ACALayout::leafPenalty(int src, int tgt)
 {
     double penalty = LEAF_PENALTY;
     return m_leaves.count(src)!=0 || m_leaves.count(tgt)!=0 ? penalty : 0;
+}
+
+EdgeOffset ACALayout::getEdgeOffsetForCompassDirection(int j, ACASepFlags sf)
+{
+    EdgeOffset offset(0,0);
+    // If offsets have been specified for this sep flag, then retrieve
+    // the offset of the given index.
+    std::map<ACASepFlags,EdgeOffsets>::iterator it = m_edgeOffsets.find(sf);
+    if (it!=m_edgeOffsets.end()) {
+        EdgeOffsets offsets = it->second;
+        offset = offsets.at(j);
+    }
+    return offset;
 }
 
 } // namespace cola
