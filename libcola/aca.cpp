@@ -97,7 +97,8 @@ ACALayout::ACALayout(
       m_postponeLeaves(true),
       m_useNonLeafDegree(true),
       m_allAtOnce(false),
-      m_aggressiveOrdering(false)
+      m_aggressiveOrdering(false),
+      m_fdlayout(NULL)
 {
     computeDegrees();
     generateVPSCConstraints();
