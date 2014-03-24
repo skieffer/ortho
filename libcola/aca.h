@@ -183,12 +183,25 @@ public:
      */
     void createAlignments(void);
     /**
+     * @brief Creates one alignment.
+     *
+     * Call this function instead of createAlignments in order to create just
+     * one alignment and then stop. The return value is true if and only if a
+     * new alignment was actually created.
+     *
+     * Thus, repeatedly calling this function until it returns false achieves
+     * the exact same result as simply calling createAlignments.
+     */
+    bool createOneAlignment(void);
+    /**
      * @brief Do an initial layout, and then create alignments.
      *
      * This is a convenience function which first does a constrained force-directed
      * layout of the given graph, and then calls the 'createAlignments' function.
      */
     void layout(void);
+
+    cola::ConstrainedFDLayout *getFDLayout(void);
 
     // Configuration methods:
 
@@ -343,6 +356,7 @@ private:
     void recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols = 0);
 
     void layoutWithCurrentConstraints(void);
+    bool acaLoopOnce(void);
     void acaLoopOneByOne(void);
     void acaLoopAllAtOnce(void);
 
@@ -406,6 +420,8 @@ private:
     Matrix2d<int> *m_alignmentState;
     Matrix2d<int> *m_separationState;
     std::vector<OrderedAlignment*> m_ordAligns;
+
+    cola::ConstrainedFDLayout *m_fdlayout;
 };
 
 } // namespace cola

@@ -2410,11 +2410,19 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 2;
+    int test = 0;
 
     switch(test) {
     case 0: {
         rs = graph->rs; es = graph->edges; ccs = graph->ccs;
+        // Print the mapping between rectangle indices and Dunnart shapes,
+        // and write id labels on shapes.
+        for (int i = 0; i < rs.size(); i++) {
+            ShapeObj *sh = graph->getShape(i);
+            //int id = sh->internalId();
+            //qDebug() << QString("Rectangle %1 is shape %2.").arg(i).arg(id);
+            sh->setLabel(QString::number(i));
+        }
         break;
     }
     case 1: {
@@ -2481,6 +2489,8 @@ void Orthowontist::testColaACA(GraphData *graph) {
     qDebug() << QString(aca->sStateBeforeChop.c_str());
     qDebug() << "Separation table:";
     qDebug() << QString(aca->writeSeparationTable().c_str());
+    // Try an alignment.
+    aca->createOneAlignment();
 
     /*
     QMap<ShapeObj*,int> shapeIndices;

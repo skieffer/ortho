@@ -28,6 +28,51 @@ using namespace vpsc;
 
 namespace cola {
 
+ACASepFlags negateSepFlag(ACASepFlags sf)
+{
+    unsigned short c = (unsigned short) sf;
+    c += 16*c;
+    c &= 60; // 00111100
+    unsigned short b = c >> 2;
+    ACASepFlags nf = (ACASepFlags) b;
+    return nf;
+}
+
+ACAFlags sepToAlignFlag(ACASepFlags sf)
+{
+    return sf==ACANORTH || sf==ACASOUTH ? ACAVERT : ACAHORIZ;
+}
+
+ACAFlags perpAlignFlag(ACAFlags af)
+{
+    return af==ACAHORIZ ? ACAVERT : ACAHORIZ;
+}
+
+ACASepFlags vectorToSepFlag(double dx, double dy)
+{
+    int f = 0;
+    f |= dx > 0 ? ACAEAST : dx < 0 ? ACAWEST : 0;
+    f |= dy > 0 ? ACASOUTH : dy < 0 ? ACANORTH : 0;
+    return (ACASepFlags) f;
+}
+
+bool propsedSepConflictsWithExistingPosition(ACASepFlags pro, ACASepFlags ex)
+{
+    // Proposed separation pro conflicts with existing position ex
+    // if the union of their bits contains both north and south, or
+    // both east and west.
+    int u = pro | ex;
+    return ( ( (u&5) == 5 ) || ( (u&10) == 10 ) );
+}
+
+bool propsedSepConflictsWithExistingSepCo(ACASepFlags pro, ACASepFlags ex)
+{
+    // Proposed separation pro conflicts with existing separation ex
+    // if ex has any of the complementary bits of pro.
+    int proComp = 15 - pro;
+    return (proComp & ex);
+}
+
 ACALayout::ACALayout(
         const vpsc::Rectangles& rs,
         const std::vector<cola::Edge>& es,
@@ -63,6 +108,7 @@ ACALayout::~ACALayout(void)
 {
     delete m_alignmentState;
     delete m_separationState;
+    delete m_fdlayout;
 }
 
 void ACALayout::createAlignments(void)
@@ -74,10 +120,20 @@ void ACALayout::createAlignments(void)
     }
 }
 
+bool ACALayout::createOneAlignment(void)
+{
+    return acaLoopOnce();
+}
+
 void ACALayout::layout(void)
 {
     layoutWithCurrentConstraints();
     createAlignments();
+}
+
+cola::ConstrainedFDLayout *ACALayout::getFDLayout(void)
+{
+    return m_fdlayout;
 }
 
 void ACALayout::addBendPointPenalty(bool b)
@@ -321,53 +377,36 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     if (numCols == 0) numCols = m_n;
     // Get the set Ai of all indices already aligned with i, including i itself.
     // Do likewise for j.
+    // Also if af is ACAVERT then let L be the set of all indices west of i and
+    // U the set of all indices east of j. Do similarly if af is ACAHORIZ.
     std::set<int> Ai, Aj;
     Ai.insert(i);
     Aj.insert(j);
+    std::set<int> U, L;
+    ACASepFlags sf = af == ACAVERT ? ACAEAST : ACASOUTH;
     for (int k = 0; k < numCols; k++) {
-        if ((*m_alignmentState)(i,k) & af) Ai.insert(k);
-        if ((*m_alignmentState)(j,k) & af) Aj.insert(k);
+        if ( (*m_alignmentState)(i,k) & af ) Ai.insert(k);
+        if ( (*m_alignmentState)(j,k) & af ) Aj.insert(k);
+        if ( (*m_separationState)(k,i) & sf ) L.insert(k);
+        if ( (*m_separationState)(j,k) & sf ) U.insert(k);
     }
-    // Now record that everything in Ai is aligned with everything in Aj.
-    // This is the transitive closure of the new alignment.
+    // Record that everything in Ai is aligned with everything in Aj.
+    // This is the transitive closure of the new alignment for the alignments table.
     for (std::set<int>::iterator it=Ai.begin(); it!=Ai.end(); ++it) {
         for (std::set<int>::iterator jt=Aj.begin(); jt!=Aj.end(); ++jt) {
             (*m_alignmentState)(*it,*jt) |= af;
             (*m_alignmentState)(*jt,*it) |= af;
         }
     }
-}
-
-ACASepFlags negateSepFlag(ACASepFlags sf)
-{
-    unsigned short c = (unsigned short) sf;
-    c += 16*c;
-    c &= 60; // 00111100
-    unsigned short b = c >> 2;
-    ACASepFlags nf = (ACASepFlags) b;
-    return nf;
-}
-
-ACAFlags sepToAlignFlag(ACASepFlags sf)
-{
-    return sf==ACANORTH || sf==ACASOUTH ? ACAVERT : ACAHORIZ;
-}
-
-ACASepFlags vectorToSepFlag(double dx, double dy)
-{
-    int f = 0;
-    f |= dx > 0 ? ACAEAST : dx < 0 ? ACAWEST : 0;
-    f |= dy > 0 ? ACASOUTH : dy < 0 ? ACANORTH : 0;
-    return (ACASepFlags) f;
-}
-
-bool sepFlagsConflict(ACASepFlags sf1, ACASepFlags sf2)
-{
-    // Combine all the flags.
-    int c = sf1 | sf2;
-    // There is a conflict iff both east and west bits (2 and 8) are set,
-    // or both north and south bits (1 and 4) are set.
-    return ( ( (c&5) == 5) || ( (c&10) == 10) );
+    // Record that everything in L goes in direction sf to everything in U.
+    // This is the transitive closure of the new alignment for the separation table.
+    ACASepFlags nf = negateSepFlag(sf);
+    for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
+        for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
+            (*m_separationState)(*it,*jt) |= sf;
+            (*m_separationState)(*jt,*it) |= nf;
+        }
+    }
 }
 
 void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols)
@@ -406,14 +445,15 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
         // We drop down to this point only if sf is ACAEAST or ACASOUTH.
         // The code is the same for both cases.
         // For simplicity we express the comments for the case ACAEAST only.
-        // Let L be the set of all indices west or equal to i;
-        // let U be the set of all indices east or equal to j.
+        // Let L be the set of all indices west, aligned, or equal to i;
+        // let U be the set of all indices east, aligned, or equal to j.
         std::set<int> L, U;
         L.insert(i);
         U.insert(j);
+        ACAFlags af = perpAlignFlag(sepToAlignFlag(sf));
         for (int k = 0; k < numCols; k++) {
-            if ((*m_separationState)(k,i) & sf) L.insert(k);
-            if ((*m_separationState)(j,k) & sf) U.insert(k);
+            if ( ( (*m_separationState)(k,i) & sf ) || ( (*m_alignmentState)(k,i) & af ) ) L.insert(k);
+            if ( ( (*m_separationState)(j,k) & sf ) || ( (*m_alignmentState)(j,k) & af ) ) U.insert(k);
         }
         // Now record that everything in L is west of everything in U.
         // This is the transitive closure of the new separation.
@@ -433,7 +473,8 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
 
 void ACALayout::layoutWithCurrentConstraints(void)
 {
-    cola::ConstrainedFDLayout *fdlayout =
+    if (m_fdlayout) delete m_fdlayout;
+    m_fdlayout =
 #define OLDCOLA
 #ifdef OLDCOLA
             new cola::ConstrainedFDLayout(m_rs,m_es,m_idealLength,
@@ -443,9 +484,25 @@ void ACALayout::layoutWithCurrentConstraints(void)
                                           m_preventOverlaps,m_edgeLengths,
                                           m_doneTest,m_preIteration);
 #endif
-    fdlayout->setConstraints(m_ccs);
-    fdlayout->run(true,true);
-    delete fdlayout;
+    m_fdlayout->setConstraints(m_ccs);
+    m_fdlayout->run(true,true);
+}
+
+bool ACALayout::acaLoopOnce(void)
+{
+    OrderedAlignment *oa = chooseOA();
+    if (oa) {
+        // Add the new separated alignment constraints.
+        m_ccs.push_back(oa->separation);
+        m_ccs.push_back(oa->alignment);
+        // Redo the layout, with the new constraints.
+        layoutWithCurrentConstraints();
+        // Update state tables.
+        updateStateTables(oa);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void ACALayout::acaLoopOneByOne(void)
@@ -507,6 +564,9 @@ OrderedAlignment *ACALayout::chooseOA(void)
         int sn = 1;
         while (sn < 16) {
             sf = (ACASepFlags) sn;
+            // shift left to next cardinal direction
+            // (do it now in case of 'continue's below)
+            sn = sn << 1;
             // Check feasibility.
             if (badSeparation(j,sf)) continue;
             if (createsOverlap(src,tgt,sf)) continue;
@@ -527,8 +587,6 @@ OrderedAlignment *ACALayout::chooseOA(void)
                 oa->offsetLeft  = oa->left == src ? offset.first : offset.second;
                 oa->offsetRight = oa->left == src ? offset.second : offset.first;
             }
-            // shift left to next cardinal direction
-            sn = sn << 1;
         }
     }
     // Did we find an alignment?
@@ -568,11 +626,13 @@ bool ACALayout::badSeparation(int j, ACASepFlags sf)
         double dx = rt->getCentreX() - rs->getCentreX();
         double dy = rt->getCentreY() - rs->getCentreY();
         ACASepFlags currPos = vectorToSepFlag(dx,dy);
-        if (sepFlagsConflict(currPos,sf)) return true; // it is a bad separation
+        bool conflict = propsedSepConflictsWithExistingPosition(sf,currPos);
+        if (conflict) return true; // it is a bad separation
     }
     // Finally check if sf conflicts with the separation state table.
     ACASepFlags currConstraint = (ACASepFlags)(*m_separationState)(src,tgt);
-    return sepFlagsConflict(currConstraint,sf);
+    bool conflict = propsedSepConflictsWithExistingSepCo(sf,currConstraint);
+    return conflict;
 }
 
 bool ACALayout::createsOverlap(int src, int tgt, ACASepFlags sf)

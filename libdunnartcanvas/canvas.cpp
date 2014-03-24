@@ -5726,7 +5726,7 @@ void Canvas::orthowontist(void)
     // hijack this menu command to test the ACA version in libcola.
     //ow.run2(L);
     // Hijack:
-    GraphData *graph = new GraphData(this, true, m_graphlayout->mode, false, 10000);
+    GraphData *graph = new GraphData(this, false, m_graphlayout->mode, false, 10000);
     ow.testColaACA(graph);
 }
 
