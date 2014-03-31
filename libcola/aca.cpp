@@ -21,6 +21,8 @@
  *             Steve Kieffer
 */
 
+#include <algorithm>
+
 #include "libcola/aca.h"
 
 using namespace std;
@@ -28,35 +30,35 @@ using namespace vpsc;
 
 namespace cola {
 
-ACASepFlags negateSepFlag(ACASepFlags sf)
+ACASepFlag negateSepFlag(ACASepFlag sf)
 {
     unsigned short c = (unsigned short) sf;
     c += 16*c;
     c &= 60; // 00111100
     unsigned short b = c >> 2;
-    ACASepFlags nf = (ACASepFlags) b;
+    ACASepFlag nf = (ACASepFlag) b;
     return nf;
 }
 
-ACAFlags sepToAlignFlag(ACASepFlags sf)
+ACAFlag sepToAlignFlag(ACASepFlag sf)
 {
     return sf==ACANORTH || sf==ACASOUTH ? ACAVERT : ACAHORIZ;
 }
 
-ACAFlags perpAlignFlag(ACAFlags af)
+ACAFlag perpAlignFlag(ACAFlag af)
 {
     return af==ACAHORIZ ? ACAVERT : ACAHORIZ;
 }
 
-ACASepFlags vectorToSepFlag(double dx, double dy)
+ACASepFlag vectorToSepFlag(double dx, double dy)
 {
     int f = 0;
     f |= dx > 0 ? ACAEAST : dx < 0 ? ACAWEST : 0;
     f |= dy > 0 ? ACASOUTH : dy < 0 ? ACANORTH : 0;
-    return (ACASepFlags) f;
+    return (ACASepFlag) f;
 }
 
-bool propsedSepConflictsWithExistingPosition(ACASepFlags pro, ACASepFlags ex)
+bool propsedSepConflictsWithExistingPosition(ACASepFlag pro, ACASepFlag ex)
 {
     // Proposed separation pro conflicts with existing position ex
     // if the union of their bits contains both north and south, or
@@ -65,12 +67,92 @@ bool propsedSepConflictsWithExistingPosition(ACASepFlags pro, ACASepFlags ex)
     return ( ( (u&5) == 5 ) || ( (u&10) == 10 ) );
 }
 
-bool propsedSepConflictsWithExistingSepCo(ACASepFlags pro, ACASepFlags ex)
+bool propsedSepConflictsWithExistingSepCo(ACASepFlag pro, ACASepFlag ex)
 {
     // Proposed separation pro conflicts with existing separation ex
     // if ex has any of the complementary bits of pro.
     int proComp = 15 - pro;
     return (proComp & ex);
+}
+
+bool sortEvents(const AlignedNodes::Event &lhs, const AlignedNodes::Event &rhs)
+{
+    return lhs.m_pos < rhs.m_pos;
+}
+
+bool AlignedNodes::thereAreOverlaps(void)
+{
+    // Make events for nodes opening and closing, and for edges.
+    std::vector<Event> events;
+    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
+        int index = m_nodeIndices.at(i);
+        vpsc::Rectangle *R = m_nodeRects.at(i);
+        Event eo(OPEN), ec(CLOSE);
+        eo.m_index = index;
+        ec.m_index = index;
+        double u = R->getMinD(m_primaryDim),   U = R->getMaxD(m_primaryDim);
+        double v = R->getMinD(m_secondaryDim), V = R->getMaxD(m_secondaryDim);
+        eo.m_pos = v; eo.m_lowerBound = u; eo.m_upperBound = U;
+        ec.m_pos = V; ec.m_lowerBound = u; ec.m_upperBound = U;
+        events.push_back(eo);
+        events.push_back(ec);
+    }
+    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
+        Event e(LOCAL);
+        e.m_index = m_edgeIndices.at(i);
+        e.m_pos = m_edgeConstCoords.at(i);
+        e.m_lowerBound = m_edgeLowerBounds.at(i);
+        e.m_upperBound = m_edgeUpperBounds.at(i);
+        events.push_back(e);
+    }
+    // Sort by m_pos
+    std::sort(events.begin(), events.end(), sortEvents);
+    // Scan through list looking for overlaps.
+    std::vector<Event> openIntervals;
+    unsigned i = 0;
+    while (i < events.size()) {
+        // Get open intervals for next constant coord.
+        double v = events.at(i).m_pos;
+        std::set<int> closedEvents;
+        while (events.at(i).m_pos == v && i < events.size()) {
+            Event e = events.at(i);
+            if (e.m_type==CLOSE) {
+                closedEvents.insert(e.m_index);
+            } else {
+                openIntervals.push_back(e);
+            }
+            i++;
+        }
+        // Now create a vector of the open and close events for the intervals.
+        std::vector<Event> intervalEvents;
+        for (unsigned j = 0; j < openIntervals.size(); j++) {
+            Event e = openIntervals.at(j);
+            Event o(OPEN), c(CLOSE);
+            o.m_index = c.m_index = e.m_index;
+            o.m_pos = e.m_lowerBound;
+            c.m_pos = e.m_upperBound;
+            intervalEvents.push_back(o);
+            intervalEvents.push_back(c);
+        }
+        // Sort
+        std::sort(intervalEvents.begin(), intervalEvents.end(), sortEvents);
+        // Check for overlapping intervals.
+        // No two intervals may be open at the same time, but it is okay if one opens at the same
+        // coordinate at which another closes.
+        for (unsigned k = 0; k < intervalEvents.size(); k++) {
+            // If find an overlap, then immediately return true.
+            // TODO
+        }
+        // Remove closed intervals, if any.
+        std::vector<Event> tmp;
+        for (unsigned j = 0; j < openIntervals.size(); j++) {
+            Event e = openIntervals.at(j);
+            if (e.m_type==OPEN && closedEvents.count(e.m_index)!=0) continue;
+            tmp.push_back(e);
+        }
+        openIntervals = tmp;
+    }
+    return false;
 }
 
 ACALayout::ACALayout(
@@ -98,6 +180,7 @@ ACALayout::ACALayout(
       m_useNonLeafDegree(true),
       m_allAtOnce(false),
       m_aggressiveOrdering(false),
+      m_preventEdgeOverlaps(true),
       m_fdlayout(NULL)
 {
     computeDegrees();
@@ -110,6 +193,15 @@ ACALayout::~ACALayout(void)
     delete m_alignmentState;
     delete m_separationState;
     delete m_fdlayout;
+    for (unsigned i = 0; i < m_ordAligns.size(); i++) {
+        delete m_ordAligns.at(i);
+    }
+    for (unsigned i = 0; i < m_xvs.size(); i++) {
+        delete m_xvs.at(i);
+    }
+    for (unsigned i = 0; i < m_yvs.size(); i++) {
+        delete m_yvs.at(i);
+    }
 }
 
 void ACALayout::createAlignments(void)
@@ -162,16 +254,26 @@ void ACALayout::aggressiveOrdering(bool b)
     m_aggressiveOrdering = b;
 }
 
-void ACALayout::setAlignmentOffsetsForCompassDirection(ACASepFlags sf, EdgeOffsets offsets)
+void ACALayout::preventEdgeOverlaps(bool b)
 {
-    assert(offsets.size()==(size_t)m_m); // There should be one offset for each edge.
-    m_edgeOffsets.insert( std::pair<ACASepFlags,EdgeOffsets>(sf,offsets) );
+    m_preventEdgeOverlaps = b;
 }
 
-void ACALayout::setAllowedSeparations(std::vector<ACASepFlags> seps)
+void ACALayout::setAlignmentOffsetsForCompassDirection(ACASepFlag sf, EdgeOffsets offsets)
 {
-    assert(seps.size()==(size_t)m_m); // There should be one flag for each edge.
+    COLA_ASSERT(offsets.size()==(size_t)m_m); // There should be one offset for each edge.
+    m_edgeOffsets.insert( std::pair<ACASepFlag,EdgeOffsets>(sf,offsets) );
+}
+
+void ACALayout::setAllowedSeparations(ACASepFlags seps)
+{
+    COLA_ASSERT(seps.size()==(size_t)m_m); // There should be one flag for each edge.
     m_allowedSeps = seps;
+}
+
+void ACALayout::setAllowedSeparations(ACASepFlagsStruct seps)
+{
+    setAllowedSeparations(seps.sepFlags);
 }
 
 std::string ACALayout::writeAlignmentTable(void)
@@ -310,7 +412,7 @@ void ACALayout::initStateTables(void)
             recordAlignmentWithClosure(l,r,ACAVERT,N);
         } else {
             // It is a disalignment, or separation.
-            ACASepFlags sf = gap > 0 ? ACAEAST : ACAWEST;
+            ACASepFlag sf = gap > 0 ? ACAEAST : ACAWEST;
             recordSeparationWithClosure(l,r,sf,N);
         }
     }
@@ -327,7 +429,7 @@ void ACALayout::initStateTables(void)
             recordAlignmentWithClosure(l,r,ACAHORIZ,N);
         } else {
             // It is a disalignment, or separation.
-            ACASepFlags sf = gap > 0 ? ACASOUTH : ACANORTH;
+            ACASepFlag sf = gap > 0 ? ACASOUTH : ACANORTH;
             recordSeparationWithClosure(l,r,sf,N);
         }
     }
@@ -373,7 +475,7 @@ void ACALayout::initStateTables(void)
     m_separationState = sState;
 }
 
-void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCols)
+void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlag af, int numCols)
 {
     if (numCols == 0) numCols = m_n;
     // Get the set Ai of all indices already aligned with i, including i itself.
@@ -384,7 +486,7 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     Ai.insert(i);
     Aj.insert(j);
     std::set<int> U, L;
-    ACASepFlags sf = af == ACAVERT ? ACAEAST : ACASOUTH;
+    ACASepFlag sf = af == ACAVERT ? ACAEAST : ACASOUTH;
     for (int k = 0; k < numCols; k++) {
         if ( (*m_alignmentState)(i,k) & af ) Ai.insert(k);
         if ( (*m_alignmentState)(j,k) & af ) Aj.insert(k);
@@ -401,7 +503,7 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     }
     // Record that everything in L goes in direction sf to everything in U.
     // This is the transitive closure of the new alignment for the separation table.
-    ACASepFlags nf = negateSepFlag(sf);
+    ACASepFlag nf = negateSepFlag(sf);
     for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
         for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
             (*m_separationState)(*it,*jt) |= sf;
@@ -410,7 +512,7 @@ void ACALayout::recordAlignmentWithClosure(int i, int j, ACAFlags af, int numCol
     }
 }
 
-void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int numCols)
+void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlag sf, int numCols)
 {
     if (numCols == 0) numCols = m_n;
     // Reduce to the case where sf is either ACAEAST or ACASOUTH.
@@ -451,14 +553,14 @@ void ACALayout::recordSeparationWithClosure(int i, int j, ACASepFlags sf, int nu
         std::set<int> L, U;
         L.insert(i);
         U.insert(j);
-        ACAFlags af = perpAlignFlag(sepToAlignFlag(sf));
+        ACAFlag af = perpAlignFlag(sepToAlignFlag(sf));
         for (int k = 0; k < numCols; k++) {
             if ( ( (*m_separationState)(k,i) & sf ) || ( (*m_alignmentState)(k,i) & af ) ) L.insert(k);
             if ( ( (*m_separationState)(j,k) & sf ) || ( (*m_alignmentState)(j,k) & af ) ) U.insert(k);
         }
         // Now record that everything in L is west of everything in U.
         // This is the transitive closure of the new separation.
-        ACASepFlags nf = negateSepFlag(sf);
+        ACASepFlag nf = negateSepFlag(sf);
         for (std::set<int>::iterator it=L.begin(); it!=L.end(); ++it) {
             for (std::set<int>::iterator jt=U.begin(); jt!=U.end(); ++jt) {
                 (*m_separationState)(*it,*jt) |= sf;
@@ -542,7 +644,7 @@ void ACALayout::acaLoopAllAtOnce(void)
 
 void ACALayout::updateStateTables(OrderedAlignment *oa)
 {
-    ACASepFlags sf = oa->af==ACAHORIZ ? ACAEAST : ACASOUTH;
+    ACASepFlag sf = oa->af==ACAHORIZ ? ACAEAST : ACASOUTH;
     recordAlignmentWithClosure(oa->left,oa->right,oa->af);
     recordSeparationWithClosure(oa->left,oa->right,sf);
 }
@@ -561,16 +663,16 @@ OrderedAlignment *ACALayout::chooseOA(void)
         int astate = (*m_alignmentState)(src,tgt);
         if (astate & (ACAHORIZ|ACAVERT)) continue;
         // Otherwise consider placing tgt in each of the compass directions from src.
-        ACASepFlags sf;
+        ACASepFlag sf;
         int sn = 1;
         while (sn < 16) {
-            sf = (ACASepFlags) sn;
+            sf = (ACASepFlag) sn;
             // shift left to next cardinal direction
             // (do it now in case of 'continue's below)
             sn = sn << 1;
             // Check feasibility.
             if (badSeparation(j,sf)) continue;
-            if (createsOverlap(src,tgt,sf)) continue;
+            if (m_preventEdgeOverlaps && createsOverlap(src,tgt,sf)) continue;
             // Passed feasibility tests.
             // Now compute penalty.
             double p = 0;
@@ -606,16 +708,18 @@ OrderedAlignment *ACALayout::chooseOA(void)
         oa->alignment = new cola::AlignmentConstraint(alignDim);
         oa->alignment->addShape(l,oa->offsetLeft);
         oa->alignment->addShape(r,oa->offsetRight);
+        // Record oa.
+        m_ordAligns.push_back(oa);
     }
     return oa;
 }
 
 // Say whether the proposed separation is a bad one.
-bool ACALayout::badSeparation(int j, ACASepFlags sf)
+bool ACALayout::badSeparation(int j, ACASepFlag sf)
 {
     // If allowed separations have been set, then check whether sf is allowed.
     if (m_allowedSeps.size()>0) {
-        ACASepFlags allowed = m_allowedSeps.at(j);
+        ACASepFlag allowed = m_allowedSeps.at(j);
         if ( (sf&allowed) != sf ) return true; // it is a bad separation
     }
     // If we are /not/ doing aggressive ordering, then
@@ -626,22 +730,22 @@ bool ACALayout::badSeparation(int j, ACASepFlags sf)
         vpsc::Rectangle *rs = m_rs.at(src), *rt = m_rs.at(tgt);
         double dx = rt->getCentreX() - rs->getCentreX();
         double dy = rt->getCentreY() - rs->getCentreY();
-        ACASepFlags currPos = vectorToSepFlag(dx,dy);
+        ACASepFlag currPos = vectorToSepFlag(dx,dy);
         bool conflict = propsedSepConflictsWithExistingPosition(sf,currPos);
         if (conflict) return true; // it is a bad separation
     }
     // Finally check if sf conflicts with the separation state table.
-    ACASepFlags currConstraint = (ACASepFlags)(*m_separationState)(src,tgt);
+    ACASepFlag currConstraint = (ACASepFlag)(*m_separationState)(src,tgt);
     bool conflict = propsedSepConflictsWithExistingSepCo(sf,currConstraint);
     return conflict;
 }
 
-bool ACALayout::createsOverlap(int src, int tgt, ACASepFlags sf)
+bool ACALayout::createsOverlap(int src, int tgt, ACASepFlag sf)
 {
     // Determine which shape is low and which is high in the dimension of interest.
     int lowIndex = sf==ACANORTH || sf==ACAWEST ? tgt : src;
     int highIndex = (lowIndex==tgt ? src : tgt);
-    ACAFlags af = sepToAlignFlag(sf);
+    ACAFlag af = sepToAlignFlag(sf);
     // Determine the coordinates in the dimension of interest.
     vpsc::Rectangle *rLow = m_rs.at(lowIndex), *rHigh = m_rs.at(highIndex);
     double lowCoord = af==ACAHORIZ ? rLow->getCentreX() : rLow->getCentreY();
@@ -683,7 +787,7 @@ bool ACALayout::createsOverlap(int src, int tgt, ACASepFlags sf)
  *
  * So smaller deflection scores mean edges that are closer to axis-aligned.
  */
-double ACALayout::deflection(int src, int tgt, ACASepFlags sf)
+double ACALayout::deflection(int src, int tgt, ACASepFlag sf)
 {
     vpsc::Rectangle *s = m_rs.at(src), *t = m_rs.at(tgt);
     double sx=s->getCentreX(), sy=s->getCentreY(), tx=t->getCentreX(), ty=t->getCentreY();
@@ -694,17 +798,17 @@ double ACALayout::deflection(int src, int tgt, ACASepFlags sf)
     return dfl;
 }
 
-double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
+double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlag sf)
 {
     double penalty = BP_PENALTY;
-    ACAFlags af = sepToAlignFlag(sf);
-    ACAFlags op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
+    ACAFlag af = sepToAlignFlag(sf);
+    ACAFlag op = af==ACAHORIZ ? ACAVERT : ACAHORIZ;
     std::set<int> deg2Nodes = m_useNonLeafDegree ? m_nldeg2Nodes : m_deg2Nodes;
     std::multimap<int,int> nbrs = m_useNonLeafDegree ? m_nlnbrs : m_nbrs;
     // First check whether src would be made into a bendpoint.
     if (deg2Nodes.count(src)!=0) {
         // Find neighbour j of src which is different from tgt, by iterating over nbrs of src.
-        int j;
+        int j = 0;
         std::pair< std::multimap<int,int>::iterator, std::multimap<int,int>::iterator > range;
         range = nbrs.equal_range(src);
         for (std::multimap<int,int>::iterator it=range.first; it!=range.second; ++it) {
@@ -718,7 +822,7 @@ double ACALayout::bendPointPenalty(int src, int tgt, ACASepFlags sf)
     // Now check whether tgt would be made into a bendpoint.
     if (deg2Nodes.count(tgt)!=0) {
         // Find neighbour j of tgt which is different from src, by iterating over nbrs of tgt.
-        int j;
+        int j = 0;
         std::pair< std::multimap<int,int>::iterator, std::multimap<int,int>::iterator > range;
         range = nbrs.equal_range(tgt);
         for (std::multimap<int,int>::iterator it=range.first; it!=range.second; ++it) {
@@ -738,12 +842,12 @@ double ACALayout::leafPenalty(int src, int tgt)
     return m_leaves.count(src)!=0 || m_leaves.count(tgt)!=0 ? penalty : 0;
 }
 
-EdgeOffset ACALayout::getEdgeOffsetForCompassDirection(int j, ACASepFlags sf)
+EdgeOffset ACALayout::getEdgeOffsetForCompassDirection(int j, ACASepFlag sf)
 {
     EdgeOffset offset(0,0);
     // If offsets have been specified for this sep flag, then retrieve
     // the offset of the given index.
-    std::map<ACASepFlags,EdgeOffsets>::iterator it = m_edgeOffsets.find(sf);
+    std::map<ACASepFlag,EdgeOffsets>::iterator it = m_edgeOffsets.find(sf);
     if (it!=m_edgeOffsets.end()) {
         EdgeOffsets offsets = it->second;
         offset = offsets.at(j);
