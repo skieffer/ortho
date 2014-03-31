@@ -139,9 +139,39 @@ bool AlignedNodes::thereAreOverlaps(void)
         // Check for overlapping intervals.
         // No two intervals may be open at the same time, but it is okay if one opens at the same
         // coordinate at which another closes.
+        int openIndex = -1;
         for (unsigned k = 0; k < intervalEvents.size(); k++) {
             // If find an overlap, then immediately return true.
-            // TODO
+            Event e = intervalEvents.at(k);
+            if (openIndex < 0) {
+                // If there is currently no open interval, then open one.
+                openIndex = e.m_index;
+            } else {
+                // There is currently an open interval.
+                // Check the index of the next point.
+                int nextIndex = e.m_index;
+                if (nextIndex == openIndex) {
+                    // If it equals the index of the open interval, then that interval
+                    // is now closed.
+                    openIndex = -1;
+                } else {
+                    // Otherwise an interval is open, and we've just encountered the opening end
+                    // of a different interval.
+                    // This is okay only if the very next event is the closing end for
+                    // the first open interval, since at most two intervals can share any
+                    // endpoint without there being an overlap.
+                    COLA_ASSERT(k+1 < intervalEvents.size());
+                    Event f = intervalEvents.at(k+1);
+                    if (f.m_index != openIndex) {
+                        // There is an overlap.
+                        return true;
+                    } else {
+                        // The first open interval was closed, and the second one is
+                        // now to be noted by the openIndex.
+                        openIndex = nextIndex;
+                    }
+                }
+            }
         }
         // Remove closed intervals, if any.
         std::vector<Event> tmp;
