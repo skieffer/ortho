@@ -152,6 +152,10 @@ struct AlignedNodes {
     {
         m_secondaryDim = primaryDim==vpsc::XDIM ? vpsc::YDIM : vpsc::XDIM;
     }
+    /**
+     * Initialize with a single node.
+     */
+    AlignedNodes(vpsc::Dim primaryDim, int nodeIndex, vpsc::Rectangle *nodeRect);
     vpsc::Dim m_primaryDim;   // XDIM for horizontal alignments; YDIM for vertical
     vpsc::Dim m_secondaryDim; // YDIM for horizontal alignments; XDIM for vertical
     std::vector<int> m_nodeIndices;
@@ -161,6 +165,24 @@ struct AlignedNodes {
     std::vector<double> m_edgeConstCoords;
     std::vector<double> m_edgeLowerBounds;
     std::vector<double> m_edgeUpperBounds;
+    void addEdge(int index, double c, double l, double u);
+    /**
+     * Create and return a new AlignedNodes struct resulting from combining this one
+     * with the other one passed, and adjusting local coordinates so that a "port" on
+     * a node in this one lines up with a port on a node in the other one.
+     * Also add a new edge connecting the two ports.
+     *
+     * The integers node1, node2 specify the nodes by their indices.
+     * The offsets are from the centre of the node and in the secondary dimension.
+     * The integer edge gives the index of the new edge.
+     */
+    AlignedNodes combineWithEdge(const AlignedNodes &other, int edge, int node1, double offset1, int node2, double offset2);
+    // Combine two AlignedNodes structs without altering either:
+    AlignedNodes operator+ (const AlignedNodes &other);
+    // Return a fresh copy:
+    AlignedNodes copy(void) const;
+    // Return fresh copy with all coords in secondaryDim shifted by passed offset:
+    AlignedNodes shifted(double offset) const;
     // Check for overlaps:
     bool thereAreOverlaps(void);
 };
@@ -169,7 +191,7 @@ struct AlignedNodes {
  * @brief Implements the Adaptive Constrained Alignment (ACA) algorithm.
  *
  * See
- * Kieffer, Steve, Tim Dwyer, Kim Marriott, and Michael Wybrow.
+ * Steve Kieffer, Tim Dwyer, Kim Marriott, and Michael Wybrow.
  * "Incremental grid-like layout using soft and hard constraints." In Graph
  * Drawing 2013, pp. 448-459. Springer International Publishing, 2013.
  */

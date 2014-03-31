@@ -80,6 +80,124 @@ bool sortEvents(const AlignedNodes::Event &lhs, const AlignedNodes::Event &rhs)
     return lhs.m_pos < rhs.m_pos;
 }
 
+AlignedNodes::AlignedNodes(Dim primaryDim, int nodeIndex, Rectangle *nodeRect)  :
+    m_primaryDim(primaryDim)
+{
+    m_secondaryDim = primaryDim==vpsc::XDIM ? vpsc::YDIM : vpsc::XDIM;
+    m_nodeIndices.push_back(nodeIndex);
+    m_nodeRects.push_back(nodeRect);
+}
+
+AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int edge, int node1, double offset1, int node2, double offset2)
+{
+    // Determine the local coordinate of port 1.
+    int i = 0;
+    while (i < m_nodeIndices.size()) {
+        if (m_nodeIndices.at(i)==node1) break;
+        i++;
+    }
+    vpsc::Rectangle *R = m_nodeRects.at(i);
+    double v1 = R->getCentreD(m_secondaryDim);
+    v1 += offset1;
+    // Determine the local coordinate of port 2.
+    int j = 0;
+    while (j < other.m_nodeIndices.size()) {
+        if (other.m_nodeIndices.at(j)==node2) break;
+        j++;
+    }
+    vpsc::Rectangle *S = m_nodeRects.at(j);
+    double v2 = S->getCentreD(m_secondaryDim);
+    v2 += offset2;
+    // Get a shifted copy of other, and return sum with self.
+    AlignedNodes sh = other.shifted(v1-v2);
+    AlignedNodes th = *this;
+    AlignedNodes a = th + sh;
+    // Add a new edge.
+    double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
+    double u2 = S->getMinD(m_primaryDim), U2 = S->getMaxD(m_primaryDim);
+    double l = U1 < u2 ? U1 : U2;
+    double u = U1 < u2 ? u2 : u1;
+    a.addEdge(edge,v1,l,u);
+}
+
+void AlignedNodes::addEdge(int index, double c, double l, double u)
+{
+    m_edgeIndices.push_back(index);
+    m_edgeConstCoords.push_back(c);
+    m_edgeLowerBounds.push_back(l);
+    m_edgeUpperBounds.push_back(u);
+}
+
+AlignedNodes AlignedNodes::operator +(const AlignedNodes &other)
+{
+    AlignedNodes s(m_primaryDim);
+    // node indices
+    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
+        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
+    }
+    for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
+        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
+    }
+    // node rects
+    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
+        s.m_nodeRects.push_back(m_nodeRects.at(i));
+    }
+    for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
+        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
+    }
+    // edge indices
+    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
+        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
+        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
+    }
+    // edge const coords
+    for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
+        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
+        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+    }
+    // edge lower bounds
+    for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
+        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
+        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
+    }
+    // edge upper bounds
+    for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
+        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
+        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
+    }
+    return s;
+}
+
+AlignedNodes AlignedNodes::copy(void) const
+{
+    AlignedNodes a = *this;
+    AlignedNodes b(m_primaryDim);
+    return a+b;
+}
+
+AlignedNodes AlignedNodes::shifted(double offset) const
+{
+    AlignedNodes c = copy();
+    // node rects
+    for (unsigned i = 0; i < c.m_nodeRects.size(); i++) {
+        vpsc::Rectangle *R = c.m_nodeRects.at(i);
+        R->moveCentreD(m_secondaryDim,offset);
+    }
+    // edge const coords
+    for (unsigned i = 0; i < c.m_edgeConstCoords.size(); i++) {
+        c.m_edgeConstCoords[i] += offset;
+    }
+    return c;
+}
+
 bool AlignedNodes::thereAreOverlaps(void)
 {
     // Make events for nodes opening and closing, and for edges.
