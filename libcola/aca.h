@@ -538,9 +538,6 @@ private:
     std::map<int,AlignedNodes*> m_vSets;
 
     cola::ConstrainedFDLayout *m_fdlayout;
-
-    //For debugging:
-    void inspectVSets(void);
 };
 
 } // namespace cola

@@ -123,7 +123,7 @@ std::string AlignedNodes::toString(string pad)
         double u = R->getMinD(m_primaryDim), U = R->getMaxD(m_primaryDim);
         double v = R->getMinD(m_secondaryDim), V = R->getMaxD(m_secondaryDim);
         sprintf(buffer,"%d: [%.2f,%.2f] x [%.2f,%.2f]\n",index,u,U,v,V);
-        s += std::string(buffer);
+        s += pad+std::string(buffer);
     }
     return s;
 }
@@ -180,47 +180,48 @@ void AlignedNodes::addEdge(int index, double c, double l, double u)
 AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
 {
     AlignedNodes *S = new AlignedNodes(m_primaryDim);
+    AlignedNodes &s = *S;
     // node indices
     for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
-        S->m_nodeIndices.push_back(m_nodeIndices.at(i));
+        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
-        S->m_nodeIndices.push_back(other.m_nodeIndices.at(i));
+        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
     }
     // node rects
     for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        S->m_nodeRects.push_back(m_nodeRects.at(i));
+        s.m_nodeRects.push_back(m_nodeRects.at(i));
     }
     for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        S->m_nodeRects.push_back(other.m_nodeRects.at(i));
+        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
     }
     // edge indices
     for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
-        S->m_edgeIndices.push_back(m_edgeIndices.at(i));
+        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
-        S->m_edgeIndices.push_back(other.m_edgeIndices.at(i));
+        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
     }
     // edge const coords
     for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
-        S->m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
+        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        S->m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
     }
     // edge lower bounds
     for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
-        S->m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
+        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
-        S->m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
+        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
     }
     // edge upper bounds
     for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
-        S->m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
+        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
-        S->m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
+        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
     }
     return S;
 }
@@ -548,7 +549,7 @@ std::string ACALayout::writeAlignmentSets(void)
     std::string s = "";
     // Horizontal sets
     s += "Horizontal alignment sets:";
-    sprintf(buf," (%d)\n",m_hSets.size());
+    sprintf(buf," (%ld)\n",m_hSets.size());
     s += std::string(buf);
     for (std::map<int,AlignedNodes*>::iterator it=m_hSets.begin(); it!=m_hSets.end(); ++it)
     {
@@ -561,7 +562,7 @@ std::string ACALayout::writeAlignmentSets(void)
     s += "\n";
     // Vertical sets
     s += "Vertical alignment sets";
-    sprintf(buf," (%d)\n",m_vSets.size());
+    sprintf(buf," (%ld)\n",m_vSets.size());
     s += std::string(buf);
     for (std::map<int,AlignedNodes*>::iterator it=m_vSets.begin(); it!=m_vSets.end(); ++it)
     {
@@ -648,8 +649,8 @@ void ACALayout::generateVPSCConstraints(void)
 void ACALayout::initAlignmentSets(Dim dim)
 {
     // Get the sets and constraints for the named primary dimension.
-    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
-    vpsc::Constraints cs = dim==vpsc::XDIM ? m_yEqCs : m_xEqCs;
+    std::map<int,AlignedNodes*> &sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    vpsc::Constraints &cs = dim==vpsc::XDIM ? m_yEqCs : m_xEqCs;
     // Add an alignment for each constraint.
     for (vpsc::Constraints::iterator cit=cs.begin(); cit!=cs.end(); ++cit) {
         vpsc::Constraint c = **cit;
@@ -661,80 +662,31 @@ void ACALayout::initAlignmentSets(Dim dim)
         // Combine
         AlignedNodes *a = ls->combineWithPorts(*rs,l,0,r,g);
         // Update map.
-        switch (dim) {
-        case vpsc::XDIM:
-            for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
-                int index = a->m_nodeIndices.at(i);
-                std::map<int,AlignedNodes*>::iterator it = m_hSets.find(index);
-                if (it!=m_hSets.end()) {
-                    m_hSets.erase(it);
-                    m_hSets.insert(std::pair<int,AlignedNodes*>(index,a));
-                }
-            }
-            break;
-        case vpsc::YDIM:
-            for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
-                int index = a->m_nodeIndices.at(i);
-                std::map<int,AlignedNodes*>::iterator it = m_vSets.find(index);
-                if (it!=m_vSets.end()) {
-                    m_vSets.erase(it);
-                    m_vSets.insert(std::pair<int,AlignedNodes*>(index,a));
-                }
-            }
-            break;
-        default:
-            break;
+        for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
+            int index = a->m_nodeIndices.at(i);
+            std::map<int,AlignedNodes*>::iterator it = sets.find(index);
+            if (it!=sets.end()) sets.erase(it);
+            sets.insert(std::pair<int,AlignedNodes*>(index,a));
         }
         delete ls;
         delete rs;
     }
     // Clean up.
-    // Remove dummy indices from the map.
+    // Remove auxiliary indices from the map.
     int N = dim==vpsc::XDIM ? m_numExtraYVars : m_numExtraXVars;
     for (int k = 0; k < N; k++) {
         int v = m_n + k;
-        switch (dim) {
-        case vpsc::XDIM:
-            m_hSets.erase(m_hSets.find(v));
-            break;
-        case vpsc::YDIM:
-            m_vSets.erase(m_vSets.find(v));
-            break;
-        default:
-            break;
-        }
+        sets.erase(sets.find(v));
     }
     // Remove dummy rectangles for auxiliary variables.
-    switch (dim) {
-    case vpsc::XDIM:
-        for (std::map<int,AlignedNodes*>::iterator i=m_hSets.begin(); i!=m_hSets.end(); ++i) {
-            i->second->removeAuxiliaryNodes(m_n);
-        }
-        break;
-    case vpsc::YDIM:
-        for (std::map<int,AlignedNodes*>::iterator i=m_vSets.begin(); i!=m_vSets.end(); ++i) {
-            i->second->removeAuxiliaryNodes(m_n);
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-void ACALayout::inspectVSets(void)
-{
-    unsigned s = m_vSets.size();
-    for (std::map<int,AlignedNodes*>::iterator it=m_vSets.begin(); it!=m_vSets.end(); ++it)
-    {
-        int index = it->first;
-        AlignedNodes *a = it->second;
-        int bar = 0;
+    for (std::map<int,AlignedNodes*>::iterator i=sets.begin(); i!=sets.end(); ++i) {
+        i->second->removeAuxiliaryNodes(m_n);
     }
 }
 
 AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
 {
-    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    std::map<int,AlignedNodes*> &sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
     std::map<int,AlignedNodes*>::iterator it = sets.find(i);
     AlignedNodes *a;
     if (it==sets.end()) {
@@ -744,16 +696,7 @@ AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
         a = new AlignedNodes(dim,i,R);
         // Add it to the map so that we get expected behaviour elsewhere, e.g.
         // when we try to delete existing value from map.
-        switch(dim) {
-        case vpsc::XDIM:
-            m_hSets.insert(std::pair<int,AlignedNodes*>(i,a));
-            break;
-        case vpsc::YDIM:
-            m_vSets.insert(std::pair<int,AlignedNodes*>(i,a));
-            break;
-        default:
-            break;
-        }
+        sets.insert(std::pair<int,AlignedNodes*>(i,a));
     } else {
         // get existing set
         a = it->second;
