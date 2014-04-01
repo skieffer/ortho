@@ -88,10 +88,23 @@ AlignedNodes::AlignedNodes(Dim primaryDim, int nodeIndex, Rectangle *nodeRect)  
     m_nodeRects.push_back(nodeRect);
 }
 
-AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int edge, int node1, double offset1, int node2, double offset2)
+void AlignedNodes::removeNode(int index)
+{
+    vpsc::Rectangles::iterator rit = m_nodeRects.begin();
+    for (std::vector<int>::iterator it=m_nodeIndices.begin(); it!=m_nodeIndices.end(); ++it) {
+        if (*it==index) {
+            m_nodeIndices.erase(it);
+            m_nodeRects.erase(rit);
+            break;
+        }
+        rit++;
+    }
+}
+
+AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
 {
     // Determine the local coordinate of port 1.
-    int i = 0;
+    unsigned i = 0;
     while (i < m_nodeIndices.size()) {
         if (m_nodeIndices.at(i)==node1) break;
         i++;
@@ -100,7 +113,7 @@ AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int edge, 
     double v1 = R->getCentreD(m_secondaryDim);
     v1 += offset1;
     // Determine the local coordinate of port 2.
-    int j = 0;
+    unsigned j = 0;
     while (j < other.m_nodeIndices.size()) {
         if (other.m_nodeIndices.at(j)==node2) break;
         j++;
@@ -108,16 +121,26 @@ AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int edge, 
     vpsc::Rectangle *S = m_nodeRects.at(j);
     double v2 = S->getCentreD(m_secondaryDim);
     v2 += offset2;
-    // Get a shifted copy of other, and return sum with self.
+    // Get a shifted copy of other, and compute sum with self.
     AlignedNodes sh = other.shifted(v1-v2);
     AlignedNodes th = *this;
     AlignedNodes a = th + sh;
-    // Add a new edge.
-    double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
-    double u2 = S->getMinD(m_primaryDim), U2 = S->getMaxD(m_primaryDim);
-    double l = U1 < u2 ? U1 : U2;
-    double u = U1 < u2 ? u2 : u1;
-    a.addEdge(edge,v1,l,u);
+    if (edge >= 0) {
+    // Add the new edge.
+        double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
+        double u2 = S->getMinD(m_primaryDim), U2 = S->getMaxD(m_primaryDim);
+        double l = U1 < u2 ? U1 : U2;
+        double u = U1 < u2 ? u2 : u1;
+        a.addEdge(edge,v1,l,u);
+    }
+    // Return the new object.
+    return a;
+}
+
+AlignedNodes AlignedNodes::combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2)
+{
+    int edgeIndex = -1;
+    return combineWithEdge(other,node1,offset1,node2,offset2,edgeIndex);
 }
 
 void AlignedNodes::addEdge(int index, double c, double l, double u)
@@ -334,6 +357,8 @@ ACALayout::ACALayout(
     computeDegrees();
     generateVPSCConstraints();
     initStateTables();
+    initAlignmentSets(vpsc::XDIM);
+    initAlignmentSets(vpsc::YDIM);
 }
 
 ACALayout::~ACALayout(void)
@@ -349,6 +374,12 @@ ACALayout::~ACALayout(void)
     }
     for (unsigned i = 0; i < m_yvs.size(); i++) {
         delete m_yvs.at(i);
+    }
+    for (unsigned i = 0; i < m_hSets.size(); i++) {
+        delete m_hSets.at(i);
+    }
+    for (unsigned i = 0; i < m_vSets.size(); i++) {
+        delete m_vSets.at(i);
     }
 }
 
@@ -505,6 +536,54 @@ void ACALayout::generateVPSCConstraints(void)
             m_yIneqCs.push_back(c);
         }
     }
+}
+
+void ACALayout::initAlignmentSets(Dim dim)
+{
+    // Get the sets and constraints for the named primary dimension.
+    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    vpsc::Constraints cs = dim==vpsc::XDIM ? m_yEqCs : m_xEqCs;
+    // Add an alignment for each constraint.
+    for (vpsc::Constraints::iterator cit=cs.begin(); cit!=cs.end(); ++cit) {
+        vpsc::Constraint c = **cit;
+        int l = c.left->id, r = c.right->id;
+        double g = c.gap;
+        // Get existing set for each variable, or create a new one if it doesn't exist yet.
+        AlignedNodes *ls = getAlignmentSet(dim,l);
+        AlignedNodes *rs = getAlignmentSet(dim,r);
+        // Combine
+        AlignedNodes a = ls->combineWithPorts(*rs,l,0,r,g);
+        // Update map.
+        sets.insert(std::pair<int,AlignedNodes*>(l,&a));
+        sets.insert(std::pair<int,AlignedNodes*>(r,&a));
+    }
+    // Clean up by removing dummy rectangles for auxiliary variables.
+    int N = dim==vpsc::XDIM ? m_numExtraYVars : m_numExtraXVars;
+    for (int k = 0; k < N; k++) {
+        int v = m_n + k;
+        std::map<int,AlignedNodes*>::iterator i = sets.find(v);
+        if (i!=sets.end()) {
+            AlignedNodes *a = i->second;
+            a->removeNode(v);
+        }
+    }
+}
+
+AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
+{
+    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    std::map<int,AlignedNodes*>::iterator it = sets.find(i);
+    AlignedNodes *a;
+    if (it==sets.end()) {
+        // create new set
+        // If i is the index of an ausiliary variable, then just make a dummy rectangle for it.
+        vpsc::Rectangle *R = i < m_n ? m_rs.at(i) : new vpsc::Rectangle(-5,5,-5,5);
+        a = new AlignedNodes(dim,i,R);
+    } else {
+        // get existing set
+        a = it->second;
+    }
+    return a;
 }
 
 /**
@@ -795,6 +874,13 @@ void ACALayout::updateStateTables(OrderedAlignment *oa)
     ACASepFlag sf = oa->af==ACAHORIZ ? ACAEAST : ACASOUTH;
     recordAlignmentWithClosure(oa->left,oa->right,oa->af);
     recordSeparationWithClosure(oa->left,oa->right,sf);
+
+    vpsc::Dim dim = oa->af==ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
+    AlignedNodes *ls = getAlignmentSet(dim,oa->left);
+    AlignedNodes *rs = getAlignmentSet(dim,oa->right);
+    AlignedNodes a = ls->combineWithEdge(*rs,oa->edgeIndex,oa->left,oa->offsetLeft,
+                                                           oa->right,oa->offsetRight);
+    //...
 }
 
 OrderedAlignment *ACALayout::chooseOA(void)
@@ -837,6 +923,7 @@ OrderedAlignment *ACALayout::chooseOA(void)
                 EdgeOffset offset = getEdgeOffsetForCompassDirection(j,sf);
                 oa->offsetLeft  = oa->left == src ? offset.first : offset.second;
                 oa->offsetRight = oa->left == src ? offset.second : offset.first;
+                oa->edgeIndex = j;
             }
         }
     }
@@ -922,6 +1009,18 @@ bool ACALayout::createsOverlap(int src, int tgt, ACASepFlag sf)
         }
     }
     return overlap;
+}
+
+bool ACALayout::createsOverlap2(int j, ACASepFlag sf)
+{
+    cola::Edge e = m_es.at(j);
+    int src = e.first, tgt = e.second;
+    EdgeOffset offset = getEdgeOffsetForCompassDirection(j,sf);
+    double srcOffset = offset.first, tgtOffset = offset.second;
+    AlignedNodes *srcSet = getAlignmentSet(dim,src);
+    AlignedNodes *tgtSet = getAlignmentSet(dim,tgt);
+    AlignedNodes a = srcSet->combineWithPorts(*tgtSet,src,srcOffset,tgt,tgtOffset);
+    return a.thereAreOverlaps();
 }
 
 /* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is

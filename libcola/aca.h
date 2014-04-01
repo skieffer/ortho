@@ -127,6 +127,7 @@ struct OrderedAlignment {
     double offsetRight;
     cola::SeparationConstraint* separation;
     cola::AlignmentConstraint* alignment;
+    int edgeIndex;
 };
 
 typedef std::pair<double,double> EdgeOffset;
@@ -165,6 +166,7 @@ struct AlignedNodes {
     std::vector<double> m_edgeConstCoords;
     std::vector<double> m_edgeLowerBounds;
     std::vector<double> m_edgeUpperBounds;
+    void removeNode(int index);
     void addEdge(int index, double c, double l, double u);
     /**
      * Create and return a new AlignedNodes struct resulting from combining this one
@@ -176,7 +178,11 @@ struct AlignedNodes {
      * The offsets are from the centre of the node and in the secondary dimension.
      * The integer edge gives the index of the new edge.
      */
-    AlignedNodes combineWithEdge(const AlignedNodes &other, int edge, int node1, double offset1, int node2, double offset2);
+    AlignedNodes combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge);
+    /**
+     * Like combineWithEdge only no edge is added.
+     */
+    AlignedNodes combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2);
     // Combine two AlignedNodes structs without altering either:
     AlignedNodes operator+ (const AlignedNodes &other);
     // Return a fresh copy:
@@ -405,6 +411,11 @@ private:
      */
     void initStateTables(void);
     /**
+     * Used by the constructor to initialise the sets of aligned nodes.
+     * These are used by the createsOverlap2 procedure.
+     */
+    void initAlignmentSets(vpsc::Dim dim);
+    /**
      * Record the specified alignment between rectangles i and j.
      * Also record all additional alignments arising from the transitive
      * closure.
@@ -442,14 +453,16 @@ private:
 
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
-    // In the following four methods, the separation flag always means the direction from src to tgt.
+    // In the following methods, the separation flag always means the direction from src to tgt.
     bool badSeparation(int j, ACASepFlag sf);
     bool createsOverlap(int src, int tgt, ACASepFlag sf);
+    bool createsOverlap2(int j, ACASepFlag sf);
     double deflection(int src, int tgt, ACASepFlag sf);
     double bendPointPenalty(int src, int tgt, ACASepFlag sf);
     double leafPenalty(int src, int tgt);
 
     EdgeOffset getEdgeOffsetForCompassDirection(int j, ACASepFlag sf);
+    AlignedNodes *getAlignmentSet(vpsc::Dim dim, int i);
 
     // The penalty values determine the order in which certain types of
     // alignments will be created. (See above.)
@@ -501,6 +514,10 @@ private:
     Matrix2d<int> *m_alignmentState;
     Matrix2d<int> *m_separationState;
     std::vector<OrderedAlignment*> m_ordAligns;
+
+    // Map node indices to sets of nodes aligned horizontally or vertically.
+    std::map<int,AlignedNodes*> m_hSets;
+    std::map<int,AlignedNodes*> m_vSets;
 
     cola::ConstrainedFDLayout *m_fdlayout;
 };
