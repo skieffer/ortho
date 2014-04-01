@@ -105,6 +105,12 @@ enum ACASepFlag {
     ACAALLSEP     = 15
 };
 
+enum ACAOverlapPrevention {
+    ACAOPNONE,
+    ACAOPCENTREALIGN,
+    ACAOPWITHOFFSETS
+};
+
 /*
  * For SWIG compatibility we add a kind of superfluous struct that 
  * holds a list of ACASepFlags and allows the flags to be added
@@ -178,13 +184,16 @@ struct AlignedNodes {
      * The offsets are from the centre of the node and in the secondary dimension.
      * The integer edge gives the index of the new edge.
      */
-    AlignedNodes combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge);
+    AlignedNodes *combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge);
     /**
      * Like combineWithEdge only no edge is added.
      */
-    AlignedNodes combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2);
+    AlignedNodes *combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2);
+
     // Combine two AlignedNodes structs without altering either:
     AlignedNodes operator+ (const AlignedNodes &other);
+    // Like addition but allocate new memory:
+    AlignedNodes *combine(const AlignedNodes &other);
     // Return a fresh copy:
     AlignedNodes copy(void) const;
     // Return fresh copy with all coords in secondaryDim shifted by passed offset:
@@ -348,12 +357,17 @@ public:
      */
     void aggressiveOrdering(bool b);
     /**
-     * @brief Say whether to skip alignments that would make an edge overlap a
-     * node or another edge.
+     * @brief Say which test to use when checking whether an alignment would
+     * make an edge overlap a node or another edge.
      *
-     * The default value is true.
+     * The default value is ACAOPWITHOFFSETS, our more sophisticated
+     * check, which considers the offsets that you have assigned to edges (if any).
+     *
+     * The value ACAOPCENTREALIGN should be used if no edges have any offsets.
+     *
+     * Set to ACAOPNONE for no overlap checking.
      */
-    void preventEdgeOverlaps(bool b);
+    void overlapPrevention(ACAOverlapPrevention p);
     /**
      * @brief Say how to offset nodes when edges are aligned in a certain direction.
      *
@@ -503,7 +517,7 @@ private:
     bool m_useNonLeafDegree;
     bool m_allAtOnce;
     bool m_aggressiveOrdering;
-    bool m_preventEdgeOverlaps;
+    ACAOverlapPrevention m_overlapPrevention;
 
     std::multimap<int,int> m_nbrs; // neighbours
     std::multimap<int,int> m_nlnbrs; // non-leaf neighbours

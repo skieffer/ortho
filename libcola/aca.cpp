@@ -101,7 +101,7 @@ void AlignedNodes::removeNode(int index)
     }
 }
 
-AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
+AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
 {
     // Determine the local coordinate of port 1.
     unsigned i = 0;
@@ -123,21 +123,20 @@ AlignedNodes AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1,
     v2 += offset2;
     // Get a shifted copy of other, and compute sum with self.
     AlignedNodes sh = other.shifted(v1-v2);
-    AlignedNodes th = *this;
-    AlignedNodes a = th + sh;
+    AlignedNodes *a = this->combine(sh);
     if (edge >= 0) {
     // Add the new edge.
         double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
         double u2 = S->getMinD(m_primaryDim), U2 = S->getMaxD(m_primaryDim);
         double l = U1 < u2 ? U1 : U2;
         double u = U1 < u2 ? u2 : u1;
-        a.addEdge(edge,v1,l,u);
+        a->addEdge(edge,v1,l,u);
     }
-    // Return the new object.
+    // Return pointer to the new object.
     return a;
 }
 
-AlignedNodes AlignedNodes::combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2)
+AlignedNodes *AlignedNodes::combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2)
 {
     int edgeIndex = -1;
     return combineWithEdge(other,node1,offset1,node2,offset2,edgeIndex);
@@ -150,6 +149,56 @@ void AlignedNodes::addEdge(int index, double c, double l, double u)
     m_edgeLowerBounds.push_back(l);
     m_edgeUpperBounds.push_back(u);
 }
+
+AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
+{
+    AlignedNodes *S = new AlignedNodes(m_primaryDim);
+    AlignedNodes s = *S;
+    // node indices
+    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
+        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
+    }
+    for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
+        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
+    }
+    // node rects
+    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
+        s.m_nodeRects.push_back(m_nodeRects.at(i));
+    }
+    for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
+        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
+    }
+    // edge indices
+    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
+        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
+        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
+    }
+    // edge const coords
+    for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
+        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
+        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+    }
+    // edge lower bounds
+    for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
+        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
+        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
+    }
+    // edge upper bounds
+    for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
+        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
+    }
+    for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
+        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
+    }
+    return S;
+}
+
 
 AlignedNodes AlignedNodes::operator +(const AlignedNodes &other)
 {
@@ -351,7 +400,7 @@ ACALayout::ACALayout(
       m_useNonLeafDegree(true),
       m_allAtOnce(false),
       m_aggressiveOrdering(false),
-      m_preventEdgeOverlaps(true),
+      m_overlapPrevention(ACAOPWITHOFFSETS),
       m_fdlayout(NULL)
 {
     computeDegrees();
@@ -433,9 +482,9 @@ void ACALayout::aggressiveOrdering(bool b)
     m_aggressiveOrdering = b;
 }
 
-void ACALayout::preventEdgeOverlaps(bool b)
+void ACALayout::overlapPrevention(ACAOverlapPrevention p)
 {
-    m_preventEdgeOverlaps = b;
+    m_overlapPrevention = p;
 }
 
 void ACALayout::setAlignmentOffsetsForCompassDirection(ACASepFlag sf, EdgeOffsets offsets)
@@ -552,10 +601,12 @@ void ACALayout::initAlignmentSets(Dim dim)
         AlignedNodes *ls = getAlignmentSet(dim,l);
         AlignedNodes *rs = getAlignmentSet(dim,r);
         // Combine
-        AlignedNodes a = ls->combineWithPorts(*rs,l,0,r,g);
+        AlignedNodes *a = ls->combineWithPorts(*rs,l,0,r,g);
         // Update map.
-        sets.insert(std::pair<int,AlignedNodes*>(l,&a));
-        sets.insert(std::pair<int,AlignedNodes*>(r,&a));
+        sets.insert(std::pair<int,AlignedNodes*>(l,a));
+        sets.insert(std::pair<int,AlignedNodes*>(r,a));
+        delete ls;
+        delete rs;
     }
     // Clean up by removing dummy rectangles for auxiliary variables.
     int N = dim==vpsc::XDIM ? m_numExtraYVars : m_numExtraXVars;
@@ -871,16 +922,23 @@ void ACALayout::acaLoopAllAtOnce(void)
 
 void ACALayout::updateStateTables(OrderedAlignment *oa)
 {
+    int l = oa->left, r = oa->right;
     ACASepFlag sf = oa->af==ACAHORIZ ? ACAEAST : ACASOUTH;
-    recordAlignmentWithClosure(oa->left,oa->right,oa->af);
-    recordSeparationWithClosure(oa->left,oa->right,sf);
-
+    // State tables:
+    recordAlignmentWithClosure(l,r,oa->af);
+    recordSeparationWithClosure(l,r,sf);
+    // Alignment sets:
     vpsc::Dim dim = oa->af==ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
-    AlignedNodes *ls = getAlignmentSet(dim,oa->left);
-    AlignedNodes *rs = getAlignmentSet(dim,oa->right);
-    AlignedNodes a = ls->combineWithEdge(*rs,oa->edgeIndex,oa->left,oa->offsetLeft,
-                                                           oa->right,oa->offsetRight);
-    //...
+    AlignedNodes *ls = getAlignmentSet(dim,l);
+    AlignedNodes *rs = getAlignmentSet(dim,r);
+    AlignedNodes *a = ls->combineWithEdge(*rs,l,oa->offsetLeft,
+                                             r,oa->offsetRight,
+                                         oa->edgeIndex);
+    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    sets.insert(std::pair<int,AlignedNodes*>(l,a));
+    sets.insert(std::pair<int,AlignedNodes*>(r,a));
+    delete ls;
+    delete rs;
 }
 
 OrderedAlignment *ACALayout::chooseOA(void)
@@ -906,7 +964,16 @@ OrderedAlignment *ACALayout::chooseOA(void)
             sn = sn << 1;
             // Check feasibility.
             if (badSeparation(j,sf)) continue;
-            if (m_preventEdgeOverlaps && createsOverlap(src,tgt,sf)) continue;
+            switch (m_overlapPrevention) {
+            case ACAOPCENTREALIGN:
+                if (createsOverlap(src,tgt,sf)) continue;
+                break;
+            case ACAOPWITHOFFSETS:
+                if (createsOverlap2(j,sf)) continue;
+                break;
+            default:
+                break;
+            }
             // Passed feasibility tests.
             // Now compute penalty.
             double p = 0;
@@ -1017,10 +1084,13 @@ bool ACALayout::createsOverlap2(int j, ACASepFlag sf)
     int src = e.first, tgt = e.second;
     EdgeOffset offset = getEdgeOffsetForCompassDirection(j,sf);
     double srcOffset = offset.first, tgtOffset = offset.second;
+    vpsc::Dim dim = sepToAlignFlag(sf) == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
     AlignedNodes *srcSet = getAlignmentSet(dim,src);
     AlignedNodes *tgtSet = getAlignmentSet(dim,tgt);
-    AlignedNodes a = srcSet->combineWithPorts(*tgtSet,src,srcOffset,tgt,tgtOffset);
-    return a.thereAreOverlaps();
+    AlignedNodes *a = srcSet->combineWithPorts(*tgtSet,src,srcOffset,tgt,tgtOffset);
+    bool ans = a->thereAreOverlaps();
+    delete a;
+    return ans;
 }
 
 /* Compute a score in [0.0, 1.0] measuring how far the "edge" in question E is
