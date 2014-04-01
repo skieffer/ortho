@@ -105,6 +105,12 @@ enum ACASepFlag {
     ACAALLSEP     = 15
 };
 
+enum ACAOverlapPrevention {
+    ACAOPNONE,
+    ACAOPCENTREALIGN,
+    ACAOPWITHOFFSETS
+};
+
 /*
  * For SWIG compatibility we add a kind of superfluous struct that 
  * holds a list of ACASepFlags and allows the flags to be added
@@ -127,6 +133,7 @@ struct OrderedAlignment {
     double offsetRight;
     cola::SeparationConstraint* separation;
     cola::AlignmentConstraint* alignment;
+    int edgeIndex;
 };
 
 typedef std::pair<double,double> EdgeOffset;
@@ -152,6 +159,10 @@ struct AlignedNodes {
     {
         m_secondaryDim = primaryDim==vpsc::XDIM ? vpsc::YDIM : vpsc::XDIM;
     }
+    /**
+     * Initialize with a single node.
+     */
+    AlignedNodes(vpsc::Dim primaryDim, int nodeIndex, vpsc::Rectangle *nodeRect);
     vpsc::Dim m_primaryDim;   // XDIM for horizontal alignments; YDIM for vertical
     vpsc::Dim m_secondaryDim; // YDIM for horizontal alignments; XDIM for vertical
     std::vector<int> m_nodeIndices;
@@ -161,6 +172,35 @@ struct AlignedNodes {
     std::vector<double> m_edgeConstCoords;
     std::vector<double> m_edgeLowerBounds;
     std::vector<double> m_edgeUpperBounds;
+    std::string toString(std::string pad = "");
+    void removeNode(int index);
+    // Remove all nodes of index >= minIndex:
+    void removeAuxiliaryNodes(int minIndex);
+    void addEdge(int index, double c, double l, double u);
+    /**
+     * Create and return a new AlignedNodes struct resulting from combining this one
+     * with the other one passed, and adjusting local coordinates so that a "port" on
+     * a node in this one lines up with a port on a node in the other one.
+     * Also add a new edge connecting the two ports.
+     *
+     * The integers node1, node2 specify the nodes by their indices.
+     * The offsets are from the centre of the node and in the secondary dimension.
+     * The integer edge gives the index of the new edge.
+     */
+    AlignedNodes *combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge);
+    /**
+     * Like combineWithEdge only no edge is added.
+     */
+    AlignedNodes *combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2);
+
+    // Combine two AlignedNodes structs without altering either:
+    AlignedNodes operator+ (const AlignedNodes &other);
+    // Like addition but allocate new memory:
+    AlignedNodes *combine(const AlignedNodes &other);
+    // Return a fresh copy:
+    AlignedNodes copy(void) const;
+    // Return fresh copy with all coords in secondaryDim shifted by passed offset:
+    AlignedNodes shifted(double offset) const;
     // Check for overlaps:
     bool thereAreOverlaps(void);
 };
@@ -169,7 +209,7 @@ struct AlignedNodes {
  * @brief Implements the Adaptive Constrained Alignment (ACA) algorithm.
  *
  * See
- * Kieffer, Steve, Tim Dwyer, Kim Marriott, and Michael Wybrow.
+ * Steve Kieffer, Tim Dwyer, Kim Marriott, and Michael Wybrow.
  * "Incremental grid-like layout using soft and hard constraints." In Graph
  * Drawing 2013, pp. 448-459. Springer International Publishing, 2013.
  */
@@ -320,12 +360,17 @@ public:
      */
     void aggressiveOrdering(bool b);
     /**
-     * @brief Say whether to skip alignments that would make an edge overlap a
-     * node or another edge.
+     * @brief Say which test to use when checking whether an alignment would
+     * make an edge overlap a node or another edge.
      *
-     * The default value is true.
+     * The default value is ACAOPWITHOFFSETS, our more sophisticated
+     * check, which considers the offsets that you have assigned to edges (if any).
+     *
+     * The value ACAOPCENTREALIGN should be used if no edges have any offsets.
+     *
+     * Set to ACAOPNONE for no overlap checking.
      */
-    void preventEdgeOverlaps(bool b);
+    void overlapPrevention(ACAOverlapPrevention p);
     /**
      * @brief Say how to offset nodes when edges are aligned in a certain direction.
      *
@@ -357,6 +402,7 @@ public:
     std::string writeSeparationTable(void);
     std::string aStateBeforeChop;
     std::string sStateBeforeChop;
+    std::string writeAlignmentSets(void);
 
 private:
     /**
@@ -382,6 +428,11 @@ private:
      * to which the incoming cola constraints compile.
      */
     void initStateTables(void);
+    /**
+     * Used by the constructor to initialise the sets of aligned nodes.
+     * These are used by the createsOverlap2 procedure.
+     */
+    void initAlignmentSets(vpsc::Dim dim);
     /**
      * Record the specified alignment between rectangles i and j.
      * Also record all additional alignments arising from the transitive
@@ -420,14 +471,16 @@ private:
 
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
-    // In the following four methods, the separation flag always means the direction from src to tgt.
+    // In the following methods, the separation flag always means the direction from src to tgt.
     bool badSeparation(int j, ACASepFlag sf);
     bool createsOverlap(int src, int tgt, ACASepFlag sf);
+    bool createsOverlap2(int j, ACASepFlag sf);
     double deflection(int src, int tgt, ACASepFlag sf);
     double bendPointPenalty(int src, int tgt, ACASepFlag sf);
     double leafPenalty(int src, int tgt);
 
     EdgeOffset getEdgeOffsetForCompassDirection(int j, ACASepFlag sf);
+    AlignedNodes *getAlignmentSet(vpsc::Dim dim, int i);
 
     // The penalty values determine the order in which certain types of
     // alignments will be created. (See above.)
@@ -468,7 +521,7 @@ private:
     bool m_useNonLeafDegree;
     bool m_allAtOnce;
     bool m_aggressiveOrdering;
-    bool m_preventEdgeOverlaps;
+    ACAOverlapPrevention m_overlapPrevention;
 
     std::multimap<int,int> m_nbrs; // neighbours
     std::multimap<int,int> m_nlnbrs; // non-leaf neighbours
@@ -480,7 +533,14 @@ private:
     Matrix2d<int> *m_separationState;
     std::vector<OrderedAlignment*> m_ordAligns;
 
+    // Map node indices to sets of nodes aligned horizontally or vertically.
+    std::map<int,AlignedNodes*> m_hSets;
+    std::map<int,AlignedNodes*> m_vSets;
+
     cola::ConstrainedFDLayout *m_fdlayout;
+
+    //For debugging:
+    void inspectVSets(void);
 };
 
 } // namespace cola
