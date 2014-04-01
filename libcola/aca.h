@@ -172,7 +172,10 @@ struct AlignedNodes {
     std::vector<double> m_edgeConstCoords;
     std::vector<double> m_edgeLowerBounds;
     std::vector<double> m_edgeUpperBounds;
+    std::string toString(std::string pad = "");
     void removeNode(int index);
+    // Remove all nodes of index >= minIndex:
+    void removeAuxiliaryNodes(int minIndex);
     void addEdge(int index, double c, double l, double u);
     /**
      * Create and return a new AlignedNodes struct resulting from combining this one
@@ -399,6 +402,7 @@ public:
     std::string writeSeparationTable(void);
     std::string aStateBeforeChop;
     std::string sStateBeforeChop;
+    std::string writeAlignmentSets(void);
 
 private:
     /**
@@ -534,6 +538,9 @@ private:
     std::map<int,AlignedNodes*> m_vSets;
 
     cola::ConstrainedFDLayout *m_fdlayout;
+
+    //For debugging:
+    void inspectVSets(void);
 };
 
 } // namespace cola

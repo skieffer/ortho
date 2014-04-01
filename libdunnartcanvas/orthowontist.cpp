@@ -2410,7 +2410,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 0;
+    int test = 1;
 
     switch(test) {
     case 0: {
@@ -2481,14 +2481,18 @@ void Orthowontist::testColaACA(GraphData *graph) {
     }
     // Build the ACA object, and write its tables.
     cola::ACALayout *aca = new cola::ACALayout(rs,es,ccs,100,false);
-    qDebug() << "Alignment table before chop:";
-    qDebug() << QString(aca->aStateBeforeChop.c_str());
-    qDebug() << "Alignment table:";
-    qDebug() << QString(aca->writeAlignmentTable().c_str());
     qDebug() << "Separation table before chop:";
     qDebug() << QString(aca->sStateBeforeChop.c_str());
     qDebug() << "Separation table:";
     qDebug() << QString(aca->writeSeparationTable().c_str());
+
+    qDebug() << "Alignment table before chop:";
+    qDebug() << QString(aca->aStateBeforeChop.c_str());
+    qDebug() << "Alignment table:";
+    qDebug() << QString(aca->writeAlignmentTable().c_str());
+
+    qDebug() << "Alignment Sets:";
+    qDebug() << QString(aca->writeAlignmentSets().c_str());
     // Try an alignment.
     aca->createOneAlignment();
 

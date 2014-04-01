@@ -1035,9 +1035,6 @@ void DiagEdgeNodes::genColaConstraints(vpsc::Dim dim, cola::CompoundConstraints 
                 d = minDist;
             }
         }
-        if (j < 0) {
-            qDebug() << "foo";
-        }
         assert(j>=0);
         // Retrieve the associated gap.
         double g = m_ownToGap.value(j+initIndex);

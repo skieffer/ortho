@@ -101,6 +101,33 @@ void AlignedNodes::removeNode(int index)
     }
 }
 
+void AlignedNodes::removeAuxiliaryNodes(int minIndex)
+{
+    vpsc::Rectangles::iterator rit = m_nodeRects.begin();
+    for (std::vector<int>::iterator it=m_nodeIndices.begin(); it!=m_nodeIndices.end(); ++it) {
+        if (*it>=minIndex) {
+            m_nodeIndices.erase(it);
+            m_nodeRects.erase(rit);
+        }
+        rit++;
+    }
+}
+
+std::string AlignedNodes::toString(string pad)
+{
+    std::string s = "";
+    char buffer [1000];
+    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
+        int index = m_nodeIndices.at(i);
+        vpsc::Rectangle *R = m_nodeRects.at(i);
+        double u = R->getMinD(m_primaryDim), U = R->getMaxD(m_primaryDim);
+        double v = R->getMinD(m_secondaryDim), V = R->getMaxD(m_secondaryDim);
+        sprintf(buffer,"%d: [%.2f,%.2f] x [%.2f,%.2f]\n",index,u,U,v,V);
+        s += std::string(buffer);
+    }
+    return s;
+}
+
 AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
 {
     // Determine the local coordinate of port 1.
@@ -125,7 +152,7 @@ AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1
     AlignedNodes sh = other.shifted(v1-v2);
     AlignedNodes *a = this->combine(sh);
     if (edge >= 0) {
-    // Add the new edge.
+        // Add the new edge.
         double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
         double u2 = S->getMinD(m_primaryDim), U2 = S->getMaxD(m_primaryDim);
         double l = U1 < u2 ? U1 : U2;
@@ -153,48 +180,47 @@ void AlignedNodes::addEdge(int index, double c, double l, double u)
 AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
 {
     AlignedNodes *S = new AlignedNodes(m_primaryDim);
-    AlignedNodes s = *S;
     // node indices
     for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
+        S->m_nodeIndices.push_back(m_nodeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
+        S->m_nodeIndices.push_back(other.m_nodeIndices.at(i));
     }
     // node rects
     for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(m_nodeRects.at(i));
+        S->m_nodeRects.push_back(m_nodeRects.at(i));
     }
     for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
+        S->m_nodeRects.push_back(other.m_nodeRects.at(i));
     }
     // edge indices
     for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
+        S->m_edgeIndices.push_back(m_edgeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
+        S->m_edgeIndices.push_back(other.m_edgeIndices.at(i));
     }
     // edge const coords
     for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
+        S->m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+        S->m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
     }
     // edge lower bounds
     for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
+        S->m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
+        S->m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
     }
     // edge upper bounds
     for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
+        S->m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
+        S->m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
     }
     return S;
 }
@@ -516,6 +542,38 @@ std::string ACALayout::writeSeparationTable(void)
     return s;
 }
 
+std::string ACALayout::writeAlignmentSets(void)
+{
+    char buf [100];
+    std::string s = "";
+    // Horizontal sets
+    s += "Horizontal alignment sets:";
+    sprintf(buf," (%d)\n",m_hSets.size());
+    s += std::string(buf);
+    for (std::map<int,AlignedNodes*>::iterator it=m_hSets.begin(); it!=m_hSets.end(); ++it)
+    {
+        int index = it->first;
+        AlignedNodes *a = it->second;
+        sprintf(buf,"  %d:\n",index);
+        s += std::string(buf);
+        s += a->toString("    ");
+    }
+    s += "\n";
+    // Vertical sets
+    s += "Vertical alignment sets";
+    sprintf(buf," (%d)\n",m_vSets.size());
+    s += std::string(buf);
+    for (std::map<int,AlignedNodes*>::iterator it=m_vSets.begin(); it!=m_vSets.end(); ++it)
+    {
+        int index = it->first;
+        AlignedNodes *a = it->second;
+        sprintf(buf,"  %d:\n",index);
+        s += std::string(buf);
+        s += a->toString("    ");
+    }
+    return s;
+}
+
 void ACALayout::computeDegrees(void)
 {
     // Map node indices to indices of their neighbours.
@@ -603,20 +661,74 @@ void ACALayout::initAlignmentSets(Dim dim)
         // Combine
         AlignedNodes *a = ls->combineWithPorts(*rs,l,0,r,g);
         // Update map.
-        sets.insert(std::pair<int,AlignedNodes*>(l,a));
-        sets.insert(std::pair<int,AlignedNodes*>(r,a));
+        switch (dim) {
+        case vpsc::XDIM:
+            for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
+                int index = a->m_nodeIndices.at(i);
+                std::map<int,AlignedNodes*>::iterator it = m_hSets.find(index);
+                if (it!=m_hSets.end()) {
+                    m_hSets.erase(it);
+                    m_hSets.insert(std::pair<int,AlignedNodes*>(index,a));
+                }
+            }
+            break;
+        case vpsc::YDIM:
+            for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
+                int index = a->m_nodeIndices.at(i);
+                std::map<int,AlignedNodes*>::iterator it = m_vSets.find(index);
+                if (it!=m_vSets.end()) {
+                    m_vSets.erase(it);
+                    m_vSets.insert(std::pair<int,AlignedNodes*>(index,a));
+                }
+            }
+            break;
+        default:
+            break;
+        }
         delete ls;
         delete rs;
     }
-    // Clean up by removing dummy rectangles for auxiliary variables.
+    // Clean up.
+    // Remove dummy indices from the map.
     int N = dim==vpsc::XDIM ? m_numExtraYVars : m_numExtraXVars;
     for (int k = 0; k < N; k++) {
         int v = m_n + k;
-        std::map<int,AlignedNodes*>::iterator i = sets.find(v);
-        if (i!=sets.end()) {
-            AlignedNodes *a = i->second;
-            a->removeNode(v);
+        switch (dim) {
+        case vpsc::XDIM:
+            m_hSets.erase(m_hSets.find(v));
+            break;
+        case vpsc::YDIM:
+            m_vSets.erase(m_vSets.find(v));
+            break;
+        default:
+            break;
         }
+    }
+    // Remove dummy rectangles for auxiliary variables.
+    switch (dim) {
+    case vpsc::XDIM:
+        for (std::map<int,AlignedNodes*>::iterator i=m_hSets.begin(); i!=m_hSets.end(); ++i) {
+            i->second->removeAuxiliaryNodes(m_n);
+        }
+        break;
+    case vpsc::YDIM:
+        for (std::map<int,AlignedNodes*>::iterator i=m_vSets.begin(); i!=m_vSets.end(); ++i) {
+            i->second->removeAuxiliaryNodes(m_n);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void ACALayout::inspectVSets(void)
+{
+    unsigned s = m_vSets.size();
+    for (std::map<int,AlignedNodes*>::iterator it=m_vSets.begin(); it!=m_vSets.end(); ++it)
+    {
+        int index = it->first;
+        AlignedNodes *a = it->second;
+        int bar = 0;
     }
 }
 
@@ -627,9 +739,21 @@ AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
     AlignedNodes *a;
     if (it==sets.end()) {
         // create new set
-        // If i is the index of an ausiliary variable, then just make a dummy rectangle for it.
+        // If i is the index of an auxiliary variable, then just make a dummy rectangle for it.
         vpsc::Rectangle *R = i < m_n ? m_rs.at(i) : new vpsc::Rectangle(-5,5,-5,5);
         a = new AlignedNodes(dim,i,R);
+        // Add it to the map so that we get expected behaviour elsewhere, e.g.
+        // when we try to delete existing value from map.
+        switch(dim) {
+        case vpsc::XDIM:
+            m_hSets.insert(std::pair<int,AlignedNodes*>(i,a));
+            break;
+        case vpsc::YDIM:
+            m_vSets.insert(std::pair<int,AlignedNodes*>(i,a));
+            break;
+        default:
+            break;
+        }
     } else {
         // get existing set
         a = it->second;
@@ -963,7 +1087,10 @@ OrderedAlignment *ACALayout::chooseOA(void)
             // (do it now in case of 'continue's below)
             sn = sn << 1;
             // Check feasibility.
+            // First check whether it is a bad separation.
             if (badSeparation(j,sf)) continue;
+            // Next check whether the alignment would create
+            // edge-edge or edge-node overlaps.
             switch (m_overlapPrevention) {
             case ACAOPCENTREALIGN:
                 if (createsOverlap(src,tgt,sf)) continue;
@@ -977,8 +1104,11 @@ OrderedAlignment *ACALayout::chooseOA(void)
             // Passed feasibility tests.
             // Now compute penalty.
             double p = 0;
+            // Deflection:
             p += deflection(src,tgt,sf);
+            // Bend points:
             if (m_addBendPointPenalty) p += bendPointPenalty(src,tgt,sf);
+            // Leaves:
             if (m_postponeLeaves) p += leafPenalty(src,tgt);
             // Replace current ordered alignment if penalty is lower.
             if (p < minPenalty) {
