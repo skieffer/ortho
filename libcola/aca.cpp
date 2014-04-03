@@ -91,6 +91,13 @@ AlignedNodes::AlignedNodes(Dim primaryDim, int nodeIndex, Rectangle *nodeRect)  
     m_nodeRects.push_back(S);
 }
 
+AlignedNodes::~AlignedNodes()
+{
+    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
+        delete m_nodeRects[i];
+    }
+}
+
 void AlignedNodes::removeNode(int index)
 {
     vpsc::Rectangles::iterator rit = m_nodeRects.begin();
@@ -168,9 +175,8 @@ AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1
     vpsc::Rectangle *S = other.m_nodeRects.at(j);
     double v2 = S->getCentreD(m_secondaryDim);
     v2 += offset2;
-    // Get a shifted copy of other, and compute sum with self.
-    AlignedNodes sh = other.shifted(v1-v2);
-    AlignedNodes *a = this->combine(sh);
+    // Combine with a shifted copy of other.
+    AlignedNodes *a = this->combine(other,v1-v2);
     if (edge >= 0) {
         // Add the new edge.
         double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
@@ -197,7 +203,7 @@ void AlignedNodes::addEdge(int index, double c, double l, double u)
     m_edgeUpperBounds.push_back(u);
 }
 
-AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
+AlignedNodes *AlignedNodes::combine(const AlignedNodes &other, double shift)
 {
     AlignedNodes *S = new AlignedNodes(m_primaryDim);
     // node indices
@@ -209,10 +215,14 @@ AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
     }
     // node rects
     for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        S->m_nodeRects.push_back(m_nodeRects.at(i));
+        vpsc::Rectangle *R = new vpsc::Rectangle(*m_nodeRects.at(i));
+        S->m_nodeRects.push_back(R);
     }
     for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        S->m_nodeRects.push_back(other.m_nodeRects.at(i));
+        vpsc::Rectangle *R = new vpsc::Rectangle(*other.m_nodeRects.at(i));
+        double z = R->getCentreD(m_secondaryDim);
+        R->moveCentreD(m_secondaryDim,z+shift);
+        S->m_nodeRects.push_back(R);
     }
     // edge indices
     for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
@@ -226,7 +236,7 @@ AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
         S->m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        S->m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+        S->m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i)+shift);
     }
     // edge lower bounds
     for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
@@ -243,80 +253,6 @@ AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
         S->m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
     }
     return S;
-}
-
-
-AlignedNodes AlignedNodes::operator +(const AlignedNodes &other)
-{
-    AlignedNodes s(m_primaryDim);
-    // node indices
-    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
-    }
-    for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
-    }
-    // node rects
-    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(m_nodeRects.at(i));
-    }
-    for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
-    }
-    // edge indices
-    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
-    }
-    // edge const coords
-    for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
-    }
-    // edge lower bounds
-    for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
-    }
-    // edge upper bounds
-    for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
-    }
-    return s;
-}
-
-AlignedNodes AlignedNodes::copy(void) const
-{
-    AlignedNodes a = *this;
-    AlignedNodes b(m_primaryDim);
-    return a+b;
-}
-
-AlignedNodes AlignedNodes::shifted(double offset) const
-{
-    AlignedNodes c = copy();
-    // node rects
-    for (unsigned i = 0; i < c.m_nodeRects.size(); i++) {
-        vpsc::Rectangle *R = c.m_nodeRects.at(i);
-        double z = R->getCentreD(m_secondaryDim);
-        vpsc::Rectangle *S = new vpsc::Rectangle(*R);
-        S->moveCentreD(m_secondaryDim,z+offset);
-        c.m_nodeRects[i] = S;
-    }
-    // edge const coords
-    for (unsigned i = 0; i < c.m_edgeConstCoords.size(); i++) {
-        c.m_edgeConstCoords[i] += offset;
-    }
-    return c;
 }
 
 bool AlignedNodes::thereAreOverlaps(void)

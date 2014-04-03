@@ -163,6 +163,7 @@ struct AlignedNodes {
      * Initialize with a single node.
      */
     AlignedNodes(vpsc::Dim primaryDim, int nodeIndex, vpsc::Rectangle *nodeRect);
+    ~AlignedNodes();
     vpsc::Dim m_primaryDim;   // XDIM for horizontal alignments; YDIM for vertical
     vpsc::Dim m_secondaryDim; // YDIM for horizontal alignments; XDIM for vertical
     std::vector<int> m_nodeIndices;
@@ -192,15 +193,8 @@ struct AlignedNodes {
      * Like combineWithEdge only no edge is added.
      */
     AlignedNodes *combineWithPorts(const AlignedNodes &other, int node1, double offset1, int node2, double offset2);
-
-    // Combine two AlignedNodes structs without altering either:
-    AlignedNodes operator+ (const AlignedNodes &other);
     // Like addition but allocate new memory:
-    AlignedNodes *combine(const AlignedNodes &other);
-    // Return a fresh copy:
-    AlignedNodes copy(void) const;
-    // Return fresh copy with all coords in secondaryDim shifted by passed offset:
-    AlignedNodes shifted(double offset) const;
+    AlignedNodes *combine(const AlignedNodes &other, double shift = 0);
     // Check for overlaps:
     bool thereAreOverlaps(void);
 };
@@ -257,7 +251,7 @@ public:
         const EdgeLengths& eLengths = StandardEdgeLengths,
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
-    ~ACALayout();
+    ~ACALayout(void);
     /**
      * @brief Creates alignments.
      *
