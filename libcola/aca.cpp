@@ -85,7 +85,17 @@ AlignedNodes::AlignedNodes(Dim primaryDim, int nodeIndex, Rectangle *nodeRect)  
 {
     m_secondaryDim = primaryDim==vpsc::XDIM ? vpsc::YDIM : vpsc::XDIM;
     m_nodeIndices.push_back(nodeIndex);
-    m_nodeRects.push_back(nodeRect);
+    // Make new copy of rectangle, so existing one will not be modified if and when
+    // this AlignedNodes object gets shifted.
+    vpsc::Rectangle *S = new vpsc::Rectangle(*nodeRect);
+    m_nodeRects.push_back(S);
+}
+
+AlignedNodes::~AlignedNodes()
+{
+    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
+        delete m_nodeRects[i];
+    }
 }
 
 void AlignedNodes::removeNode(int index)
@@ -117,12 +127,29 @@ std::string AlignedNodes::toString(string pad)
 {
     std::string s = "";
     char buffer [1000];
+    // Nodes
+    s += pad+"Nodes:\n";
     for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
         int index = m_nodeIndices.at(i);
-        vpsc::Rectangle *R = m_nodeRects.at(i);
-        double u = R->getMinD(m_primaryDim), U = R->getMaxD(m_primaryDim);
-        double v = R->getMinD(m_secondaryDim), V = R->getMaxD(m_secondaryDim);
-        sprintf(buffer,"%d: [%.2f,%.2f] x [%.2f,%.2f]\n",index,u,U,v,V);
+        sprintf(buffer,"%d:",index);
+        s += pad+std::string(buffer);
+        if (m_primaryDim>=0 && m_primaryDim<2 && m_secondaryDim>=0 && m_secondaryDim<2) {
+            vpsc::Rectangle *R = m_nodeRects.at(i);
+            double u = R->getMinD(m_primaryDim), U = R->getMaxD(m_primaryDim);
+            double v = R->getMinD(m_secondaryDim), V = R->getMaxD(m_secondaryDim);
+            sprintf(buffer," [%.2f,%.2f] x [%.2f,%.2f]\n",u,U,v,V);
+            s += std::string(buffer);
+        } else {
+            sprintf(buffer," ERROR: bad dimension numbers %d, %d\n",m_primaryDim,m_secondaryDim);
+            s += std::string(buffer);
+        }
+    }
+    // Edges
+    s += pad+"Edges:\n";
+    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
+        int index = m_edgeIndices.at(i);
+        double c=m_edgeConstCoords.at(i), l=m_edgeLowerBounds.at(i), u=m_edgeUpperBounds.at(i);
+        sprintf(buffer,"%d: at %.2f from %.2f to %.2f\n",index,c,l,u);
         s += pad+std::string(buffer);
     }
     return s;
@@ -130,7 +157,7 @@ std::string AlignedNodes::toString(string pad)
 
 AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
 {
-    // Determine the local coordinate of port 1.
+    // Determine the local coordinate of port 1, in this AlignedNodes object.
     unsigned i = 0;
     while (i < m_nodeIndices.size()) {
         if (m_nodeIndices.at(i)==node1) break;
@@ -139,18 +166,17 @@ AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1
     vpsc::Rectangle *R = m_nodeRects.at(i);
     double v1 = R->getCentreD(m_secondaryDim);
     v1 += offset1;
-    // Determine the local coordinate of port 2.
+    // Determine the local coordinate of port 2, in the other AlignedNodes object.
     unsigned j = 0;
     while (j < other.m_nodeIndices.size()) {
         if (other.m_nodeIndices.at(j)==node2) break;
         j++;
     }
-    vpsc::Rectangle *S = m_nodeRects.at(j);
+    vpsc::Rectangle *S = other.m_nodeRects.at(j);
     double v2 = S->getCentreD(m_secondaryDim);
     v2 += offset2;
-    // Get a shifted copy of other, and compute sum with self.
-    AlignedNodes sh = other.shifted(v1-v2);
-    AlignedNodes *a = this->combine(sh);
+    // Combine with a shifted copy of other.
+    AlignedNodes *a = this->combine(other,v1-v2);
     if (edge >= 0) {
         // Add the new edge.
         double u1 = R->getMinD(m_primaryDim), U1 = R->getMaxD(m_primaryDim);
@@ -177,132 +203,70 @@ void AlignedNodes::addEdge(int index, double c, double l, double u)
     m_edgeUpperBounds.push_back(u);
 }
 
-AlignedNodes *AlignedNodes::combine(const AlignedNodes &other)
+AlignedNodes *AlignedNodes::combine(const AlignedNodes &other, double shift)
 {
     AlignedNodes *S = new AlignedNodes(m_primaryDim);
-    AlignedNodes &s = *S;
     // node indices
     for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
+        S->m_nodeIndices.push_back(m_nodeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
+        S->m_nodeIndices.push_back(other.m_nodeIndices.at(i));
     }
     // node rects
     for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(m_nodeRects.at(i));
+        vpsc::Rectangle *R = new vpsc::Rectangle(*m_nodeRects.at(i));
+        S->m_nodeRects.push_back(R);
     }
     for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
+        vpsc::Rectangle *R = new vpsc::Rectangle(*other.m_nodeRects.at(i));
+        double z = R->getCentreD(m_secondaryDim);
+        R->moveCentreD(m_secondaryDim,z+shift);
+        S->m_nodeRects.push_back(R);
     }
     // edge indices
     for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
+        S->m_edgeIndices.push_back(m_edgeIndices.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
+        S->m_edgeIndices.push_back(other.m_edgeIndices.at(i));
     }
     // edge const coords
     for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
+        S->m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
+        S->m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i)+shift);
     }
     // edge lower bounds
     for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
+        S->m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
+        S->m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
     }
     // edge upper bounds
     for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
+        S->m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
     }
     for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
+        S->m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
     }
     return S;
 }
 
-
-AlignedNodes AlignedNodes::operator +(const AlignedNodes &other)
-{
-    AlignedNodes s(m_primaryDim);
-    // node indices
-    for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(m_nodeIndices.at(i));
-    }
-    for (unsigned i = 0; i < other.m_nodeIndices.size(); i++) {
-        s.m_nodeIndices.push_back(other.m_nodeIndices.at(i));
-    }
-    // node rects
-    for (unsigned i = 0; i < m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(m_nodeRects.at(i));
-    }
-    for (unsigned i = 0; i < other.m_nodeRects.size(); i++) {
-        s.m_nodeRects.push_back(other.m_nodeRects.at(i));
-    }
-    // edge indices
-    for (unsigned i = 0; i < m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(m_edgeIndices.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeIndices.size(); i++) {
-        s.m_edgeIndices.push_back(other.m_edgeIndices.at(i));
-    }
-    // edge const coords
-    for (unsigned i = 0; i < m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(m_edgeConstCoords.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeConstCoords.size(); i++) {
-        s.m_edgeConstCoords.push_back(other.m_edgeConstCoords.at(i));
-    }
-    // edge lower bounds
-    for (unsigned i = 0; i < m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(m_edgeLowerBounds.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeLowerBounds.size(); i++) {
-        s.m_edgeLowerBounds.push_back(other.m_edgeLowerBounds.at(i));
-    }
-    // edge upper bounds
-    for (unsigned i = 0; i < m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(m_edgeUpperBounds.at(i));
-    }
-    for (unsigned i = 0; i < other.m_edgeUpperBounds.size(); i++) {
-        s.m_edgeUpperBounds.push_back(other.m_edgeUpperBounds.at(i));
-    }
-    return s;
-}
-
-AlignedNodes AlignedNodes::copy(void) const
-{
-    AlignedNodes a = *this;
-    AlignedNodes b(m_primaryDim);
-    return a+b;
-}
-
-AlignedNodes AlignedNodes::shifted(double offset) const
-{
-    AlignedNodes c = copy();
-    // node rects
-    for (unsigned i = 0; i < c.m_nodeRects.size(); i++) {
-        vpsc::Rectangle *R = c.m_nodeRects.at(i);
-        R->moveCentreD(m_secondaryDim,offset);
-    }
-    // edge const coords
-    for (unsigned i = 0; i < c.m_edgeConstCoords.size(); i++) {
-        c.m_edgeConstCoords[i] += offset;
-    }
-    return c;
-}
-
 bool AlignedNodes::thereAreOverlaps(void)
 {
+    // If there are no edges at all, then there are no overlaps.
+    if (m_edgeIndices.size() == 0) return false;
+    // Will need unique indices for edges, so compute strict upper
+    // bound on existing node indices.
+    int N = 0;
     // Make events for nodes opening and closing, and for edges.
     std::vector<Event> events;
     for (unsigned i = 0; i < m_nodeIndices.size(); i++) {
         int index = m_nodeIndices.at(i);
+        if (index >= N) N = index + 1;
         vpsc::Rectangle *R = m_nodeRects.at(i);
         Event eo(OPEN), ec(CLOSE);
         eo.m_index = index;
@@ -331,7 +295,7 @@ bool AlignedNodes::thereAreOverlaps(void)
         // Get open intervals for next constant coord.
         double v = events.at(i).m_pos;
         std::set<int> closedEvents;
-        while (events.at(i).m_pos == v && i < events.size()) {
+        while (i < events.size() && events.at(i).m_pos == v) {
             Event e = events.at(i);
             if (e.m_type==CLOSE) {
                 closedEvents.insert(e.m_index);
@@ -345,7 +309,8 @@ bool AlignedNodes::thereAreOverlaps(void)
         for (unsigned j = 0; j < openIntervals.size(); j++) {
             Event e = openIntervals.at(j);
             Event o(OPEN), c(CLOSE);
-            o.m_index = c.m_index = e.m_index;
+            int index = e.m_index + (e.m_type==LOCAL ? N : 0);
+            o.m_index = c.m_index = index;
             o.m_pos = e.m_lowerBound;
             c.m_pos = e.m_upperBound;
             intervalEvents.push_back(o);
@@ -386,18 +351,21 @@ bool AlignedNodes::thereAreOverlaps(void)
                         // The first open interval was closed, and the second one is
                         // now to be noted by the openIndex.
                         openIndex = nextIndex;
+                        k++;
                     }
                 }
             }
         }
         // Remove closed intervals, if any.
-        std::vector<Event> tmp;
-        for (unsigned j = 0; j < openIntervals.size(); j++) {
-            Event e = openIntervals.at(j);
-            if (e.m_type==OPEN && closedEvents.count(e.m_index)!=0) continue;
-            tmp.push_back(e);
+        if (closedEvents.size()>0) {
+            std::vector<Event> tmp;
+            for (unsigned j = 0; j < openIntervals.size(); j++) {
+                Event e = openIntervals.at(j);
+                if (e.m_type==OPEN && closedEvents.count(e.m_index)!=0) continue;
+                tmp.push_back(e);
+            }
+            openIntervals = tmp;
         }
-        openIntervals = tmp;
     }
     return false;
 }
@@ -428,6 +396,7 @@ ACALayout::ACALayout(
       m_allAtOnce(false),
       m_aggressiveOrdering(false),
       m_overlapPrevention(ACAOPWITHOFFSETS),
+      m_alignmentSetsTrackLayout(false),
       m_fdlayout(NULL)
 {
     computeDegrees();
@@ -697,6 +666,10 @@ AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
         // Add it to the map so that we get expected behaviour elsewhere, e.g.
         // when we try to delete existing value from map.
         sets.insert(std::pair<int,AlignedNodes*>(i,a));
+        // The AlignedNodes constructor makes a copy of the passed rectangle.
+        // Therefore, if we just created the rectangle R here, for an auxiliary
+        // variable, then we should delete it now.
+        if (i>=m_n) delete R;
     } else {
         // get existing set
         a = it->second;
@@ -938,6 +911,7 @@ void ACALayout::layoutWithCurrentConstraints(void)
 
 bool ACALayout::acaLoopOnce(void)
 {
+    m_alignmentSetsTrackLayout = true;
     OrderedAlignment *oa = chooseOA();
     if (oa) {
         // Add the new separated alignment constraints.
@@ -955,6 +929,7 @@ bool ACALayout::acaLoopOnce(void)
 
 void ACALayout::acaLoopOneByOne(void)
 {
+    m_alignmentSetsTrackLayout = true;
     // Choose a first alignment.
     OrderedAlignment *oa = chooseOA();
     while (oa) {
@@ -972,6 +947,7 @@ void ACALayout::acaLoopOneByOne(void)
 
 void ACALayout::acaLoopAllAtOnce(void)
 {
+    m_alignmentSetsTrackLayout = false;
     // Choose a first alignment.
     OrderedAlignment *oa = chooseOA();
     while (oa) {
@@ -987,6 +963,25 @@ void ACALayout::acaLoopAllAtOnce(void)
     layoutWithCurrentConstraints();
 }
 
+void ACALayout::updateAlignmentSetRects(vpsc::Dim dim)
+{
+    std::map<int,AlignedNodes*> &sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    std::set<int> doneIndices;
+    for (std::map<int,AlignedNodes*>::iterator it=sets.begin(); it!=sets.end(); ++it) {
+        int index = it->first;
+        if (doneIndices.count(index)!=0) continue;
+        AlignedNodes *a = it->second;
+        for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
+            int index = a->m_nodeIndices.at(i);
+            vpsc::Rectangle *R = m_rs.at(index);
+            vpsc::Rectangle *S = a->m_nodeRects.at(i);
+            S->moveCentreX(R->getCentreX());
+            S->moveCentreY(R->getCentreY());
+            doneIndices.insert(index);
+        }
+    }
+}
+
 void ACALayout::updateStateTables(OrderedAlignment *oa)
 {
     int l = oa->left, r = oa->right;
@@ -995,15 +990,25 @@ void ACALayout::updateStateTables(OrderedAlignment *oa)
     recordAlignmentWithClosure(l,r,oa->af);
     recordSeparationWithClosure(l,r,sf);
     // Alignment sets:
+    if (m_alignmentSetsTrackLayout) {
+        updateAlignmentSetRects(vpsc::XDIM);
+        updateAlignmentSetRects(vpsc::YDIM);
+    }
     vpsc::Dim dim = oa->af==ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
     AlignedNodes *ls = getAlignmentSet(dim,l);
     AlignedNodes *rs = getAlignmentSet(dim,r);
     AlignedNodes *a = ls->combineWithEdge(*rs,l,oa->offsetLeft,
                                              r,oa->offsetRight,
                                          oa->edgeIndex);
-    std::map<int,AlignedNodes*> sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
-    sets.insert(std::pair<int,AlignedNodes*>(l,a));
-    sets.insert(std::pair<int,AlignedNodes*>(r,a));
+    std::map<int,AlignedNodes*> &sets = dim==vpsc::XDIM ? m_hSets : m_vSets;
+    for (unsigned i = 0; i < a->m_nodeIndices.size(); i++) {
+        int index = a->m_nodeIndices.at(i);
+        std::map<int,AlignedNodes*>::iterator it = sets.find(index);
+        if (it!=sets.end()) {
+            sets.erase(it);
+            sets.insert(std::pair<int,AlignedNodes*>(index,a));
+        }
+    }
     delete ls;
     delete rs;
 }
@@ -1031,16 +1036,19 @@ OrderedAlignment *ACALayout::chooseOA(void)
             sn = sn << 1;
             // Check feasibility.
             // First check whether it is a bad separation.
-            if (badSeparation(j,sf)) continue;
+            bool bs = badSeparation(j,sf);
+            if (bs) continue;
             // Next check whether the alignment would create
             // edge-edge or edge-node overlaps.
             switch (m_overlapPrevention) {
             case ACAOPCENTREALIGN:
                 if (createsOverlap(src,tgt,sf)) continue;
                 break;
-            case ACAOPWITHOFFSETS:
-                if (createsOverlap2(j,sf)) continue;
+            case ACAOPWITHOFFSETS: {
+                bool co = createsOverlap2(j,sf);
+                if (co) continue;
                 break;
+            }
             default:
                 break;
             }
