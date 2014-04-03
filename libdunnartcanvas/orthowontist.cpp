@@ -2410,7 +2410,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 1;
+    int test = 0;
 
     switch(test) {
     case 0: {
@@ -2494,7 +2494,13 @@ void Orthowontist::testColaACA(GraphData *graph) {
     qDebug() << "Alignment Sets:";
     qDebug() << QString(aca->writeAlignmentSets().c_str());
     // Try an alignment.
-    aca->createOneAlignment();
+    while(aca->createOneAlignment()) {
+        //aca->updateAlignmentSetRects(vpsc::XDIM);
+        //aca->updateAlignmentSetRects(vpsc::YDIM);
+        qDebug() << "Alignment Sets:";
+        qDebug() << QString(aca->writeAlignmentSets().c_str());
+    }
+    int z = 0;
 
     /*
     QMap<ShapeObj*,int> shapeIndices;

@@ -469,6 +469,7 @@ private:
     void acaLoopOneByOne(void);
     void acaLoopAllAtOnce(void);
 
+    void updateAlignmentSetRects(vpsc::Dim dim);
     void updateStateTables(OrderedAlignment *oa);
     OrderedAlignment *chooseOA(void);
     // In the following methods, the separation flag always means the direction from src to tgt.
@@ -536,6 +537,7 @@ private:
     // Map node indices to sets of nodes aligned horizontally or vertically.
     std::map<int,AlignedNodes*> m_hSets;
     std::map<int,AlignedNodes*> m_vSets;
+    bool m_alignmentSetsTrackLayout;
 
     cola::ConstrainedFDLayout *m_fdlayout;
 
