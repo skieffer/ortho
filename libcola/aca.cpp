@@ -1025,8 +1025,6 @@ void ACALayout::layoutWithCurrentConstraints(void)
 #endif
     m_fdlayout->setConstraints(m_ccs);
     m_fdlayout->run(true,true);
-    //updateAlignmentSetRects(vpsc::XDIM);
-    //updateAlignmentSetRects(vpsc::YDIM);
 }
 
 bool ACALayout::acaLoopOnce(void)
@@ -1283,9 +1281,6 @@ bool ACALayout::createsOverlap2(int j, ACASepFlag sf)
 {
     cola::Edge e = m_es.at(j);
     int src = e.first, tgt = e.second;
-    if (tgt==3 && src==4) {
-        int z = 0;
-    }
     EdgeOffset offset = getEdgeOffsetForCompassDirection(j,sf);
     double srcOffset = offset.first, tgtOffset = offset.second;
     vpsc::Dim dim = sepToAlignFlag(sf) == ACAHORIZ ? vpsc::XDIM : vpsc::YDIM;
