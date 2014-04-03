@@ -395,7 +395,7 @@ ACALayout::ACALayout(
       m_useNonLeafDegree(true),
       m_allAtOnce(false),
       m_aggressiveOrdering(false),
-      m_overlapPrevention(ACAOPWITHOFFSETS),
+      m_overlapPrevention(ACAOPCENTREALIGN),
       m_alignmentSetsTrackLayout(false),
       m_fdlayout(NULL)
 {

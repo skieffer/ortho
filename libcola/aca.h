@@ -357,10 +357,11 @@ public:
      * @brief Say which test to use when checking whether an alignment would
      * make an edge overlap a node or another edge.
      *
-     * The default value is ACAOPWITHOFFSETS, our more sophisticated
-     * check, which considers the offsets that you have assigned to edges (if any).
+     * The default value is ACAOPCENTREALIGN, which should be used if no
+     * edges have any offsets.
      *
-     * The value ACAOPCENTREALIGN should be used if no edges have any offsets.
+     * Use ACAOPWITHOFFSETS for our more sophisticated check, which considers
+     * the offsets that you have assigned to edges (if any).
      *
      * Set to ACAOPNONE for no overlap checking.
      */

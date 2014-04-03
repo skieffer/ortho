@@ -2410,7 +2410,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 0;
+    int test = 4;
 
     switch(test) {
     case 0: {
@@ -2478,9 +2478,21 @@ void Orthowontist::testColaACA(GraphData *graph) {
         ccs.push_back(ac);
         break;
     }
+    case 3: // same set up as case 4
+    case 4: {
+        rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
+        rs.push_back(new vpsc::Rectangle(200,250, 45,205));
+        rs.push_back(new vpsc::Rectangle(  0, 50,200,250));
+        es.push_back(cola::Edge(0,1));
+        es.push_back(cola::Edge(2,1));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,100));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,2,1,100));
+        break;
     }
-    // Build the ACA object, and write its tables.
+    }
+    // Build the ACA object.
     cola::ACALayout *aca = new cola::ACALayout(rs,es,ccs,100,false);
+    // Show initial tables.
     qDebug() << "Separation table before chop:";
     qDebug() << QString(aca->sStateBeforeChop.c_str());
     qDebug() << "Separation table:";
@@ -2493,54 +2505,30 @@ void Orthowontist::testColaACA(GraphData *graph) {
 
     qDebug() << "Alignment Sets:";
     qDebug() << QString(aca->writeAlignmentSets().c_str());
-    // Try an alignment.
+    // Additional settings:
+    switch(test) {
+    case 4: {
+        aca->overlapPrevention(cola::ACAOPWITHOFFSETS);
+        cola::EdgeOffsets eoff;
+        eoff.push_back(std::pair<double,double>(0,-40));
+        eoff.push_back(std::pair<double,double>(0,40));
+        aca->setAlignmentOffsetsForCompassDirection(cola::ACAEAST,eoff);
+        break;
+    }
+    }
+    // Try alignments.
+    int k = 0;
+    char buf [100];
     while(aca->createOneAlignment()) {
-        //aca->updateAlignmentSetRects(vpsc::XDIM);
-        //aca->updateAlignmentSetRects(vpsc::YDIM);
         qDebug() << "Alignment Sets:";
         qDebug() << QString(aca->writeAlignmentSets().c_str());
+        // Write SVG.
+        cola::ConstrainedFDLayout *fdlayout = aca->getFDLayout();
+        sprintf(buf,"ACA-test%d-%04d",test,k);
+        std::string s(buf);
+        fdlayout->outputInstanceToSVG(s);
+        k++;
     }
-    int z = 0;
-
-    /*
-    QMap<ShapeObj*,int> shapeIndices;
-    QList<Distribution*> distrolist;
-    QList<Separation*> separationlist;
-
-    // Just use all items
-    items = m_canvas->items();
-
-    foreach (CanvasItem *item, items)
-    {
-        if (ShapeObj *shape = isShapeForLayout(item))
-        {
-            QPointF pos = shape->centrePos();
-            QSizeF size = shape->size();
-            double x = pos.x() - size.width()/2, y = pos.y() - size.height()/2;
-            double X = x + size.width(), Y = y + size.height();
-            vpsc::Rectangle *r = new vpsc::Rectangle(x,X,y,Y);
-            rs.push_back(r);
-            shapeIndices.insert(shape,rs.size());
-            // Show IDs?
-            bool showIDs = true;
-            if (showIDs) {
-                QString label = QString("%1").arg(shape->internalId());
-                shape->setLabel(label);
-            }
-        }
-    }
-    foreach (CanvasItem *item, items)
-    {
-        if (Connector *conn = dynamic_cast<Connector*>(item))
-        {
-            QPair<ShapeObj*,ShapeObj*> endpts = conn->getAttachedShapes();
-            unsigned i = shapeIndices.value(endpts.first);
-            unsigned j = shapeIndices.value(endpts.second);
-            es.push_back(new cola::Edge(i,j));
-        }
-    }
-    */
-
 }
 
 
