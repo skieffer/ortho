@@ -150,7 +150,7 @@ std::string AlignedNodes::toString(string pad)
 
 AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1, double offset1, int node2, double offset2, int edge)
 {
-    // Determine the local coordinate of port 1.
+    // Determine the local coordinate of port 1, in this AlignedNodes object.
     unsigned i = 0;
     while (i < m_nodeIndices.size()) {
         if (m_nodeIndices.at(i)==node1) break;
@@ -159,7 +159,7 @@ AlignedNodes *AlignedNodes::combineWithEdge(const AlignedNodes &other, int node1
     vpsc::Rectangle *R = m_nodeRects.at(i);
     double v1 = R->getCentreD(m_secondaryDim);
     v1 += offset1;
-    // Determine the local coordinate of port 2.
+    // Determine the local coordinate of port 2, in the other AlignedNodes object.
     unsigned j = 0;
     while (j < other.m_nodeIndices.size()) {
         if (other.m_nodeIndices.at(j)==node2) break;
@@ -788,6 +788,10 @@ AlignedNodes *ACALayout::getAlignmentSet(Dim dim, int i)
         default:
             break;
         }
+        // The AlignedNodes constructor makes a copy of the passed rectangle.
+        // Therefore, if we just created the rectangle R here, for an auxiliary
+        // variable, then we should delete it now.
+        if (i>=m_n) delete R;
     } else {
         // get existing set
         a = it->second;
