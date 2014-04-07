@@ -2410,9 +2410,10 @@ void Orthowontist::testColaACA(GraphData *graph) {
     std::vector<cola::Edge> es;
     cola::CompoundConstraints ccs;
 
-    int test = 4;
+    int test = 6;
 
     switch(test) {
+    // Use whatever graph is on the canvas.
     case 0: {
         rs = graph->rs; es = graph->edges; ccs = graph->ccs;
         // Print the mapping between rectangle indices and Dunnart shapes,
@@ -2425,6 +2426,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
         }
         break;
     }
+    // Simple one
     case 1: {
         rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
         rs.push_back(new vpsc::Rectangle(100,150,  0, 50));
@@ -2446,6 +2448,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
         ccs.push_back(ac);
         break;
     }
+    // Another simple one
     case 2: {
         rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
         rs.push_back(new vpsc::Rectangle(100,150,  0, 50));
@@ -2478,6 +2481,7 @@ void Orthowontist::testColaACA(GraphData *graph) {
         ccs.push_back(ac);
         break;
     }
+    // Tests 3 and 4 show the difference between using ACAOPWITHOFFSETS and not.
     case 3: // same set up as case 4
     case 4: {
         rs.push_back(new vpsc::Rectangle(  0, 50,  0, 50));
@@ -2487,6 +2491,94 @@ void Orthowontist::testColaACA(GraphData *graph) {
         es.push_back(cola::Edge(2,1));
         ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,100));
         ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,2,1,100));
+        break;
+    }
+    // Test 5 should create an edge overlap.
+    case 5: {
+        rs.push_back(new vpsc::Rectangle(-30, 30,-30, 30));
+        rs.push_back(new vpsc::Rectangle( 90,150,-30, 30));
+        rs.push_back(new vpsc::Rectangle(210,270,-30, 30));
+
+        rs.push_back(new vpsc::Rectangle(-30, 30, 90,150));
+        rs.push_back(new vpsc::Rectangle( 90,150, 90,150));
+
+        rs.push_back(new vpsc::Rectangle(-30, 30,210,270));
+        rs.push_back(new vpsc::Rectangle( 90,150,210,270));
+
+        rs.push_back(new vpsc::Rectangle(-30, 30,330,390));
+        rs.push_back(new vpsc::Rectangle( 90,150,330,390));
+        rs.push_back(new vpsc::Rectangle(210,270,330,390));
+
+        es.push_back(cola::Edge(0,1));
+        es.push_back(cola::Edge(1,2));
+        es.push_back(cola::Edge(3,4));
+        es.push_back(cola::Edge(5,6));
+        es.push_back(cola::Edge(7,8));
+        es.push_back(cola::Edge(8,9));
+
+        es.push_back(cola::Edge(0,3));
+        es.push_back(cola::Edge(5,7));
+        es.push_back(cola::Edge(4,6));
+        es.push_back(cola::Edge(2,9));
+
+        es.push_back(cola::Edge(1,8));
+
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,1,2,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,3,4,120,true));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,5,6,120,true));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,7,8,120,true));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,8,9,120));
+
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,0,3,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,5,7,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,4,6,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,2,9,360));
+        break;
+    }
+    // Test 6 should create an edge-node (centre) intersection.
+    case 6: {
+        rs.push_back(new vpsc::Rectangle(-30, 30,-30, 30));
+        rs.push_back(new vpsc::Rectangle( 90,150,-30, 30));
+        rs.push_back(new vpsc::Rectangle(210,270,-30, 30));
+
+        rs.push_back(new vpsc::Rectangle(-30, 30, 90,150));
+        rs.push_back(new vpsc::Rectangle( 90,150, 90,150));
+        rs.push_back(new vpsc::Rectangle(210,270, 90,150));
+
+        rs.push_back(new vpsc::Rectangle(-30, 30,210,270));
+        rs.push_back(new vpsc::Rectangle( 90,150,210,270));
+        rs.push_back(new vpsc::Rectangle(210,270,210,270));
+
+        es.push_back(cola::Edge(0,1));
+        es.push_back(cola::Edge(1,2));
+        es.push_back(cola::Edge(3,4));
+        es.push_back(cola::Edge(4,5));
+        es.push_back(cola::Edge(6,7));
+        es.push_back(cola::Edge(7,8));
+
+        es.push_back(cola::Edge(0,3));
+        es.push_back(cola::Edge(3,6));
+        es.push_back(cola::Edge(1,4));
+        es.push_back(cola::Edge(4,7));
+        es.push_back(cola::Edge(2,5));
+        es.push_back(cola::Edge(5,8));
+
+        es.push_back(cola::Edge(1,7));
+
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,0,1,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,1,2,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,3,4,120,true));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,4,5,120,true));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,6,7,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::XDIM,7,8,120));
+
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,0,3,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,3,6,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,1,4,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,4,7,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,2,5,120));
+        ccs.push_back(new cola::SeparationConstraint(vpsc::YDIM,5,8,120));
         break;
     }
     }
